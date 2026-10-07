@@ -1,6 +1,6 @@
 [English](DEVELOPMENT.md) | [简体中文](DEVELOPMENT.zh.md)
 
-# my_extension — development notes
+# duckfn_kuva — development notes
 
 The user-facing docs live in [README.md](README.md): the SQL interface, installing and loading, and the
 quick start. This file keeps what a user does not need — how the code is layered, why it looks the way
@@ -21,7 +21,7 @@ skeleton conventions (entry module, `EXTENSION_NAME`, dependency list), plus a c
 ```text
 src/lib.rs            native crate root ->  mod extension;
 src/wasm_lib.rs       wasm crate root   ->  mod extension;   (same mods, mirrored)
-src/extension/mod.rs  ->  duckfn_entrypoint!("my_extension");
+src/extension/mod.rs  ->  duckfn_entrypoint!("duckfn_kuva");
 src/bin/duckfn.rs     duckfn CLI entry  ->  #[path] mod extension; + duckfn::cli::run(...)
                       (only serves `just docs_csv`; takes no part in running the extension)
 
@@ -34,7 +34,7 @@ src/extension/types/mod.rs
                         list<struct> result, the options type of a DuckLazy argument) go in this
                         layer — attach a `mod` here once you have one
 
-test/sql/               one .test per sample function, plus a my_extension.test smoke test
+test/sql/               one .test per sample function, plus a duckfn_kuva.test smoke test
 scripts/release.sh      releasing (bump / tag / dev)
 scripts/rename.sh       renaming the extension after cloning
 Justfile                shortcuts for the daily loop and for releasing
@@ -43,7 +43,7 @@ docs/                   the documentation site (Docusaurus, English + Simplified
 community-extension/    the two files a community-extension registration needs, plus the process
 ```
 
-The extension name `my_extension` has to match `EXTENSION_NAME` in the Makefile, `[package] name` and
+The extension name `duckfn_kuva` has to match `EXTENSION_NAME` in the Makefile, `[package] name` and
 `[[example]] name` in Cargo.toml, `extension_name` in the Justfile, and `extension_name` in the CI
 workflow; rename it with `scripts/rename.sh` instead of by hand (see the "extension name and renaming"
 section of AGENTS.md).
@@ -63,7 +63,7 @@ touching `extension/mod.rs` (and the `mod.rs` of the layer below) only.
 ### `src/bin/duckfn.rs`: why `#[path]` compiles the extension a second time
 
 The documentation metadata behind `#[duck_*]` is collected by `inventory`'s static constructors, which
-**only fire for object files that are really linked into the final binary**. With `use my_extension::...`
+**only fire for object files that are really linked into the final binary**. With `use duckfn_kuva::...`
 in the bin, the linker may drop those modules entirely (nobody references them) and the exported CSV
 comes out empty — silently, with no error.
 
@@ -164,7 +164,7 @@ The first run needs `make configure` to build the Python venv:
 
 ```shell
 make configure   # once
-make debug       # -> build/debug/my_extension.duckdb_extension
+make debug       # -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 `make release` is the optimized version of the same flow. On Windows `make` has to run inside Git Bash.
@@ -174,8 +174,8 @@ The `Justfile` at the repository root wraps the flow: `just build` (= `make conf
 `just docs_build`.
 
 One easy trap: **the artifact file name must be `<extension name>.duckdb_extension`**. DuckDB looks the
-entry-point symbol up by that name, so a rename (from `my_extension.duckdb_extension` to
-`win.duckdb_extension`, say) fails with `did not contain function "my_extension_init_c_api"` — the
+entry-point symbol up by that name, so a rename (from `duckfn_kuva.duckdb_extension` to
+`win.duckdb_extension`, say) fails with `did not contain function "duckfn_kuva_init_c_api"` — the
 artifact is not broken, it is misnamed.
 
 ## Function descriptions (the community-extension doc page)
@@ -258,7 +258,7 @@ The three files and what each covers:
 
 | File | Coverage |
 | --- | --- |
-| `test/sql/my_extension.test` | smoke: the function is missing before `LOAD`, both sample functions exist after `require` (also the smallest proof that the extension loads at all) |
+| `test/sql/duckfn_kuva.test` | smoke: the function is missing before `LOAD`, both sample functions exist after `require` (also the smallest proof that the extension loads at all) |
 | `test/sql/scalar_greet.test` | scalar: plain values (non-ASCII included), a constant NULL folded to NULL, runtime NULL rows short-circuited, both `DuckOptionResult` paths (NULL and error), binder errors for wrong arity and type, inputs spanning several DataChunks (`STANDARD_VECTOR_SIZE = 2048`) |
 | `test/sql/aggregate_sum.test` | aggregate: the return type, NULL rows skipped, an empty group yielding NULL, per-group results under `GROUP BY`, `combine` across DataChunks |
 
@@ -269,7 +269,7 @@ repository's own venv can drive the artifact directly:
 # Linux / macOS (--test-dir is also the value of __TEST_DIR__, so it is required)
 ./configure/venv/bin/python -m duckdb_sqllogictest \
     --test-dir test/sql \
-    --external-extension build/debug/my_extension.duckdb_extension
+    --external-extension build/debug/duckfn_kuva.duckdb_extension
 # one file only: add --file-path test/sql/scalar_greet.test
 ```
 
@@ -277,7 +277,7 @@ repository's own venv can drive the artifact directly:
 # Windows
 .\configure\venv\Scripts\python.exe -m duckdb_sqllogictest `
     --test-dir test/sql `
-    --external-extension build/debug/my_extension.duckdb_extension
+    --external-extension build/debug/duckfn_kuva.duckdb_extension
 ```
 
 A new function should cover at least: ordinary values, `NULL`, boundary values, and the error path

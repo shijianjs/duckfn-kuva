@@ -9,7 +9,12 @@ AGENTS.md（duckfn-extension-template 自带的那一份）：克隆模板后**�
 
 ## 项目事实（唯一需要人维护的一段）
 
-- 这个扩展做什么：{{PROJECT_GOAL}}
+- 这个扩展做什么：把 [kuva](https://crates.io/crates/kuva) 的统计语义绘图包装成 DuckDB 函数，让
+  统计图（scatter / histogram / box / violin / ridgeline / heatmap …）在 SQL 里就能直接产出一张
+  SVG —— **只要 DuckDB 能跑的地方它就能画**：CLI / Python / R、JVM、浏览器里的 DuckDB-Wasm 共用
+  同一份 `.duckdb_extension`，不依赖 matplotlib / ggplot2 那套宿主环境。语义对标 seaborn / ggplot2
+  （按列分组、按语义选图、自动汇总），绘图本身全部交给 kuva —— 纯 Rust、默认 SVG 后端、可编到
+  wasm —— 本扩展只负责把 SQL 的列送进去、把渲染好的 SVG 送出来。
 - 本仓库来自 [duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template)：
   克隆后第一件事是 `just rename <新扩展名>`（见下面「扩展名与改名」）。
 
@@ -143,24 +148,24 @@ README 里出现的路径示例，并把 `Cargo.lock` 按新包名重写；脚�
 ### 注册到 DuckDB 的函数名统一加短前缀
 
 凡是出现在 SQL 里的名字都加同一个前缀：标量函数、聚合函数、表函数、COPY 格式、cast、SQL 宏、
-replacement scan。模板里这个前缀是 `my_`。
+replacement scan。本项目的前缀是 `kuva_`（模板里是 `my_`）。
 
 社区扩展几乎都不把包名/扩展名写进函数名（见
-<https://duckdb.org/community_extensions/list_of_extensions>）：`my_extension_greet` 这样的全名在每个
-调用点上都是纯噪声，而 `my_` 短到可以忽略，又足以在 `duckdb_functions()` 里按前缀检索。
+<https://duckdb.org/community_extensions/list_of_extensions>）：`duckfn_kuva_scatter` 这样的全名在每个
+调用点上都是纯噪声，而 `kuva_` 短到可以忽略，又足以在 `duckdb_functions()` 里按前缀检索。
 **前缀只是命名空间，不再是扩展名的缩写** —— 不要因为扩展名变了就跟着改。
 
 前缀之后的部分要能读懂，不要拿缩写堆砌。示例里的名字各只有一个签名：
 
 ```text
-my_greet(name)
-my_sum(value)
+kuva_scatter(x, y)
+kuva_hist(value)
 ```
 
 `rename` 脚本不动函数名（那是你的域代码）：换完扩展名顺手把示例函数与 `test/sql/*.test` 一起改成
 你的 API，前缀也在这里一并定下来。
 
-duckfn 的属性宏默认拿 **Rust 函数名**当注册名，所以直接把函数定义成 `fn my_xxx(...)` 即可。
+duckfn 的属性宏默认拿 **Rust 函数名**当注册名，所以直接把函数定义成 `fn kuva_xxx(...)` 即可。
 宏还会为每个签名生成 `SQL_NAME` 常量：同一个名字要在多处出现（错误信息前缀、日志）时读它，
 不要再抄一份字面量。代价是这类函数得写成 `pub(super)`，因为生成的模块沿用函数的可见性。
 `overloads_name` 能把「同一名字下按参数个数/类型分派」的多个签名并成一个函数集，需要时再用
@@ -189,9 +194,15 @@ duckfn 的属性宏默认拿 **Rust 函数名**当注册名，所以直接把函
   要把 `REPO_URL` 改成自己的仓库（`just rename` 只改扩展名，不动这个 URL）。不需要这套能力时，把
   `docusaurus.config.ts` 里的 `remarkRunnableSql` 与 `dfkExtensions` 两行去掉即可。
 
-站点分成两个侧边栏、对应顶栏两项（见 `docs/sidebars.ts`）：**用户指南**（`intro` + `getting-started/` +
-`guide/`，讲怎么写这个扩展）与**开发指南**（`build-and-release`、`community-extension`，讲怎么构建、测试
-与发布它）。新增页面按这个归属放，两侧的文档树要各自翻译一份。
+站点分成两个侧边栏、对应顶栏两项（见 `docs/sidebars.ts`），**目录名就是受众**：
+
+- **用户指南**（`docs/docs/user-guide/`）—— 面向用 SQL 调用这个扩展的人：它给 DuckDB 加了什么、怎么
+  装与加载、注册了哪些函数。**不出现 Rust 与构建步骤**。
+- **开发指南**（`docs/docs/development/`）—— 面向改这个仓库的人：快速开始、目录结构、写函数与测试、
+  构建与发版、社区扩展注册。
+
+新增页面按这个归属放进对应目录，两侧的文档树要各自翻译一份。首页（`docs/src/pages/index.tsx`）同样
+面向用户：不展示 Rust 源码，讲的是安装与函数。
 
 ### 社区扩展注册
 

@@ -1,8 +1,8 @@
 # name: test/sql/aggregate_sum.test
 # description: 示例聚合函数：NULL 跳过、空组返回 NULL、GROUP BY 与跨 DataChunk 的 combine
-# group: [my_extension]
+# group: [duckfn_kuva]
 
-require my_extension
+require duckfn_kuva
 
 # 返回类型来自 SumState::Output
 query T

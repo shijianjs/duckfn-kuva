@@ -1,8 +1,13 @@
 [package]
-name = "my_extension"
+name = "duckfn_kuva"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.86"
+# kuva 0.5 的 MSRV 是 1.87，把模板原本的 1.86 下限抬上去了（它的 `pdf` feature 还要求 1.92，但本扩展
+# 只用默认的 SVG 后端，不打开 pdf/full，故不跟）。
+#
+# kuva 0.5's MSRV is 1.87, lifting the template's 1.86 floor (its `pdf` feature needs 1.92, but this
+# extension only uses the default SVG backend and never enables pdf/full).
+rust-version = "1.87"
 # 这是 DuckDB 的 loadable extension（靠 GitHub Release 上的 .duckdb_extension 分发，
 # 见根目录 AGENTS.md 的「发版流程」），不发 crates.io。
 #
@@ -27,7 +32,7 @@ strip = true
 # (that is needed while compiling natively) to staticlib (needed since the
 # actual linking will be done via emcc).
 # The name must match the extension name (the Justfile's build_wasm passes it to `--example`).
-name = "my_extension"
+name = "duckfn_kuva"
 path = "src/wasm_lib.rs"
 crate-type = ["staticlib"]
 
@@ -118,3 +123,16 @@ libduckdb-sys = { version = ">=1.10500, <2", features = ["loadable-extension"] }
 # For example:
 #   duckfn = { version = "0.0.19", features = ["cli", "chrono"] }
 #   chrono = { version = "0.4", default-features = false, features = ["std"] }
+
+# kuva：Rust 科学绘图库，本扩展的存在理由 —— 把它的统计语义绘图包装成 DuckDB 函数（见
+# src/extension/functions/）。默认 features 为空，等于只用 **SVG 后端**：依赖只有 chrono / colorous /
+# ryu，纯 Rust、可编到 wasm，正是「全平台 + 浏览器 DuckDB-Wasm」要的形态。
+# `png` / `pdf` / `full` / `cli` / `parquet` 都会拉进 fontdue、png、krilla、arrow 这类重依赖（而且 pdf
+# 还要求 Rust>=1.92），本项目一个都不开。
+#
+# kuva: the Rust scientific plotting library this extension wraps into DuckDB functions (see
+# src/extension/functions/). The default feature set is empty, i.e. **SVG backend only** — its
+# dependencies are just chrono / colorous / ryu, pure Rust and wasm-buildable, which is exactly the shape
+# "every platform + browser DuckDB-Wasm" needs. `png` / `pdf` / `full` / `cli` / `parquet` all pull in
+# heavy dependencies (fontdue, png, krilla, arrow — and pdf even needs Rust>=1.92); none is enabled here.
+kuva = "0.5"

@@ -1,0 +1,25 @@
+# 固定构建用的 Rust 工具链。kuva 0.5 本身要求 rustc>=1.87（见 Cargo.toml 的 rust-version）；
+# 这里钉 **1.97.1** 而非 1.87，另有一个 wasm 专属理由：较新 stable 才给
+# wasm32-unknown-emscripten 的预编译 std 带上展开运行时，于是 catch_unwind 在浏览器里也能把 panic
+# 转成可读错误；而 1.87 / 1.89 的 std 是 panic=abort，panic 在浏览器里崩成 RangeError（实测见 duckfn
+# known-issues「A panic! inside a function on WebAssembly」）。
+#
+# 官方 ci-tools 的 v1.5-variegata 把 wasm 构建的 Rust 钉在 1.86.0（早于 ci-tools PR #394）。dtolnay/
+# rust-toolchain 只把它的工具链设成 rustup **default**；本文件优先级高于 default，于是 cargo 用下面钉的
+# 1.97.1 编译（rustup 自动补装工具链与列出的 target）。这样「修 Rust」的动作留在我们仓库里，能随
+# override_ref 一起进 DuckDB 社区注册表的构建（注册表用 @v1.5-variegata、不继承我们的 ci_tools_version）。
+#
+# Rust ≥1.89 的 wasm 产物需要 call-indirect-overlong，而 emsdk 3.1.71 的 binaryen v120 无法优化它
+# → 仍由本仓库 Makefile 的 -O0 覆盖兜住链接那步（详见 duckdb-versions.md 的 wasm 工具链一节）。
+#
+# 等 DuckDB 2.0 正式发布、注册表把它的 @ref 抬过 #394 之后，删掉本文件、退回在 workflow 里钉 ci_tools_version。
+#
+# Pins the Rust used to build. kuva 0.5 needs rustc>=1.87; we pin 1.97.1 because a recent stable ships the
+# wasm32-unknown-emscripten std *with* unwinding, so catch_unwind works in the browser (1.87's precompiled
+# std is panic=abort). Overrides the v1.5-variegata ci-tools' dtolnay step (which only sets a rustup default,
+# that this file outranks) and travels with override_ref into the registry build. Keep it together with the
+# Makefile's -O0 override (old binaryen v120 can't optimize call-indirect-overlong). Remove once ci-tools
+# ships past PR #394.
+[toolchain]
+channel = "1.97.1"
+targets = ["wasm32-unknown-emscripten"]

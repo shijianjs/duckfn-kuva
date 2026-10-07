@@ -15,11 +15,11 @@ import type {UrlPreloadEntry} from 'duckfn-docs-kit/sql/runtimeConfig';
 // 克隆模板后要改的就是这一段
 //
 // 仓库地址出现在导航栏的 Links 下拉、页脚与首页按钮上，所以只写一份、由下面各处引用，
-// 而不是逐个页面硬编码。`my_extension` 那几处由 `just rename <新名字>` 自动改写。
+// 而不是逐个页面硬编码。`duckfn_kuva` 那几处由 `just rename <新名字>` 自动改写。
 //
 // What to edit after cloning the template. The repository URL shows up in the navbar dropdown, the
 // footer and the home page button, so it is written once and referenced everywhere else. The
-// `my_extension` occurrences are rewritten by `just rename <new-name>`.
+// `duckfn_kuva` occurrences are rewritten by `just rename <new-name>`.
 // ============================================================================
 // 模板自己的仓库地址：首页徽章、导航栏、页脚与可运行 SQL 的扩展预加载都从这里取。克隆后**要改成你的
 // 仓库**（`just rename` 只改扩展名，不动这个 URL），否则预加载会去模板仓库找 Release。
@@ -28,7 +28,7 @@ import type {UrlPreloadEntry} from 'duckfn-docs-kit/sql/runtimeConfig';
 // preload all read it from here. **Repoint it at your repository after cloning** — `just rename` only
 // rewrites the extension name, not this URL — or the preload will look for a release in the template's
 // repository instead of yours.
-const REPO_URL = 'https://github.com/shijianjs/duckfn-extension-template';
+const REPO_URL = 'https://github.com/shijianjs/duckfn-kuva';
 
 // `dfkExtensions` 要的是 `owner/repo` 这个 slug，而不是完整 URL（见下面 plugins 的 preload 列表）。
 //
@@ -49,13 +49,13 @@ const REPO_SLUG = REPO_URL.replace(/^https:\/\/github\.com\//, '');
 const preloadedExtension: UrlPreloadEntry =
   process.env.DOCS_EXTENSION_FROM_RELEASE === '1'
     ? {
-        // Served at <baseUrl>/duckdb-extensions/my_extension.duckdb_extension.wasm. The name must
-        // keep `my_extension` before the first dot: that base is the entry symbol DuckDB looks up,
+        // Served at <baseUrl>/duckdb-extensions/duckfn_kuva.duckdb_extension.wasm. The name must
+        // keep `duckfn_kuva` before the first dot: that base is the entry symbol DuckDB looks up,
         // hence the rename from the release asset (which carries the wasm suffix).
-        url: 'duckdb-extensions/my_extension.duckdb_extension.wasm',
-        release: {repository: REPO_SLUG, asset: 'my_extension-wasm_eh.duckdb_extension.wasm'},
+        url: 'duckdb-extensions/duckfn_kuva.duckdb_extension.wasm',
+        release: {repository: REPO_SLUG, asset: 'duckfn_kuva-wasm_eh.duckdb_extension.wasm'},
       }
-    : {url: 'duckdb-extensions/my_extension.duckdb_extension.wasm'};
+    : {url: 'duckdb-extensions/duckfn_kuva.duckdb_extension.wasm'};
 
 // GitHub Pages 把项目站挂在子路径下（https://<owner>.github.io/<repo>），所以 `url` / `baseUrl`
 // 由工作流注入（见 ../.github/workflows/DeployDocs.yml）。下面两个是本地开发的兜底值。
@@ -67,8 +67,8 @@ const url = process.env.DOCS_URL ?? 'http://localhost:3000';
 const baseUrl = process.env.DOCS_BASE_URL ?? '/';
 
 const config: Config = {
-  title: 'my_extension',
-  tagline: 'A DuckDB extension written in Rust',
+  title: 'duckfn_kuva',
+  tagline: 'Extra SQL functions for DuckDB',
   favicon: 'img/logo.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -218,16 +218,16 @@ const config: Config = {
       // past it, and slides back in on the way up. The theme already ships that animation as hashed
       // CSS-module classes on the <nav>, so this needs no CSS and no client module.
       hideOnScroll: true,
-      title: 'my_extension',
+      title: 'duckfn_kuva',
       logo: {
-        alt: 'my_extension logo',
+        alt: 'duckfn_kuva logo',
         src: 'img/logo.svg',
       },
       items: [
-        // 顶栏两项 = 两个侧边栏（见 sidebars.ts）：怎么写这个扩展 / 怎么构建、测试与发布它。
+        // 顶栏两项 = 两个侧边栏（见 sidebars.ts）：用这个扩展（装插件、调函数）/ 开发这个仓库。
         //
-        // Two navbar entries, one per sidebar (see sidebars.ts): writing the extension, and
-        // building/testing/releasing it.
+        // Two navbar entries, one per sidebar (see sidebars.ts): using the extension from SQL, and
+        // working on this repository.
         {
           type: 'docSidebar',
           sidebarId: 'userGuide',
@@ -264,25 +264,46 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
+      // 三栏对应站点的两半：用这个扩展（用户指南）/ 开发这个仓库（开发指南）/ 外部链接。
+      //
+      // Three columns mirroring the site's two halves: using the extension, working on the
+      // repository, and the external links.
       links: [
         {
-          title: 'Docs',
+          title: 'User guide',
           items: [
             {
               label: 'Introduction',
               to: '/docs/intro',
             },
             {
-              label: 'Quick start',
-              to: '/docs/getting-started/quick-start',
+              label: 'Installation',
+              to: '/docs/user-guide/installation',
             },
             {
               label: 'Functions',
-              to: '/docs/guide/functions',
+              to: '/docs/user-guide/functions',
+            },
+          ],
+        },
+        {
+          title: 'Development guide',
+          items: [
+            {
+              label: 'Quick start',
+              to: '/docs/development/quick-start',
+            },
+            {
+              label: 'Project structure',
+              to: '/docs/development/project-structure',
             },
             {
               label: 'Build and release',
-              to: '/docs/build-and-release',
+              to: '/docs/development/build-and-release',
+            },
+            {
+              label: 'Community extensions',
+              to: '/docs/development/community-extension',
             },
           ],
         },
@@ -310,7 +331,7 @@ const config: Config = {
       // The copyright line is rendered as HTML, so no angle-bracket placeholder belongs here: `<owner>`
       // would be read as an unclosed element and every page's HTML minification would complain. The
       // extension name is used instead, and `just rename` rewrites it.
-      copyright: `Copyright © ${new Date().getFullYear()} my_extension contributors. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} duckfn_kuva contributors. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

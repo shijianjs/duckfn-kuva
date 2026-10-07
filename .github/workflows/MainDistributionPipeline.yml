@@ -35,7 +35,7 @@ jobs:
     with:
       duckdb_version: v1.5.6
       ci_tools_version: v1.5-variegata
-      extension_name: my_extension
+      extension_name: duckfn_kuva
       extra_toolchains: rust;python3
 
   # 发布 GitHub Release：把上面那个 job 为每个平台构建出的扩展二进制挂到当前 tag 的 Release 上
@@ -61,7 +61,7 @@ jobs:
       # default read-only permissions do not allow.
       contents: write
     env:
-      EXTENSION_NAME: my_extension
+      EXTENSION_NAME: duckfn_kuva
       # 与上面 `duckdb_version` 一致：它也是 ci-tools 给产物命名时用的那一段。
       #
       # Must match `duckdb_version` above: it is also the segment ci-tools uses to name the artifacts.
@@ -82,7 +82,7 @@ jobs:
       - name: Download extension artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          pattern: 'my_extension-*-extension-*'
+          pattern: 'duckfn_kuva-*-extension-*'
           path: artifacts
 
       # 把产物摊平：`<扩展名>-<架构>.duckdb_extension`（wasm 则 `.duckdb_extension.wasm`）。

@@ -1,6 +1,6 @@
 [English](README.md) | [简体中文](README.zh.md)
 
-# my_extension
+# duckfn_kuva
 
 一个用 [duckfn](https://crates.io/crates/duckfn) 写的 DuckDB [loadable extension](https://duckdb.org/docs/stable/extensions/extension_development)：
 属性宏把普通的 Rust 函数变成 DuckDB 的标量 / 聚合 / 表函数，全程不碰 C++ 构建（只经 DuckDB 的 API
@@ -30,14 +30,14 @@ just rename my_new_extension
 
 ```shell
 make configure   # 只做一次：建 configure/venv（Python 与 sqllogictest 运行器）
-make debug       # -> build/debug/my_extension.duckdb_extension
+make debug       # -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 自己构建的产物没有签名，加载时必须给 DuckDB 加 `-unsigned`：
 
 ```shell
 duckdb -unsigned -c "
-LOAD './build/debug/my_extension.duckdb_extension';
+LOAD './build/debug/duckfn_kuva.duckdb_extension';
 SELECT my_greet('world');
 -- Hello, world!
 SELECT my_sum(x) FROM (VALUES (1.5::DOUBLE), (2.5::DOUBLE), (3.0::DOUBLE)) t(x);
@@ -72,7 +72,7 @@ SELECT my_sum(x) FROM (VALUES (1.5::DOUBLE), (2.5::DOUBLE), (3.0::DOUBLE)) t(x);
 
 ```shell
 make configure           # 只做一次：建 configure/venv（Python 与 sqllogictest 运行器）
-make debug               # -> build/debug/my_extension.duckdb_extension
+make debug               # -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 `make release` 是带优化的同一套流程。Windows 上 `make` 需要在 Git Bash 里跑。
@@ -125,12 +125,12 @@ just docs_build      # 真正该跑的那一条：onBrokenLinks 设为 throw，�
 
 ```shell
 duckdb -unsigned -c "
-LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/my_extension-windows_amd64.duckdb_extension';
+LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
 "
 ```
 
 注册进 DuckDB 的[社区扩展](https://duckdb.org/community_extensions/list_of_extensions)之后，就变成
-一句 `INSTALL my_extension FROM community`；那需要提交的两份文件已经备在
+一句 `INSTALL duckfn_kuva FROM community`；那需要提交的两份文件已经备在
 [`community-extension/`](community-extension/AGENTS.md)。
 
 ## 文档

@@ -1,8 +1,8 @@
 # name: test/sql/scalar_greet.test
 # description: 示例标量函数：正常值、NULL 输入、错误路径、跨 DataChunk
-# group: [my_extension]
+# group: [duckfn_kuva]
 
-require my_extension
+require duckfn_kuva
 
 # 正常值（含非 ASCII：DuckString 那条路要能来回）
 query T

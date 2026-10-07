@@ -1,6 +1,6 @@
 ---
 title: Build and release
-sidebar_position: 4
+sidebar_position: 5
 description: The official make build path, the Justfile commands, the release flow that produces GitHub Release binaries, and the WebAssembly target.
 ---
 
@@ -13,7 +13,7 @@ The official DuckDB `extension-ci-tools` makefiles are the one path, and `just b
 ```shell
 make configure           # once: builds configure/venv (Python + the sqllogictest runner)
 make debug               # the official path, also what CI runs
-# -> build/debug/my_extension.duckdb_extension
+# -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 Where the artifact lands and how it is loaded:
@@ -21,7 +21,7 @@ Where the artifact lands and how it is loaded:
 ```mermaid
 flowchart LR
     src["Rust sources"] --> make["make debug<br/>official path, also CI"]
-    make --> out["build/debug/<br/>my_extension.duckdb_extension"]
+    make --> out["build/debug/<br/>duckfn_kuva.duckdb_extension"]
     out --> load["LOAD in DuckDB"]
 ```
 
@@ -94,7 +94,7 @@ Pull requests run the build and the tests only; publishing is gated on the ref b
 ### Installing a release
 
 ```sql
-LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/my_extension-windows_amd64.duckdb_extension';
+LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
 ```
 
 A locally built extension needs `duckdb -unsigned`; a released one that a user downloads also has to be

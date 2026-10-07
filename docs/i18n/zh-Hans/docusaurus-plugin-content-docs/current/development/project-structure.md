@@ -9,7 +9,7 @@ description: 从两个 crate root 到注册函数的模块链，以及让它保�
 ```text
 src/lib.rs             原生 crate root  ->  mod extension;
 src/wasm_lib.rs        wasm crate root  ->  mod extension;   （同一组 mod，镜像）
-src/extension/mod.rs   ->  duckfn_entrypoint!("my_extension"); + mod functions; mod types;
+src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; mod types;
 src/bin/duckfn.rs      duckfn CLI 入口  ->  #[path] mod extension; + duckfn::cli::run(...)
 
 src/extension/functions/
@@ -52,7 +52,7 @@ flowchart LR
 `duckfn::cli::run(...)`。它存在的意义是导出函数描述 CSV（`just docs_csv`），不参与扩展本体。
 
 那里的 `#[path]` 不是省事的写法，而是必需的：`#[duck_*]` 的文档元数据靠 `inventory` 的静态构造器收集，
-只有**真正被链接进最终二进制**的目标文件才会生效。写成 `use my_extension::…` 时，链接器可能把这些模块
+只有**真正被链接进最终二进制**的目标文件才会生效。写成 `use duckfn_kuva::…` 时，链接器可能把这些模块
 整块丢掉，导出的 CSV 就会静默变空。
 
 ## 命名规则

@@ -1,6 +1,6 @@
-# name: test/sql/my_extension.test
+# name: test/sql/duckfn_kuva.test
 # description: 冒烟测试：扩展能被加载，两个示例函数注册到位
-# group: [my_extension]
+# group: [duckfn_kuva]
 
 # 加载之前这个名字不存在（每个 .test 文件都从一个干净的实例开始）
 statement error
@@ -9,7 +9,7 @@ SELECT my_greet('world');
 Scalar Function with name my_greet does not exist
 
 # require 之后扩展就位（测试框架按 --external-extension 加载本地产物）
-require my_extension
+require duckfn_kuva
 
 query T
 SELECT my_greet('world');

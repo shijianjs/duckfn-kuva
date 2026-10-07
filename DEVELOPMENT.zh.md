@@ -1,6 +1,6 @@
 [English](DEVELOPMENT.md) | [简体中文](DEVELOPMENT.zh.md)
 
-# my_extension —— 开发笔记
+# duckfn_kuva —— 开发笔记
 
 用户文档在 [README.zh.md](README.zh.md)：SQL 接口、安装加载与快速上手都在那边。
 本文件收的是使用方不需要的内容 —— 代码怎么分层、为什么长成现在这样、哪个 crate 负责哪一段、
@@ -19,7 +19,7 @@ duckfn 自身的通用约定（入口链路、新增函数的流程、动手前�
 ```text
 src/lib.rs            原生 crate root  ->  mod extension;
 src/wasm_lib.rs       wasm crate root  ->  mod extension;   （同一组 mod，镜像）
-src/extension/mod.rs  ->  duckfn_entrypoint!("my_extension");
+src/extension/mod.rs  ->  duckfn_entrypoint!("duckfn_kuva");
 src/bin/duckfn.rs     duckfn CLI 入口  ->  #[path] mod extension; + duckfn::cli::run(...)
                       （只服务 `just docs_csv` 导出函数描述 CSV，不参与插件运行）
 
@@ -31,7 +31,7 @@ src/extension/types/mod.rs
                         目前是空的占位：自定义类型（STRUCT / ENUM / list<struct> 行类型 /
                         DuckLazy 参数的配置类型）都放这一层，用到了再往里挂 `mod`
 
-test/sql/               每一个示例函数一份 .test，外加一份 my_extension.test 冒烟
+test/sql/               每一个示例函数一份 .test，外加一份 duckfn_kuva.test 冒烟
 scripts/release.sh      发版（bump / tag / dev）
 scripts/rename.sh       克隆后改扩展名
 Justfile                日常迭代与发版的快捷入口
@@ -40,7 +40,7 @@ docs/                   文档站（Docusaurus，中英双语）—— 不需要
 community-extension/    社区扩展注册的两份文件与流程说明
 ```
 
-扩展名 `my_extension` 必须与 `Makefile` 的 `EXTENSION_NAME`、`Cargo.toml` 的 `[package] name` 与
+扩展名 `duckfn_kuva` 必须与 `Makefile` 的 `EXTENSION_NAME`、`Cargo.toml` 的 `[package] name` 与
 `[[example]] name`、`Justfile` 的 `extension_name`、CI 的 `extension_name` 一致；改名字跑
 `scripts/rename.sh`，别手改（见 AGENTS.md 的「扩展名与改名」）。
 
@@ -57,7 +57,7 @@ community-extension/    社区扩展注册的两份文件与流程说明
 ### `src/bin/duckfn.rs`：为什么用 `#[path]` 把插件再编一遍
 
 `#[duck_*]` 的文档元数据靠 `inventory` 的静态构造器收集，**只有真正被链接进最终二进制的目标文件
-才会生效**。bin 里写 `use my_extension::...` 时，链接器可能因为没人引用那些模块而把它们整块丢掉，
+才会生效**。bin 里写 `use duckfn_kuva::...` 时，链接器可能因为没人引用那些模块而把它们整块丢掉，
 导出的 CSV 会静默变空（不报错，只是没内容）。
 
 所以 bin 用 `#[path = "../extension/mod.rs"] mod extension;` 自己把同一份源码编一遍，注册项就落在
@@ -145,7 +145,7 @@ community-extension/    社区扩展注册的两份文件与流程说明
 
 ```shell
 make configure   # 只做一次
-make debug       # -> build/debug/my_extension.duckdb_extension
+make debug       # -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 `make release` 是带优化的同一套流程。Windows 上 `make` 需要在 Git Bash 里跑。
@@ -155,8 +155,8 @@ make debug       # -> build/debug/my_extension.duckdb_extension
 `just docs_build`。
 
 有一条容易踩的坑：**产物文件名必须是 `<扩展名>.duckdb_extension`**。DuckDB 是按文件名去找入口点符号
-的，改个名字（比如从 `my_extension.duckdb_extension` 改成 `win.duckdb_extension`）就会报
-`did not contain function "my_extension_init_c_api"` —— 那不是产物坏了。
+的，改个名字（比如从 `duckfn_kuva.duckdb_extension` 改成 `win.duckdb_extension`）就会报
+`did not contain function "duckfn_kuva_init_c_api"` —— 那不是产物坏了。
 
 ## 函数描述（社区扩展文档页）
 
@@ -231,7 +231,7 @@ make debug && make test    # make test 不会自动重新构建，改完 Rust �
 
 | 文件 | 覆盖什么 |
 | --- | --- |
-| `test/sql/my_extension.test` | 冒烟：LOAD 之前函数不存在、`require` 之后两个示例函数都在（这一份也是「扩展能被加载」的最小证明） |
+| `test/sql/duckfn_kuva.test` | 冒烟：LOAD 之前函数不存在、`require` 之后两个示例函数都在（这一份也是「扩展能被加载」的最小证明） |
 | `test/sql/scalar_greet.test` | 标量函数：正常值（含非 ASCII）、常量 NULL 被折叠、运行期 NULL 行被短路、`DuckOptionResult` 的 NULL 与报错两条路、参数个数/类型的 binder 报错、跨 DataChunk（`STANDARD_VECTOR_SIZE = 2048`） |
 | `test/sql/aggregate_sum.test` | 聚合函数：返回类型、NULL 行跳过、空组回 NULL、`GROUP BY` 逐组计算、跨 DataChunk 的 `combine` |
 
@@ -241,7 +241,7 @@ make debug && make test    # make test 不会自动重新构建，改完 Rust �
 # Windows（--test-dir 同时是 __TEST_DIR__ 的取值，必须给）
 .\configure\venv\Scripts\python.exe -m duckdb_sqllogictest `
     --test-dir test/sql `
-    --external-extension build/debug/my_extension.duckdb_extension
+    --external-extension build/debug/duckfn_kuva.duckdb_extension
 # 只跑一份：再加 --file-path test/sql/scalar_greet.test
 ```
 
@@ -249,7 +249,7 @@ make debug && make test    # make test 不会自动重新构建，改完 Rust �
 # Linux / macOS
 ./configure/venv/bin/python -m duckdb_sqllogictest \
     --test-dir test/sql \
-    --external-extension build/debug/my_extension.duckdb_extension
+    --external-extension build/debug/duckfn_kuva.duckdb_extension
 ```
 
 新增函数时至少覆盖：正常值、`NULL`、边界值、错误路径（`statement error`）。

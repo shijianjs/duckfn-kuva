@@ -1,6 +1,6 @@
 ---
 title: 构建与发版
-sidebar_position: 4
+sidebar_position: 5
 description: 官方 make 构建路径、Justfile 命令、产出 GitHub Release 产物的发版流程，以及 WebAssembly 目标。
 ---
 
@@ -13,7 +13,7 @@ description: 官方 make 构建路径、Justfile 命令、产出 GitHub Release 
 ```shell
 make configure           # 只做一次：建 configure/venv（Python 与 sqllogictest 运行器）
 make debug               # 官方路径，CI 也走它
-# -> build/debug/my_extension.duckdb_extension
+# -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 产物落在哪里、又是怎么加载的：
@@ -90,7 +90,7 @@ PR 只构建 + 测试，不发布：发布那一步由「当前 ref 是版本 ta
 ### 安装一份发布产物
 
 ```sql
-LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/my_extension-windows_amd64.duckdb_extension';
+LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
 ```
 
 本地构建的产物要 `duckdb -unsigned`；从 Release 下载的产物同样要加这个参数，因为它没有 DuckDB 分发密钥

@@ -1,6 +1,6 @@
 [English](README.md) | [简体中文](README.zh.md)
 
-# my_extension
+# duckfn_kuva
 
 A DuckDB [loadable extension](https://duckdb.org/docs/stable/extensions/extension_development) written
 with [duckfn](https://crates.io/crates/duckfn): attribute macros turn ordinary Rust functions into DuckDB
@@ -32,14 +32,14 @@ Replacing the two sample functions with your own API is one of them.
 
 ```shell
 make configure   # once: builds configure/venv (Python + the sqllogictest runner)
-make debug       # -> build/debug/my_extension.duckdb_extension
+make debug       # -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 Locally built extensions are unsigned, so DuckDB has to be started with `-unsigned`:
 
 ```shell
 duckdb -unsigned -c "
-LOAD './build/debug/my_extension.duckdb_extension';
+LOAD './build/debug/duckfn_kuva.duckdb_extension';
 SELECT my_greet('world');
 -- Hello, world!
 SELECT my_sum(x) FROM (VALUES (1.5::DOUBLE), (2.5::DOUBLE), (3.0::DOUBLE)) t(x);
@@ -75,7 +75,7 @@ The official DuckDB `extension-ci-tools` makefiles are the build path:
 
 ```shell
 make configure           # once: builds configure/venv (Python + the sqllogictest runner)
-make debug               # -> build/debug/my_extension.duckdb_extension
+make debug               # -> build/debug/duckfn_kuva.duckdb_extension
 ```
 
 `make release` is the optimized version of the same flow. On Windows `make` has to run inside Git Bash.
@@ -129,12 +129,12 @@ Releases are GitHub Releases carrying the build matrices' `.duckdb_extension` fi
 
 ```shell
 duckdb -unsigned -c "
-LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/my_extension-windows_amd64.duckdb_extension';
+LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
 "
 ```
 
 Publishing to DuckDB's [community extensions](https://duckdb.org/community_extensions/list_of_extensions)
-makes it `INSTALL my_extension FROM community` instead; the two files that requires are prepared in
+makes it `INSTALL duckfn_kuva FROM community` instead; the two files that requires are prepared in
 [`community-extension/`](community-extension/AGENTS.md).
 
 ## Documentation

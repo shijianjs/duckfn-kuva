@@ -71,14 +71,18 @@ A fenced `sql` block whose info string is a JSON config turns into a live exampl
 editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 
 ````md
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 ````
 
 `"type":"duckfn"` is required; `show` is `table` (default), `text`, `html`, `iframe` or `svg`, and a
 block that demonstrates a failure declares `"expect":"error"` (see `docs/user-guide/intro.md`,
 `docs/user-guide/functions.md` and `docs/development/quick-start.md` for the ones this site ships).
+Because this extension's result *is* an SVG document, every chart block asks for `"show":"svg"`: the
+chart is drawn in the result area (fullscreen zooms and pans), and the trailing `Table` tab keeps the
+raw markup one click away. The spec also pins the canvas with `"width"` / `"height"` — kuva's default
+is around 675x511, which would spill out of the preview box.
 The full config reference is in the kit's own guide at
 <https://shijianjs.github.io/duckfn/docs/docs-kit/runnable-sql>.
 

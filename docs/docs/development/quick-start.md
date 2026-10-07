@@ -65,16 +65,17 @@ duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 
 `kuva_render`, running right here — the site preloads the extension from the repository's latest release,
 so no local `LOAD` is needed here (a hand-built extension still needs `-unsigned`; see the traps below).
-Click **Run** on any block. The result is a full SVG document, so the examples only look at its edges.
+Click **Run** on any block and the chart is drawn in the result area — fullscreen is where zoom and pan
+live, and the `Table` tab always holds the raw SVG.
 
-```sql {"type":"duckfn","show":"table"}
--- a scatter plot: the result starts with <svg
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+-- a scatter plot
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
 -- several series overlaid on one layout
-SELECT length(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}')) > 0 AS ok;
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 The failure path is a runnable block too — it declares that it is supposed to fail:

@@ -33,9 +33,9 @@ LOAD duckfn_kuva;
 
 Then call the function in any query:
 
-```sql {"type":"duckfn","show":"table"}
--- the result is a full SVG document; show only its opening tag here
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+-- press Run: the chart is drawn right here
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
 That block runs right here, in your browser: the site preloads the extension from the project's latest

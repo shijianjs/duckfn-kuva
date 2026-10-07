@@ -27,10 +27,13 @@ the host.
 
 The smallest useful call:
 
-```sql {"type":"duckfn","show":"table"}
--- the result is a full SVG document, thousands of characters long; show only its opening tag
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+-- press Run: the result is a complete SVG document, and it is drawn right here
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
+
+Every block below asks for `"show":"svg"`, so pressing **Run** draws the chart in the result area —
+fullscreen is where zoom and pan live.
 
 JSON rather than a DuckDB `STRUCT`: one figure's `series` are heterogeneous (a `scatter` and a `bar` carry
 different fields), and a `STRUCT` list is homogeneous, so it cannot express `[StructA, StructB]`. Key names
@@ -73,28 +76,28 @@ For `scatter` and `line`, `data` is a list of points, either as `[x, y]` pairs o
 (`{"x":…,"y":…,"x_err":…,"y_err":…}`); an error bar is a single number for a symmetric one or a
 `[lower, upper]` pair for an asymmetric one.
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS scatter;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}'), 4) AS line;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}'), 4) AS bar;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}'), 4) AS histogram;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}'), 4) AS box;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}'), 4) AS pie;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}') AS chart;
 ```
 
 ### Axes
@@ -143,8 +146,8 @@ Two kinds of composition are supported.
 **Overlay.** Put several series in one `series` list; they share one set of axes. A line plus its points,
 for example:
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}'), 4) AS overlay;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 **Multiple panels.** Add a top-level `figure` object instead of drawing a single panel. It carries `rows`,
@@ -154,8 +157,8 @@ array), `shared_x_all`, `shared_y_all`, `shared_legend` (a position string such 
 object per cell, each with its own layout fields and `series`. `panels` must have exactly `rows * cols`
 entries, in row-major order.
 
-```sql {"type":"duckfn","show":"table"}
-SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 0 AS ok;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"figure":{"rows":1,"cols":2,"figure_width":700,"figure_height":320,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}') AS chart;
 ```
 
 ## Errors

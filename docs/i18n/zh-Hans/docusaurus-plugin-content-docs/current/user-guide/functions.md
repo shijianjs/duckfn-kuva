@@ -26,10 +26,12 @@ matplotlib / ggplot2。
 
 最小可用的一次调用：
 
-```sql {"type":"duckfn","show":"table"}
--- 结果是一整份 SVG 文档，有几千字符；这里只取它的开头标签
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+-- 点一下 Run：结果是一整份 SVG 文档，直接画在这里
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
+
+下面每个块都写了 `"show":"svg"`，点 **Run** 就会把图画在结果区里；缩放与平移在全屏里。
 
 为什么是 JSON 而不是 DuckDB 的 `STRUCT`：一张图里的 `series` 是异构的（`scatter` 与 `bar` 的字段各不
 相同），而 `STRUCT` 的 LIST 要求元素同型，表达不了 `[StructA, StructB]`。键名一律 snake_case。
@@ -70,28 +72,28 @@ SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]
 `scatter` 与 `line` 的 `data` 是一串点，可以写成 `[x, y]`，也可以写成对象
 （`{"x":…,"y":…,"x_err":…,"y_err":…}`）；误差是单个数字表示对称，`[下, 上]` 表示不对称。
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS scatter;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}'), 4) AS line;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}'), 4) AS bar;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}'), 4) AS histogram;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}'), 4) AS box;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}'), 4) AS pie;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}') AS chart;
 ```
 
 ### 坐标轴
@@ -137,8 +139,8 @@ SELECT left(kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value"
 
 **叠加。** 在一个 `series` 里放多个 series，它们共用一套坐标轴。比如一条折线加它的散点：
 
-```sql {"type":"duckfn","show":"table"}
-SELECT left(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}'), 4) AS overlay;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 **多面板。** 用顶层的 `figure` 对象代替单张画布。它带 `rows`、`cols`、`title`、`title_size`、
@@ -147,8 +149,8 @@ SELECT left(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend"
 `cell_height`、`figure_width`、`figure_height`，以及 `panels` —— 每个格子一个对象，各自带布局字段与
 `series`。`panels` 的个数必须正好等于 `rows * cols`，按行优先排列。
 
-```sql {"type":"duckfn","show":"table"}
-SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 0 AS ok;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+SELECT kuva_render('{"figure":{"rows":1,"cols":2,"figure_width":700,"figure_height":320,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}') AS chart;
 ```
 
 ## 错误

@@ -62,17 +62,17 @@ duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 ```
 
 `kuva_render`，就地就能跑 —— 站点从仓库的最新 Release 预加载了这个扩展，这里不用写 `LOAD`（本地自己
-构建的产物仍然要加 `-unsigned`，见下面的几个坑）。点任意块上的 **执行** 即可。结果是一整份 SVG 文档，
-所以例子只看它的首尾。
+构建的产物仍然要加 `-unsigned`，见下面的几个坑）。点任意块上的 **执行**，图就画在结果区里 —— 缩放与
+平移在全屏里，`Table` 那个页签里始终是原始的 SVG。
 
-```sql {"type":"duckfn","show":"table"}
--- 一张散点图：结果以 <svg 开头
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+-- 一张散点图
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"table"}
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
 -- 多个 series 叠在同一套坐标轴上
-SELECT length(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}')) > 0 AS ok;
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 失败路径同样是个可运行块 —— 它自己声明了「应该失败」：

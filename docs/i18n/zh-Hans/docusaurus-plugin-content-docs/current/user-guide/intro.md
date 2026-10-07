@@ -31,9 +31,9 @@ LOAD duckfn_kuva;
 
 然后在任意查询里调用：
 
-```sql {"type":"duckfn","show":"table"}
--- 结果是一整份 SVG 文档；这里只取它的开头标签
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
+```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+-- 点一下 Run：图就地画出来
+SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
 上面这个块就在你的浏览器里真跑：站点从项目的最新 Release 预加载了这个扩展，所以这里不用写 `LOAD`。

@@ -126,8 +126,8 @@ LOAD duckfn_kuva;`;
  * The other half: the functions the extension registers, called exactly like
  * DuckDB's own.
  */
-const USAGE_SAMPLE = `SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4);
--- <svg
+const USAGE_SAMPLE = `SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}');
+-- an SVG document
 SELECT kuva_render('{"series":[]}');
 -- error: kuva_render: \`series\` must not be empty: a single-figure chart needs at least one series`;
 

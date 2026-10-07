@@ -1,22 +1,78 @@
 # name: test/sql/duckfn_kuva.test
-# description: 冒烟测试：扩展能被加载，两个示例函数注册到位
+# description: Smoke test: the extension loads, and kuva_render turns a JSON spec into an SVG document
 # group: [duckfn_kuva]
 
-# 加载之前这个名字不存在（每个 .test 文件都从一个干净的实例开始）
+# Before the extension is loaded the function does not exist.
 statement error
-SELECT my_greet('world');
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2]]}]}');
 ----
-Scalar Function with name my_greet does not exist
+does not exist
 
-# require 之后扩展就位（测试框架按 --external-extension 加载本地产物）
 require duckfn_kuva
 
-query T
-SELECT my_greet('world');
+# The smallest useful spec: the result is an SVG document, start to finish.
+query I
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}'), 4);
 ----
-Hello, world!
+<svg
 
 query I
-SELECT my_sum(x)::DECIMAL(10,1) FROM (VALUES (1.5::DOUBLE), (2.5::DOUBLE), (3.0::DOUBLE)) t(x);
+SELECT right(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}'), 6);
 ----
-7.0
+</svg>
+
+# Every chart type implemented so far renders something.
+query I
+SELECT bool_and(length(svg) > 500)
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}')),
+  (kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}')),
+  (kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}')),
+  (kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}')),
+  (kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}'))
+) t(svg);
+----
+true
+
+# Composition: several series overlaid on one layout.
+query I
+SELECT length(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}')) > 500;
+----
+true
+
+# Composition: a multi-panel figure grid.
+query I
+SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 500;
+----
+true
+
+# Malformed JSON fails the query instead of returning NULL.
+statement error
+SELECT kuva_render('{oops');
+----
+invalid JSON
+
+# An unknown series type lists the ones that exist.
+statement error
+SELECT kuva_render('{"series":[{"type":"nope"}]}');
+----
+unknown variant
+
+# An empty series list is rejected.
+statement error
+SELECT kuva_render('{"series":[]}');
+----
+`series` must not be empty
+
+# A length mismatch between values and categories is caught before rendering.
+statement error
+SELECT kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[1]}]}');
+----
+but there are 2 categories
+
+# An unknown legend position is reported with the offending value.
+statement error
+SELECT kuva_render('{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[[1,2]]}]}');
+----
+unknown legend.position

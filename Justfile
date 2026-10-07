@@ -25,8 +25,13 @@
 # Windows 下 recipe 交给 Git Bash 执行；按自己的 Git 安装路径调整。
 # 非 Windows 上这一行不生效。
 #
+# 用 `-lc`（登录 shell）而不是 `-c`：登录 shell 会读 /etc/profile，把 MSYS2 的 PATH 重新规整一遍。
+# 有些把 shell 工具架在 Git Bash 之上的宿主会往 PATH 里塞一条 `\\?\C:\...` 形式的条目，`-c` 下 MSYS2
+# 的路径转换会被它截断（连 `echo` 都静默 exit 1）；`-lc` 不受影响，而正常终端里两者等价，所以这里
+# 统一取抗造的那个。共享的 scripts/common.just 不该改，这个文件本来就是机器相关的入口。
+#
 # 这是机器相关的路径，所以留在本地文件里，不放进共享文件。
-set windows-shell := ["C:\\Program Files\\Git\\bin\\bash.exe", "-c"]
+set windows-shell := ["C:\\Program Files\\Git\\bin\\bash.exe", "-lc"]
 
 # 本文件在 import 之后覆盖了同名 recipe（default），需要显式允许重名（浅层覆盖深层）。
 set allow-duplicate-recipes := true

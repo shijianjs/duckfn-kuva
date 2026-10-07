@@ -6,4 +6,6 @@
 // into a subdirectory the way the duckfn example does (`functions/<feature>/mod.rs` plus one file per
 // concern).
 mod aggregate_sum;
+mod kuva_render;
 mod scalar_greet;
+mod spec;

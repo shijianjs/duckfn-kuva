@@ -286,6 +286,8 @@ dependencies = [
  "kuva",
  "libduckdb-sys",
  "quack-rs",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

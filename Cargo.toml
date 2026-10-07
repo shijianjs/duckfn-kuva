@@ -136,3 +136,13 @@ libduckdb-sys = { version = ">=1.10500, <2", features = ["loadable-extension"] }
 # "every platform + browser DuckDB-Wasm" needs. `png` / `pdf` / `full` / `cli` / `parquet` all pull in
 # heavy dependencies (fontdue, png, krilla, arrow — and pdf even needs Rust>=1.92); none is enabled here.
 kuva = "0.5"
+
+# serde / serde_json：JSON 入口那一版 API 的地基 —— 把一段 JSON 反序列化成强类型结构
+# （「Jackson 到对象」的映射，见 src/extension/functions/spec/schema.rs），而不是拿字符串 key 去
+# Map 里取数。两者都是纯 Rust、可编 wasm，与 kuva 的 SVG 后端共存无冲突。
+#
+# serde / serde_json: the foundation of the JSON-entry API (see function `kuva_render`) — a JSON string
+# is deserialized straight into typed structs rather than read key-by-key from a Map. Both are pure Rust
+# and wasm-safe, so they sit fine next to kuva's SVG backend.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

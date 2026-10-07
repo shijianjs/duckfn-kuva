@@ -26,9 +26,9 @@ matplotlib / ggplot2。
 
 最小可用的一次调用：
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- 点一下 Run：结果是一整份 SVG 文档，直接画在这里
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
 下面每个块都写了 `"show":"svg"`，点 **Run** 就会把图画在结果区里；缩放与平移在全屏里。
@@ -72,28 +72,28 @@ SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data"
 `scatter` 与 `line` 的 `data` 是一串点，可以写成 `[x, y]`，也可以写成对象
 （`{"x":…,"y":…,"x_err":…,"y_err":…}`）；误差是单个数字表示对称，`[下, 上]` 表示不对称。
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}') AS chart;
 ```
 
 ### 坐标轴
@@ -139,8 +139,8 @@ SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"pie","slices":[
 
 **叠加。** 在一个 `series` 里放多个 series，它们共用一套坐标轴。比如一条折线加它的散点：
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 **多面板。** 用顶层的 `figure` 对象代替单张画布。它带 `rows`、`cols`、`title`、`title_size`、

@@ -71,8 +71,8 @@ A fenced `sql` block whose info string is a JSON config turns into a live exampl
 editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 
 ````md
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 ````
 

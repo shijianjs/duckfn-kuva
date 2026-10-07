@@ -65,14 +65,14 @@ duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 构建的产物仍然要加 `-unsigned`，见下面的几个坑）。点任意块上的 **执行**，图就画在结果区里 —— 缩放与
 平移在全屏里，`Table` 那个页签里始终是原始的 SVG。
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- 一张散点图
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- 多个 series 叠在同一套坐标轴上
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 失败路径同样是个可运行块 —— 它自己声明了「应该失败」：

@@ -68,14 +68,14 @@ so no local `LOAD` is needed here (a hand-built extension still needs `-unsigned
 Click **Run** on any block and the chart is drawn in the result area — fullscreen is where zoom and pan
 live, and the `Table` tab always holds the raw SVG.
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- a scatter plot
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
+```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- several series overlaid on one layout
-SELECT kuva_render('{"width":600,"height":320,"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
 ```
 
 The failure path is a runnable block too — it declares that it is supposed to fail:

@@ -12,13 +12,17 @@ adds SQL functions to DuckDB, and once it is loaded they behave like DuckDB's ow
 how it was written or to compile anything — the CLI, a Python or R session and the browser build all take
 the same `.duckdb_extension` file.
 
-It adds three functions:
+It adds one function:
 
 | Function | Kind | What it does |
 | --- | --- | --- |
-| [`my_greet(name)`](./functions.md#my_greet) | scalar | Greets `name`; never NULL. |
-| [`my_greet_checked(name)`](./functions.md#my_greet_checked) | scalar | The same, but NULL for an empty name and an error for surrounding whitespace. |
-| [`my_sum(value)`](./functions.md#my_sum) | aggregate | Sums a `DOUBLE` column, skipping NULLs. |
+| [`kuva_render(json)`](./functions.md#kuva_render) | scalar | Renders a chart described by a JSON string and returns it as an SVG document. |
+
+`kuva_render` wraps [kuva](https://crates.io/crates/kuva), a pure-Rust statistical plotting library: you
+describe one figure — a scatter, line, bar, histogram, box or pie chart, or several of them combined — as
+JSON, and the function returns a complete SVG. The drawing happens inside the extension, so a chart comes
+out the same wherever DuckDB runs — the CLI, a Python or R session, a JVM host, or DuckDB-Wasm in the
+browser — with no matplotlib or ggplot2 on the host.
 
 ## Install it
 
@@ -27,29 +31,21 @@ INSTALL duckfn_kuva FROM community;
 LOAD duckfn_kuva;
 ```
 
-Then call the functions in any query:
+Then call the function in any query:
 
 ```sql {"type":"duckfn","show":"table"}
-SELECT name AS input, my_greet_checked(name) AS greeting
-FROM (VALUES ('world'), ('')) t(name);
+-- the result is a full SVG document; show only its opening tag here
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
 ```
 
 That block runs right here, in your browser: the site preloads the extension from the project's latest
 release, so there is no `LOAD` to write. [Installation](./installation.md) covers the other ways to get
 the file.
 
-:::note[These pages are the template's starting point]
-
-`duckfn_kuva` is the sample extension of
-[duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template). The pages in this
-part of the site describe its three sample functions; a project built from the template replaces them
-with its own API and rewrites these pages to match.
-
-:::
-
 ## Where to go next
 
 - [Installation](./installation.md) — the community repository, a release file, or a local build.
-- [Functions](./functions.md) — every function, with an example you can run.
+- [Functions](./functions.md) — the function and the JSON chart spec it accepts, with examples you can
+  run.
 - [Development guide](../development/quick-start.md) — building the extension from source. That part is
   for people working on this repository; it is not needed to use the extension.

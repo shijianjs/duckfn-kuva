@@ -10,11 +10,12 @@
 
 目录名必须与 `extension.name` **逐字一致** —— 社区仓的 `scripts/build.py` 会校验，不一致直接报错。
 
-## 模板里这三样都是占位符，提交前逐个换掉
+## 提交前还剩什么要改
 
-1. `description.yml` 的 `<...>`：`extension.description`、`maintainers`、`repo.github`、`repo.ref`；
-2. `docs.hello_world` 与 `docs.extended_description`：示例函数的说明换成你真正的函数；
-3. 本文件下面提到的路径与用户名。
+`description.yml` 的 `extension.description` / `maintainers` / `repo.github` 与 `docs.hello_world` /
+`docs.extended_description` 都已按本扩展的真实 API（唯一的函数 `kuva_render`）写好，改 API 时跟着改。
+**唯一仍是占位符的是 `repo.ref`** —— 它要等打过 tag 之后填那次发布的提交 SHA（见下面
+「`repo.ref` 写发布那一版的提交 SHA」）。本文件下面提到的路径与用户名也照本机实际情况核对一遍。
 
 `extension.name` / `version` / `license` / `language` / `build` / `requires_toolchains` 在模板里已经是可直接
 沿用的值（下面一节解释为什么），只有 `name` 要跟着你改名后的扩展名走（`scripts/rename.sh` 会一起改）。
@@ -60,7 +61,8 @@ just docs_csv
 cp target/function_descriptions.csv community-extension/docs/function_descriptions.csv
 ```
 
-模板初始的这份就是按示例函数生成的；换成你自己的函数之后重新生成一次即可。
+这份 CSV 由 `just docs_csv` 从 `#[duck_*]` 属性上的 `description` / `comment` / `example` 生成；改了那些
+文案就重新生成一次，覆盖这里这份。
 
 ## 提交：在 fork 的克隆里做，本仓只出那两张文件
 

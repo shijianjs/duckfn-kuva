@@ -33,7 +33,7 @@ flow. On Windows `make` has to run inside Git Bash.
 | Command | What it does |
 | --- | --- |
 | `just build` | `make configure && make debug` |
-| `just sql "SELECT my_greet('world')"` | Build, then run one statement and exit |
+| `just sql "SELECT left(kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}'), 4)"` | Build, then run one statement and exit |
 | `just repl` | A DuckDB REPL with the extension loaded |
 | `just lint` | `cargo clippy --all-targets -- -D warnings` |
 | `just test` | The official build and the sqllogictest run |

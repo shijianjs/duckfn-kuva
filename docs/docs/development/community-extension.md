@@ -34,9 +34,9 @@ to the function it describes:
 
 ```rust
 #[duck_scalar_function(
-    description = "Greets someone by name, the simplest possible scalar function",
+    description = "Renders a complete chart described by a JSON string into an SVG document",
     comment = "…",
-    example = "SELECT my_greet('world')"
+    example = "SELECT kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}')"
 )]
 ```
 

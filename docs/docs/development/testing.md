@@ -1,7 +1,7 @@
 ---
 title: Testing
 sidebar_position: 4
-description: The SQLLogicTest files in test/sql, how to run them (make, just, or the test runner directly), and what a new function should cover.
+description: The SQLLogicTest file in test/sql, the Rust unit tests behind the renderer, how to run everything, and what a new function should cover.
 ---
 
 # Testing
@@ -12,9 +12,12 @@ the expected result inline, so a test doubles as a worked example of the functio
 
 | File | What it covers |
 | --- | --- |
-| `duckfn_kuva.test` | Smoke test: the function is missing before `LOAD`, the sample functions exist after `require`. Also the smallest proof that the extension loads at all. |
-| `scalar_greet.test` | Scalars: ordinary values (non-ASCII included), a constant `NULL` folded to `NULL`, runtime `NULL` rows short-circuited, both `DuckOptionResult` paths (NULL and error), binder errors for wrong arity and type, inputs spanning several DataChunks. |
-| `aggregate_sum.test` | Aggregates: the return type, NULL rows skipped, an empty group yielding `NULL`, per-group results under `GROUP BY`, `combine` across DataChunks. |
+| `duckfn_kuva.test` | The smoke test: `kuva_render` does not exist before `LOAD` and does after `require`; the smallest spec renders an SVG from start to finish (it begins with `<svg` and ends with `</svg>`); every implemented chart type produces output; overlays and multi-panel figures render; and malformed input, an unknown series type, an empty `series` list and a length mismatch each fail with a distinctive message. |
+
+The renderer itself is also covered by Rust unit tests in `src/extension/functions/spec/tests.rs`:
+`cargo test --lib` runs them, and one check uses [`quick-xml`](https://crates.io/crates/quick-xml) to
+confirm each rendered result is well-formed XML. `just test` runs both halves — `cargo test --lib` and
+then the SQLLogicTest file.
 
 ## Running them
 
@@ -28,7 +31,7 @@ flowchart LR
 ```
 
 ```shell
-just test                 # = make configure + make debug + make test
+just test                 # = cargo test --lib + make configure + make debug + make test
 just ci-build             # just the official build, without the tests
 ```
 
@@ -60,17 +63,17 @@ Python environment with `duckdb_sqllogictest` installed — `make configure` cre
 ```
 
 `--test-dir` is required: it is also the value of `__TEST_DIR__`, the directory a test writing files is
-given. To run a single file, add `--file-path test/sql/scalar_greet.test`.
+given. To run a single file, add `--file-path test/sql/duckfn_kuva.test`.
 
 ## Conventions
 
 - **Every file starts from a clean database**, so `duckfn_kuva.test` can assert that the function does
-  not exist before the extension is loaded, and the other files start with `require duckfn_kuva`.
+  not exist before the extension is loaded, then start with `require duckfn_kuva`.
 - **Expected errors are matched as substrings.** Under `statement error`, a distinctive fragment of the
   message is enough — there is no need to reproduce DuckDB's whole error string, and doing so ties the
   test to a message that may well change.
-- **Watch how values print.** A `DOUBLE` renders as `7.0`; when a test is about a number rather than a
-  type, cast it (`my_sum(x)::DECIMAL(10,1)`) so the expectation stays stable if the type changes.
+- **The result is a big string.** A rendered SVG is thousands of characters long; assert on its edges
+  (`left(svg, 4)`, `right(svg, 6)`) or on `length(svg)`, never on the whole document.
 - **Divide the files by concern**, not by function count: behaviour in one file, error paths in
   another, and a `.test` that reaches for a community extension (for HTML parsing, say) kept separate,
   because it needs the network the first time.
@@ -81,7 +84,6 @@ At least: ordinary values, `NULL`, a boundary value, and the error path. Three m
 
 - the node before the `LOAD` (`statement error` … `does not exist`), if the file is the smoke test;
 - a NULL input in a chunk that is *not* constant-folded, since a constant `NULL` never reaches the body;
-- more rows than `STANDARD_VECTOR_SIZE` (2048), which is what exercises `combine` for an aggregate and
-  the per-chunk path for a scalar.
+- more rows than `STANDARD_VECTOR_SIZE` (2048), which is what exercises the per-chunk path of a scalar.
 
 Before committing: `just lint` (`cargo clippy --all-targets -- -D warnings`).

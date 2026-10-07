@@ -69,7 +69,7 @@ WHERE extension_name = 'duckfn_kuva';
 ```sql
 SELECT function_name, function_type, return_type
 FROM duckdb_functions()
-WHERE function_name LIKE 'my%';
+WHERE function_name = 'kuva_render';
 ```
 
-三个函数就是三行；如果一行都没有，说明你查的这个会话里没有加载这个扩展。
+一个函数就是一行；如果一行都没有，说明你查的这个会话里没有加载这个扩展。

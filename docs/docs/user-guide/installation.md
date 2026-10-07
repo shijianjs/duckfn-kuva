@@ -73,8 +73,8 @@ WHERE extension_name = 'duckfn_kuva';
 ```sql
 SELECT function_name, function_type, return_type
 FROM duckdb_functions()
-WHERE function_name LIKE 'my%';
+WHERE function_name = 'kuva_render';
 ```
 
-Three rows for three functions; if the list is empty, the extension is not loaded in the session you are
+One row for the one function; if the list is empty, the extension is not loaded in the session you are
 querying.

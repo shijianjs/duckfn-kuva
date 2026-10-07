@@ -1,7 +1,7 @@
 ---
 title: 快速开始
 sidebar_position: 1
-description: 改扩展名、用 cargo 构建出 .duckdb_extension、加载进 DuckDB，然后调用示例函数。
+description: 改扩展名、用官方 make 工具链构建出 .duckdb_extension、加载进 DuckDB，然后调用 kuva_render。
 ---
 
 # 快速开始
@@ -39,7 +39,7 @@ just rename csv_stats
 `scripts/rename.sh` 会把扩展名必须一致的五处一次改齐 —— `Cargo.toml`（`[package] name` 与
 `[[example]] name`）、Makefile 的 `EXTENSION_NAME`、`src/extension/mod.rs` 里的入口点符号、Justfile、
 CI 工作流 —— 以及文档里出现的每一处，并按新包名重写 `Cargo.lock`。它最后会打印还需要人工过一遍的清单，
-示例函数是其中主要的一项。
+函数名不在其中，因为那是项目自己的 API。
 
 ## 2. 构建
 
@@ -61,32 +61,30 @@ just repl           # 已经 LOAD 好扩展的 DuckDB REPL
 duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 ```
 
-下面是几个示例函数，就地就能跑 —— 站点从仓库的最新 Release 预加载了这个扩展，这里不用写 `LOAD`
-（本地自己构建的产物仍然要加 `-unsigned`，见下面的几个坑）。点任意块上的 **执行** 即可。
+`kuva_render`，就地就能跑 —— 站点从仓库的最新 Release 预加载了这个扩展，这里不用写 `LOAD`（本地自己
+构建的产物仍然要加 `-unsigned`，见下面的几个坑）。点任意块上的 **执行** 即可。结果是一整份 SVG 文档，
+所以例子只看它的首尾。
 
 ```sql {"type":"duckfn","show":"table"}
-SELECT name AS input, my_greet_checked(name) AS greeting
-FROM (VALUES ('world'), ('')) t(name);
+-- 一张散点图：结果以 <svg 开头
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
 ```
 
 ```sql {"type":"duckfn","show":"table"}
--- my_sum 跳过 NULL；一组里一个有效值都没有时结果是 NULL 而不是 0。
-SELECT grp, my_sum(x) AS total
-FROM (VALUES ('rows', 1.5::DOUBLE), ('rows', 2.5), ('all NULL', NULL::DOUBLE)) t(grp, x)
-GROUP BY grp
-ORDER BY grp;
+-- 多个 series 叠在同一套坐标轴上
+SELECT length(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}')) > 0 AS ok;
 ```
 
 失败路径同样是个可运行块 —— 它自己声明了「应该失败」：
 
 ```sql {"type":"duckfn","expect":"error"}
-SELECT my_greet_checked(' x ');    -- 报错：首尾不允许有空格
+SELECT kuva_render('{"series":[]}');    -- 报错：一张图至少要有一个 series
 ```
 
 不进 REPL、只跑一条语句：
 
 ```shell
-just sql "SELECT my_greet('world')"
+just sql "SELECT left(kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}'), 4)"
 ```
 
 ## 4. 跑测试

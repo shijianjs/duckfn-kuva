@@ -346,7 +346,7 @@
     "description": "Home page feature card title"
   },
   "homepage.features.sql.details": {
-    "message": "my_greet、my_greet_checked 与 my_sum 就是普通的 DuckDB 函数：放进任意查询，和内置函数一起用，调用处不需要 import 任何东西。",
+    "message": "kuva_render 就是普通的 DuckDB 函数：放进任意查询，和内置函数一起用，调用处不需要 import 任何东西。给它一段 JSON 图表规格，它返回一份 SVG。",
     "description": "Home page feature card description"
   },
   "homepage.features.install.title": {
@@ -398,7 +398,7 @@
     "description": "Home page paragraph introducing the SQL code blocks"
   },
   "homepage.showcase.caption": {
-    "message": "注释就是每次调用的返回值 —— 最后一行是对两行数据真实求和的结果。",
+    "message": "注释就是每次调用的返回值 —— 第一个是图表渲染出的 SVG，第二个是一段坏规格如何报错。",
     "description": "Home page note under the SQL code block explaining the trailing comments"
   },
   "homepage.showcase.link": {

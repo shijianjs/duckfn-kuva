@@ -1,7 +1,7 @@
 ---
 title: 测试
 sidebar_position: 4
-description: test/sql 下的 SQLLogicTest 用例、三种跑法（make、just 或直接调运行器），以及新增函数至少该覆盖什么。
+description: test/sql 下的 SQLLogicTest 文件、渲染器背后的 Rust 单元测试、怎么全跑一遍，以及新增函数至少该覆盖什么。
 ---
 
 # 测试
@@ -12,9 +12,11 @@ description: test/sql 下的 SQLLogicTest 用例、三种跑法（make、just �
 
 | 文件 | 覆盖什么 |
 | --- | --- |
-| `duckfn_kuva.test` | 冒烟：LOAD 之前函数不存在、`require` 之后示例函数都在。它也是「扩展能被加载」的最小证明。 |
-| `scalar_greet.test` | 标量：正常值（含非 ASCII）、常量 `NULL` 被折叠、运行期 `NULL` 行被短路、`DuckOptionResult` 的 NULL 与报错两条路、参数个数/类型的 binder 报错、跨 DataChunk。 |
-| `aggregate_sum.test` | 聚合：返回类型、NULL 行跳过、空组返回 `NULL`、`GROUP BY` 逐组计算、跨 DataChunk 的 `combine`。 |
+| `duckfn_kuva.test` | 冒烟：LOAD 之前 `kuva_render` 不存在、`require` 之后存在；最小的一段规格能从开头到结尾渲染出 SVG（以 `<svg` 开头、以 `</svg>` 结尾）；已实现的每种图型都能产出内容；叠加与多面板图都能渲染；而非法输入、未知 series 类型、空的 `series`、长度不一致等各自以一段醒目的消息失败。 |
+
+渲染器本身还有一组 Rust 单元测试，在 `src/extension/functions/spec/tests.rs`：`cargo test --lib` 会跑
+它们，其中一项用 [`quick-xml`](https://crates.io/crates/quick-xml) 确认每次渲染结果都是合法 XML。
+`just test` 两半都跑 —— 先 `cargo test --lib`，再跑 SQLLogicTest 文件。
 
 ## 怎么跑
 
@@ -28,7 +30,7 @@ flowchart LR
 ```
 
 ```shell
-just test                 # = make configure + make debug + make test
+just test                 # = cargo test --lib + make configure + make debug + make test
 just ci-build             # 只做官方构建，不跑测试
 ```
 
@@ -58,16 +60,16 @@ DuckDB 的测试运行器可以直接驱动产物，完全跳过 `make`。它需
 ```
 
 `--test-dir` 必给：它同时是 `__TEST_DIR__` 的取值，也就是会落盘写文件的用例拿到的目录。只跑一份就再加
-`--file-path test/sql/scalar_greet.test`。
+`--file-path test/sql/duckfn_kuva.test`。
 
 ## 约定
 
-- **每个文件都从干净的数据库开始**，所以 `duckfn_kuva.test` 可以断言加载前函数不存在，其余文件开头写
+- **每个文件都从干净的数据库开始**，所以 `duckfn_kuva.test` 可以断言加载前函数不存在，随后写
   `require duckfn_kuva`。
 - **错误是子串匹配。** `statement error` 下面写有辨识度的那一段就够了，不必抄 DuckDB 整条错误消息 ——
   抄全了反而会把用例绑死在一个随时可能改的文案上。
-- **留意值怎么打印。** `DOUBLE` 打印成 `7.0`；用例关心的是数字而不是类型时，转一下
-  （`my_sum(x)::DECIMAL(10,1)`），这样类型变了期望值也不用改。
+- **结果是一个大字符串。** 一份渲染好的 SVG 有几千字符；断它的首尾（`left(svg, 4)`、`right(svg, 6)`）
+  或 `length(svg)`，不要断整份文档。
 - **按关注点拆文件**，不要按函数个数：行为一份、错误路径一份；用到社区扩展（比如解析 HTML）的用例单独
   放，因为它首次运行需要网络。
 
@@ -77,6 +79,6 @@ DuckDB 的测试运行器可以直接驱动产物，完全跳过 `make`。它需
 
 - 文件是冒烟测试的话，加一条 `LOAD` 之前的 `statement error` … `does not exist`；
 - 一条 **不是常量折叠** 的 NULL 输入 —— 常量 `NULL` 根本不会进函数体；
-- 行数超过 `STANDARD_VECTOR_SIZE`（2048）的用例 —— 聚合的 `combine`、标量的逐 chunk 路径都靠它才跑到。
+- 行数超过 `STANDARD_VECTOR_SIZE`（2048）的用例 —— 标量的逐 chunk 路径靠它才跑到。
 
 提交前：`just lint`（`cargo clippy --all-targets -- -D warnings`）。

@@ -11,8 +11,9 @@ read first) are **not** repeated here: they are in [AGENTS.md](AGENTS.md), which
 documentation and example extension sit in the local cargo registry (they ship with the crate since
 0.0.11, so no duckfn clone is needed).
 
-This repository is [duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template):
-it started from DuckDB's official
+This repository started from
+[duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template), which itself began
+from DuckDB's official
 [extension-template-rs](https://github.com/duckdb/extension-template-rs) and was reworked along duckfn's
 skeleton conventions (entry module, `EXTENSION_NAME`, dependency list), plus a complete release chain.
 
@@ -25,16 +26,32 @@ src/extension/mod.rs  ->  duckfn_entrypoint!("duckfn_kuva");
 src/bin/duckfn.rs     duckfn CLI entry  ->  #[path] mod extension; + duckfn::cli::run(...)
                       (only serves `just docs_csv`; takes no part in running the extension)
 
-src/extension/functions/mod.rs  ->  mod aggregate_sum; mod scalar_greet;
+src/extension/functions/mod.rs  ->  mod kuva_render; mod spec;
 src/extension/functions/
-    scalar_greet.rs     my_greet / my_greet_checked (two scalar return shapes)
-    aggregate_sum.rs    my_sum                      (aggregate state + output semantics)
+    kuva_render.rs     the one scalar function: a JSON document in, an SVG document out
+    spec/mod.rs        render_json(): the JSON entry point (parse, then hand over to convert)
+    spec/schema/       the serde types = the JSON schema (a pure mapping, no checks)
+        mod.rs         module list and re-exports
+        panel.rs       RenderSpec / PanelSpec / FigureSpec / panel labels
+        style.rs       title / axes / grid / legend / theme / palette / font / annotations
+        series/        the chart types — **one chart type per file**
+            mod.rs     SeriesSpec: the heterogeneous enum dispatched by `type`
+            common.rs  shared by every type: style fields, points, error bars, trend, band
+            scatter.rs line.rs bar.rs histogram.rs boxplot.rs pie.rs
+    spec/convert/      structs -> kuva's Plot / Layout / Figure (every check lives here)
+        mod.rs         entry point, single-figure / multi-panel assembly, series dispatch
+        layout.rs      the canvas chrome: title / axes / grid / legend / annotations
+        enums.rs       string and enum/value translation, palette colour cycling
+        charts/        **one chart type per file**, mirroring schema/series/
+            mod.rs     dispatch + apply_common
+            scatter.rs line.rs bar.rs histogram.rs boxplot.rs pie.rs
+    spec/tests.rs      unit tests (JSON in, SVG out, including "is it well-formed XML")
 src/extension/types/mod.rs
                         an empty slot for now: custom types (STRUCT / ENUM, the row type of a
                         list<struct> result, the options type of a DuckLazy argument) go in this
                         layer — attach a `mod` here once you have one
 
-test/sql/               one .test per sample function, plus a duckfn_kuva.test smoke test
+test/sql/duckfn_kuva.test   smoke + the six chart types + composition + the error paths
 scripts/release.sh      releasing (bump / tag / dev)
 scripts/rename.sh       renaming the extension after cloning
 Justfile                shortcuts for the daily loop and for releasing
@@ -71,19 +88,25 @@ So the bin does `#[path = "../extension/mod.rs"] mod extension;` and compiles th
 which keeps the registrations in this crate. This is also how the duckfn skeleton's `src/bin/duckfn.rs`
 is written. The whole bin serves `just docs_csv` and nothing else.
 
-### One function per file, the prefix as a namespace
+### One chart type per file
 
-Files under `functions/` are named "kind + what it does" (`scalar_greet.rs`, `aggregate_sum.rs`). When a
-feature outgrows a single file, split it into a subdirectory the way the duckfn example does
-(`functions/<feature>/mod.rs` plus one file per concern).
+`spec/schema/series/` and `spec/convert/charts/` mirror each other, and both are **one chart type per
+file**. That is what keeps batching the remaining chart types cheap: each one is "a `mod`, a `SeriesSpec`
+variant and a `build_*`", with every existing file untouched. What the types share — the style fields,
+points, error bars, trend lines, bands — lives in `series/common.rs`, so no single file grows with the
+number of chart types. Once one does reach a few hundred lines, split that type's own file further by
+shape.
 
-Every registered name carries a short prefix (`my_` here); the reasoning is in AGENTS.md: community
+The file is `boxplot.rs`, not `box.rs`: `box` is a Rust keyword, so `mod box;` does not compile.
+
+Every registered name carries a short prefix (`kuva_` here); the reasoning is in AGENTS.md: community
 extensions almost never put the package name into function names, and a short prefix is enough to
 search `duckdb_functions()` by.
 
 ### The three scalar return shapes
 
-The macro generates different tail code per return type. The template writes the first two:
+The macro generates different tail code per return type. `kuva_render` uses the second one
+(`DuckOptionResult`) — it can either succeed or fail on a malformed spec:
 
 | Signature | Meaning |
 | --- | --- |
@@ -104,16 +127,16 @@ implementation of `DuckAggregateState`:
 - `combine` / `simple_combine`: merge two states (this is what threads and group merging go through);
 - `result` / `simple_result`: turn a state into a value. Returning a value from `simple_result` means the
   result can never be NULL; a group that has to come back as NULL overrides `result` and returns
-  `Ok(None)` — which is exactly what `SumState` in `aggregate_sum.rs` does, counting the rows it saw so
-  "no input at all" is told apart from "input seen, the total is 0".
+  `Ok(None)` — and telling "no input at all" apart from "input seen, the total is 0" means the state has
+  to count the rows it saw.
 
 `Output` decides the SQL return type: `i64` / `f64` / `String` / `Vec<...>` (that is, `list<...>`) and so
 on.
 
 ### `types/` is a slot waiting for you
 
-The two sample functions need no custom type, so `types/mod.rs` holds comments only. What goes in there
-are three kinds of thing:
+The one function, `kuva_render`, needs no custom type (VARCHAR in, VARCHAR out), so `types/mod.rs` holds
+comments only. What goes in there are three kinds of thing:
 
 - named types defined with `#[duck_struct]` / `#[duck_enum]` and registered into DuckDB at load time;
 - the row type of a `list<struct<...>>` result (a plain Rust struct deriving `DuckStruct`);
@@ -121,10 +144,11 @@ are three kinds of thing:
 
 Delete the whole directory if you never need it (and the `mod types;` line in `extension/mod.rs`).
 
-### What the template deliberately leaves out
+### duckfn capabilities not used yet
 
-The template demonstrates the **registration paths** and the **engineering loop**; none of the following
-is in it. Write them from duckfn's docs and example extension rather than from memory:
+This repository uses only a small slice of duckfn (a scalar function plus the description attributes on
+it). None of the following is in it. Write them from duckfn's docs and example extension rather than from
+memory:
 
 - table functions / COPY / casts / replacement scans / SQL macros (one attribute macro each; see duckfn's
   `docs/docs/guide/` and its example extension under `src/extension/`);
@@ -153,9 +177,20 @@ is in it. Write them from duckfn's docs and example extension rather than from m
   is what keeps a local DuckDB build unnecessary. The lower bound is `>=1.10500` (= DuckDB 1.5.0: the
   crate encodes a DuckDB version as `1.<major*10000 + minor*100 + patch>.0`, so 1.5.6 is `1.10506.0`).
 
-The sample functions need nothing else. For anything date/time related, enable duckfn's `chrono` feature
-and add `chrono` as a dependency (duckfn re-exports none of those crates); the two ready-made lines are
-at the bottom of Cargo.toml.
+- [kuva](https://crates.io/crates/kuva): the Rust scientific plotting library this extension exists to
+  expose. **Only its default feature set is on** (which is empty), i.e. the SVG backend only: its
+  dependencies are just chrono / colorous / ryu, pure Rust and wasm-buildable. `png` / `pdf` / `full` /
+  `cli` / `parquet` pull in fontdue, png, krilla, arrow and the like (and `pdf` even needs Rust>=1.92);
+  none of them is enabled.
+- [serde](https://crates.io/crates/serde) / [serde_json](https://crates.io/crates/serde_json): the
+  foundation of the JSON entry point — a spec is deserialized into typed structs (`spec/schema/`) rather
+  than read key-by-key from a Map.
+- [quick-xml](https://crates.io/crates/quick-xml): **dev-dependency only**, used by the unit tests to
+  prove the rendered SVG is well-formed XML. Compiled for `cargo test` only; it never lands in the
+  extension binary.
+
+For anything date/time related, enable duckfn's `chrono` feature and add `chrono` as a dependency (duckfn
+re-exports none of those crates); the two ready-made lines are at the bottom of Cargo.toml.
 
 ## Build
 
@@ -186,13 +221,13 @@ no `_set_description`, no `_add_example`. Without help, the `Added Functions` ta
 extension pages would be a bare list of names.
 
 The text therefore lives next to the function it describes, on the `#[duck_*]` attributes (see
-`functions/scalar_greet.rs` and `aggregate_sum.rs`):
+`functions/kuva_render.rs`):
 
 ```rust
 #[duck_scalar_function(
-    description = "Greets someone by name, the simplest possible scalar function",
+    description = "Renders a complete chart described by a JSON string into an SVG document",
     comment = "…",
-    example = "SELECT my_greet('world')"
+    example = "SELECT kuva_render('…')"
 )]
 ```
 
@@ -247,20 +282,23 @@ Only two things here touch the release flow:
 
 ## Tests
 
-Tests are SQLLogicTest files under `test/sql/`:
+Two layers. `cargo test --lib` is the pure-Rust unit tests: no DuckDB, no venv, milliseconds. The files
+under `test/sql/` are SQLLogicTest cases that load the built artifact and go through SQL. `just test`
+runs both (unit tests first, then the official build and sqllogictest).
 
 ```shell
-just test                  # make configure + make debug + make test
+just test                  # cargo test --lib + make configure + make debug + make test
+cargo test --lib           # the unit tests alone
 make debug && make test    # make test does not rebuild; rerun make debug after Rust changes
 ```
 
-The three files and what each covers:
-
 | File | Coverage |
 | --- | --- |
-| `test/sql/duckfn_kuva.test` | smoke: the function is missing before `LOAD`, both sample functions exist after `require` (also the smallest proof that the extension loads at all) |
-| `test/sql/scalar_greet.test` | scalar: plain values (non-ASCII included), a constant NULL folded to NULL, runtime NULL rows short-circuited, both `DuckOptionResult` paths (NULL and error), binder errors for wrong arity and type, inputs spanning several DataChunks (`STANDARD_VECTOR_SIZE = 2048`) |
-| `test/sql/aggregate_sum.test` | aggregate: the return type, NULL rows skipped, an empty group yielding NULL, per-group results under `GROUP BY`, `combine` across DataChunks |
+| `src/extension/functions/spec/tests.rs` | unit tests: every chart type renders an SVG from JSON, overlay and multi-panel really take effect, the result is well-formed XML (parsed by quick-xml), and eight error paths report what went wrong |
+| `test/sql/duckfn_kuva.test` | the SQL layer: the function is missing before `LOAD`, and after `require` the six chart types, an overlay and a `figure` grid all come back as non-empty SVG, plus 5 `statement error` cases (bad JSON, unknown type, empty series, length mismatch, unknown legend position) |
+
+`just test` overrides the copy in `scripts/common.just` from the root Justfile; the only added step is
+`cargo test --lib` (the shared file is a byte-for-byte copy and must not be edited).
 
 You do not have to go through `make` on every iteration (and on Windows that needs Git Bash anyway). The
 repository's own venv can drive the artifact directly:
@@ -270,7 +308,7 @@ repository's own venv can drive the artifact directly:
 ./configure/venv/bin/python -m duckdb_sqllogictest \
     --test-dir test/sql \
     --external-extension build/debug/duckfn_kuva.duckdb_extension
-# one file only: add --file-path test/sql/scalar_greet.test
+# one file only: add --file-path test/sql/duckfn_kuva.test
 ```
 
 ```powershell
@@ -286,16 +324,15 @@ distinctive fragment is enough — there is no need to reproduce the whole messa
 
 Before committing: `cargo clippy --all-targets -- -D warnings` (`just lint`).
 
-## Next steps after cloning
+## Next steps
 
-1. `just rename <new-extension-name>` — rewrites the extension name in the five places plus the docs, and
-   regenerates the `Cargo.lock` entry; the script ends by printing what still needs a human pass.
-2. `AGENTS.md`: fill in `{{PROJECT_GOAL}}`, and change the `my_` prefix in the naming convention to your
-   own.
-3. Replace the sample functions (`my_greet` / `my_greet_checked` / `my_sum`) and `test/sql/*.test` with
-   your API.
-4. `community-extension/description.yml`: `extension.name` / `description` / `maintainers` / `repo` are
-   yours to fill in (the field-by-field reasoning is in that directory).
-5. The copyright holder in `LICENSE`, and the duckfn version in `Cargo.toml`.
-6. Before the first release, make sure the repository has a `main` branch and an `origin` remote:
+The template's initialisation is done (renaming, the AGENTS.md project facts and function prefix,
+`description.yml`, `LICENSE`). What remains:
+
+1. **Batch the remaining kuva chart types into the JSON entry point** — each one touches three places: a
+   file plus a `SeriesSpec` variant under `spec/schema/series/`, a `build_*` under `spec/convert/charts/`,
+   and an assertion in `spec/tests.rs`.
+2. `repo.ref` in `community-extension/description.yml` is still a placeholder: fill in the commit SHA of
+   the release once the first tag exists.
+3. Before the first release, make sure the repository has a `main` branch and an `origin` remote:
    `release_tag` pushes both `main` and the tag.

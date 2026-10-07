@@ -1,11 +1,15 @@
 //! 各图型的翻译：`SeriesSpec` 的每个变体 -> 一个 kuva `Plot`。
 //!
-//! 按**数据形态**分子模块（业务语义优先）：`point` 是 2D 点/线，`category` 是类别与占比，
-//! `distribution` 是 1D 分布。各图型共有的 color / legend / tooltip 由 [`apply_common`] 统一盖上。
+//! 与 `schema::series` 一一镜像：**一个图型一个文件**，批量补齐余下图型时只加一个 `mod`、一个枚举
+//! 变体和一个 `build_*`，其余文件不动。各图型共有的 color / legend / tooltip 由 [`apply_common`]
+//! 统一盖上；真长到几百行时再按形态往下分子模块。
 
-mod category;
-mod distribution;
-mod point;
+mod bar;
+mod boxplot;
+mod histogram;
+mod line;
+mod pie;
+mod scatter;
 
 use kuva::prelude::*;
 
@@ -26,12 +30,12 @@ impl SeriesSpec {
 
     pub(super) fn build(self) -> Result<Plot, String> {
         match self {
-            SeriesSpec::Scatter(s) => point::build_scatter(s),
-            SeriesSpec::Line(s) => point::build_line(s),
-            SeriesSpec::Bar(s) => category::build_bar(s),
-            SeriesSpec::Pie(s) => category::build_pie(s),
-            SeriesSpec::Histogram(s) => distribution::build_histogram(s),
-            SeriesSpec::Box(s) => distribution::build_box(s),
+            SeriesSpec::Scatter(s) => scatter::build_scatter(s),
+            SeriesSpec::Line(s) => line::build_line(s),
+            SeriesSpec::Bar(s) => bar::build_bar(s),
+            SeriesSpec::Histogram(s) => histogram::build_histogram(s),
+            SeriesSpec::Box(s) => boxplot::build_box(s),
+            SeriesSpec::Pie(s) => pie::build_pie(s),
         }
     }
 }

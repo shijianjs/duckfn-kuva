@@ -13,11 +13,15 @@ src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; m
 src/bin/duckfn.rs      duckfn CLI 入口  ->  #[path] mod extension; + duckfn::cli::run(...)
 
 src/extension/functions/
-    mod.rs             mod aggregate_sum; mod scalar_greet;
-    scalar_greet.rs    my_greet / my_greet_checked
-    aggregate_sum.rs   my_sum
+    mod.rs             mod kuva_render; mod spec;
+    kuva_render.rs     kuva_render(json) -> SVG：JSON 入口
+    spec/mod.rs        render_json：解析 JSON 并渲染
+    spec/schema/       JSON 的 schema，一组 serde 类型（面板 / 外观 / series）
+    spec/schema/series/  每种图型一个文件（scatter、line、bar、histogram、boxplot、pie）
+    spec/convert/      spec -> kuva 的翻译（布局、枚举、每型一个 build 函数）
+    spec/tests.rs      单元测试：JSON 进、SVG 出，并验证是合法 XML
 src/extension/types/
-    mod.rs             空的槽：面向 SQL 的类型放这一层
+    mod.rs             空的槽：面向 SQL 的类型放这一层（目前为空）
 
 test/sql/                   SQLLogicTest 用例
 scripts/rename.sh           克隆后改扩展名
@@ -60,7 +64,7 @@ flowchart LR
 | 规则 | 为什么 |
 | --- | --- |
 | 扩展名全小写、只含下划线，且五处一致。 | 它既是入口点符号，也是产物文件名；DuckDB 是按文件名去找符号的。`just rename` 负责写全这五处。 |
-| 每个注册进 SQL 的名字共用一个短前缀（模板里是 `my_`）。 | DuckDB 没有命名空间，而社区扩展几乎都不把包名写进函数名。约定见 `AGENTS.md`。 |
+| 每个注册进 SQL 的名字共用一个短前缀（这里是 `kuva_`）。 | DuckDB 没有命名空间，而社区扩展几乎都不把包名写进函数名。约定见 `AGENTS.md`。 |
 | `src/lib.rs` 与 `src/wasm_lib.rs` 始终声明同一组 `mod`。 | 否则 wasm 构建编不出这棵模块树。 |
 | 临时文件（脚本、数据、日志）放 `target/`。 | `target/` 已被 git 忽略，不会污染被跟踪的目录。 |
 | 文本文件一律 LF。 | 仓库按 LF 入库，`.gitattributes` 的归一化依赖这一点。 |
@@ -68,8 +72,8 @@ flowchart LR
 ## 开发笔记在哪
 
 仓库自己的 `DEVELOPMENT.zh.md`（英文版 `DEVELOPMENT.md`）收着文档站不写的设计说明：为什么是两个
-crate root、聚合状态怎么工作、每个依赖为什么被选进来。`AGENTS.md` 里是约定、发版流程，以及一份
-「duckfn 自己的文档按主题在哪儿」的对照表 —— 属性宏能做的所有事都在那边，不在本仓库里。
+crate root、JSON 规格是怎么翻译成 kuva 的、每个依赖为什么被选进来。`AGENTS.md` 里是约定、发版流程，以及
+一份「duckfn 自己的文档按主题在哪儿」的对照表 —— 属性宏能做的所有事都在那边，不在本仓库里。
 
 duckfn 0.0.11 起，那份指南连同**可运行的示例扩展**与它的 SQLLogicTest 用例都随 crate 一起发布，
 所以它们始终与 `Cargo.toml` 里的版本一致，也不需要 clone duckfn 的 git 仓库：

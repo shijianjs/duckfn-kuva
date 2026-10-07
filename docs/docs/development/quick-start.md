@@ -1,7 +1,7 @@
 ---
 title: Quick start
 sidebar_position: 1
-description: Rename the extension, build the .duckdb_extension with the official make toolchain, load it into DuckDB and call the sample functions.
+description: Rename the extension, build the .duckdb_extension with the official make toolchain, load it into DuckDB and call kuva_render.
 ---
 
 # Quick start
@@ -39,8 +39,8 @@ just rename csv_stats
 `scripts/rename.sh` rewrites the five places the extension name has to match — `Cargo.toml`
 (`[package] name` and `[[example]] name`), `EXTENSION_NAME` in the Makefile, the entry-point symbol in
 `src/extension/mod.rs`, the Justfile and the CI workflow — plus every occurrence in the docs, and
-regenerates the `Cargo.lock` entry. It finishes by printing what still needs a human pass; the sample
-functions are the main item.
+regenerates the `Cargo.lock` entry. It finishes by printing what still needs a human pass; the function
+names are not part of it, since they are the project's own API.
 
 ## 2. Build
 
@@ -63,33 +63,30 @@ just repl           # a DuckDB REPL with the extension already loaded
 duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 ```
 
-The sample functions, running right here — the site preloads the extension from the repository's latest
-release, so no local `LOAD` is needed here (a hand-built extension still needs `-unsigned`; see the
-traps below). Click **Run** on any block.
+`kuva_render`, running right here — the site preloads the extension from the repository's latest release,
+so no local `LOAD` is needed here (a hand-built extension still needs `-unsigned`; see the traps below).
+Click **Run** on any block. The result is a full SVG document, so the examples only look at its edges.
 
 ```sql {"type":"duckfn","show":"table"}
-SELECT name AS input, my_greet_checked(name) AS greeting
-FROM (VALUES ('world'), ('')) t(name);
+-- a scatter plot: the result starts with <svg
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
 ```
 
 ```sql {"type":"duckfn","show":"table"}
--- my_sum skips NULLs, and a group with no value at all is NULL rather than 0.
-SELECT grp, my_sum(x) AS total
-FROM (VALUES ('rows', 1.5::DOUBLE), ('rows', 2.5), ('all NULL', NULL::DOUBLE)) t(grp, x)
-GROUP BY grp
-ORDER BY grp;
+-- several series overlaid on one layout
+SELECT length(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}')) > 0 AS ok;
 ```
 
 The failure path is a runnable block too — it declares that it is supposed to fail:
 
 ```sql {"type":"duckfn","expect":"error"}
-SELECT my_greet_checked(' x ');    -- error: no surrounding whitespace
+SELECT kuva_render('{"series":[]}');    -- error: a chart needs at least one series
 ```
 
 A single query from the command line, without a REPL:
 
 ```shell
-just sql "SELECT my_greet('world')"
+just sql "SELECT left(kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}'), 4)"
 ```
 
 ## 4. Run the tests

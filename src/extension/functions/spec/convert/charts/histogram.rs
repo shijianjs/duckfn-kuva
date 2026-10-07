@@ -1,4 +1,4 @@
-//! 1D 分布：直方图（自动分箱或预分箱，可叠 KDE）与箱线图（含抖动 / 蜂群 / 缺口）。
+//! 直方图 -> `Plot::Histogram`。自动分箱与预分箱两条路，另可叠 KDE。
 
 use kuva::prelude::*;
 
@@ -63,59 +63,6 @@ pub(super) fn build_histogram(s: HistogramSeries) -> Result<Plot, String> {
     }
     if let Some(v) = s.common.tooltip_labels {
         plot = plot.with_tooltip_labels(v);
-    }
-    Ok(plot.into())
-}
-
-pub(super) fn build_box(s: BoxSeries) -> Result<Plot, String> {
-    if s.groups.is_empty() {
-        return Err("box: `groups` must not be empty".into());
-    }
-    let mut plot = BoxPlot::new();
-    for g in &s.groups {
-        if g.values.is_empty() {
-            return Err(format!("box: group `{}` has no values", g.label));
-        }
-        plot = plot.with_group(g.label.clone(), g.values.clone());
-    }
-    if let Some(v) = &s.colors {
-        plot = plot.with_group_colors(v.clone());
-    }
-    if let Some(v) = &s.common.color {
-        plot = plot.with_color(v.clone());
-    }
-    if let Some(v) = s.width {
-        plot = plot.with_width(v);
-    }
-    if let Some(v) = s.gap {
-        plot = plot.with_gap(v);
-    }
-    if let Some(v) = s.horizontal {
-        plot = plot.with_horizontal(v);
-    }
-    if let Some(v) = s.strip {
-        plot = plot.with_strip(v);
-    }
-    if s.swarm == Some(true) {
-        plot = plot.with_swarm_overlay();
-    }
-    if let Some(v) = &s.overlay_color {
-        plot = plot.with_overlay_color(v.clone());
-    }
-    if let Some(v) = s.overlay_size {
-        plot = plot.with_overlay_size(v);
-    }
-    if s.notch == Some(true) {
-        plot = plot.with_notch(true);
-    }
-    if let Some(v) = s.notch_depth {
-        plot = plot.with_notch_depth(v);
-    }
-    if let Some(v) = s.notch_width {
-        plot = plot.with_notch_width(v);
-    }
-    if let Some(v) = &s.common.legend {
-        plot = plot.with_legend(v.clone());
     }
     Ok(plot.into())
 }

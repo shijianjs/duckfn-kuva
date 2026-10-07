@@ -2,31 +2,16 @@
 
 # duckfn_kuva
 
-A DuckDB [loadable extension](https://duckdb.org/docs/stable/extensions/extension_development) written
-with [duckfn](https://crates.io/crates/duckfn): attribute macros turn ordinary Rust functions into DuckDB
-scalar / aggregate / table functions, and the C++ build is not involved at all (the C API is used
-headers-only, through DuckDB's API table).
+Statistical plotting from SQL. `duckfn_kuva` is a DuckDB
+[loadable extension](https://duckdb.org/docs/stable/extensions/extension_development) that turns a JSON
+description of a chart into an SVG document. It wraps the Rust plotting library
+[kuva](https://crates.io/crates/kuva) (SVG backend only) and is written with
+[duckfn](https://crates.io/crates/duckfn), so no C++ build is involved.
 
-This repository is a **template**: [duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template).
-It carries the full working loop — build, sqllogictest, docs export, release — around two sample
-functions, so a new extension starts from a green build instead of from an empty directory. A real
-extension written the same way: [duckfn_quantstats](https://github.com/shijianjs/duckfn-quantstats).
-
-## Starting a new extension from this template
-
-```shell
-git clone https://github.com/shijianjs/duckfn-extension-template my_new_extension
-cd my_new_extension
-rm -rf .git && git init    # optional: drop the template's history and start your own
-just rename my_new_extension
-```
-
-`just rename` (that is, `scripts/rename.sh`) rewrites every place the extension name has to match — the
-crate name and `[[example]] name`, `EXTENSION_NAME` in the Makefile, the entry-point symbol, the Justfile,
-the CI workflow and the docs — and regenerates the `Cargo.lock` entry. It ends by printing the few things
-left for a human, all of them listed in [DEVELOPMENT.md](DEVELOPMENT.md) (next steps) and
-[AGENTS.md](AGENTS.md) (conventions, including the `{{PROJECT_GOAL}}` placeholder).
-Replacing the two sample functions with your own API is one of them.
+The point is reach: one `.duckdb_extension` file draws charts wherever DuckDB runs — the CLI, a Python
+or R session, the JVM, or the browser build (DuckDB-Wasm) — with no matplotlib, no ggplot2 and no
+plotting environment to install. The semantics follow seaborn and ggplot2: you describe the figure and
+the extension works out the axes, the bins and the layout.
 
 ## Quick start
 
@@ -38,36 +23,78 @@ make debug       # -> build/debug/duckfn_kuva.duckdb_extension
 Locally built extensions are unsigned, so DuckDB has to be started with `-unsigned`:
 
 ```shell
-duckdb -unsigned -c "
-LOAD './build/debug/duckfn_kuva.duckdb_extension';
-SELECT my_greet('world');
--- Hello, world!
-SELECT my_sum(x) FROM (VALUES (1.5::DOUBLE), (2.5::DOUBLE), (3.0::DOUBLE)) t(x);
--- 7.0
-"
+duckdb -unsigned
 ```
 
-The `Justfile` wraps the same commands: `just build`, `just sql "SELECT my_greet('world')"`,
-`just repl` (a REPL with the extension already loaded).
+```sql
+LOAD './build/debug/duckfn_kuva.duckdb_extension';
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4);
+-- <svg
+```
 
-## Functions
+The result is a complete SVG document — write it out, or hand it to anything that renders SVG. The
+`Justfile` wraps the same commands: `just build`, `just sql "SELECT …"`, `just repl` (a REPL with the
+extension already loaded).
 
-Two sample functions, one per registration path. They are meant to be replaced — see
-`src/extension/functions/`.
+## The function
 
 | Function | Kind | Input → output |
 | --- | --- | --- |
-| `my_greet(name)` | scalar | `VARCHAR` → `VARCHAR`, never NULL |
-| `my_greet_checked(name)` | scalar | `VARCHAR` → `VARCHAR`, `NULL` for an empty name, an error for surrounding whitespace |
-| `my_sum(value)` | aggregate | `DOUBLE` → `DOUBLE`, NULLs skipped, `NULL` for an empty group |
+| `kuva_render(spec)` | scalar | `VARCHAR` (a JSON chart spec) → `VARCHAR` (an SVG document) |
 
-Behaviour worth knowing, because it is duckfn's rule rather than this template's:
+DuckDB's JSON type reaches the extension as a plain `VARCHAR`, so the argument is just the spec text.
+Anything malformed — bad JSON, a wrong field type, an empty `series`, a `values` array that does not
+match its `categories` — fails the query with a message that says what is wrong, rather than quietly
+returning NULL:
 
-- a non-`Option` argument short-circuits NULL to SQL NULL — the function body never runs for that row;
-  write the parameter as `Option<T>` to see the NULL and decide its meaning yourself;
-- `-> DuckOptionResult<T>` is how a scalar function returns NULL (`Ok(None)`) or fails the query (`Err`);
-- an aggregate is "a function with a `&mut` state parameter": the state's `Output` decides the SQL
-  return type, and `result` decides whether the group yields a value or NULL.
+```
+Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 categories
+```
+
+## The JSON spec
+
+The spec is written in snake_case and describes the *drawing* rather than one particular chart. Its
+top-level keys are `title`, `x_axis`, `y_axis`, `grid`, `legend`, `theme`, `palette`, `font`,
+`annotations`, `width`, `height` and `series`; every one of them except `series` is optional.
+
+Each `series` entry carries a `type` and declares only the fields that type needs. Six types are
+implemented so far:
+
+| `type` | Takes | Notes |
+| --- | --- | --- |
+| `scatter` | `data` as `[x, y]` pairs or `{"x":…,"y":…}` objects | per-point errors, bubble sizes, per-point colours, six marker shapes, a linear `trend` (with equation / correlation), a confidence `band` |
+| `line` | `data` as above | stroke width, line style (incl. a custom dash array), `step`, `fill` with opacity, `band` |
+| `bar` | `categories` + `values`, or several named `series` | grouped and `stacked`, `horizontal`, per-bar colours, error bars |
+| `histogram` | `values` (with `bins` / `range`) or precomputed `edges` + `counts` | `normalize`, and a `kde` overlay |
+| `box` | `groups` of raw values | `strip` jitter or a `swarm` overlay, notched boxes, horizontal |
+| `pie` | `slices` | `inner_radius` for a donut, `label_position`, percentages |
+
+JSON rather than a DuckDB `STRUCT` is deliberate: the series of one figure are heterogeneous, and a
+`STRUCT` list cannot hold a mix of them.
+
+**Composition** works two ways. Several entries in one `series` array are overlaid on a shared set of
+axes — a line with its scatter points on top:
+
+```sql
+SELECT length(kuva_render('{"series":[
+  {"type":"line","data":[[0,1],[1,2],[2,1.5]],"legend":"signal"},
+  {"type":"scatter","data":[[0,1.2],[1,1.8],[2,1.6]],"legend":"observed"}
+]}')) > 0;
+```
+
+A top-level `figure` with `rows`, `cols` and `panels` switches to a multi-panel grid instead, with
+shared axes and an optional shared legend:
+
+```sql
+SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
+  {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
+  {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
+]}}')) > 0;
+```
+
+`theme` picks light, dark, minimal or solarized (or overrides individual colours), `palette` picks one
+of a dozen named palettes or an explicit colour list, and `annotations` adds reference lines, shaded
+regions and text callouts. See the [documentation site](docs/README.md) for the full field reference.
 
 ## Build from source
 
@@ -84,16 +111,19 @@ The `Justfile` wraps it (`just build` = `make configure && make debug`, `just ci
 
 ## Testing
 
-Tests are SQLLogicTest files under `test/sql/`:
+Two layers, and `just test` runs both:
 
 ```shell
-just test          # make configure + make debug + make test
-just ci-build      # just the official build, without running the tests
+just test          # cargo test --lib, then make configure + make debug + make test
+cargo test --lib   # the Rust unit tests alone — no DuckDB, no venv, milliseconds
 ```
 
-`make test` does not rebuild, so run `just ci-build` (or `make debug`) first after touching Rust code.
-See [DEVELOPMENT.md](DEVELOPMENT.md) for the iteration loop (running the runner straight against
-`build/debug/*.duckdb_extension`) and for what the test files cover.
+The unit tests under `src/extension/functions/spec/tests.rs` render each chart type from a JSON string
+and assert the result, including that the SVG parses as well-formed XML. `test/sql/*.test` are
+[SQLLogicTest](https://duckdb.org/docs/stable/dev/sqllogictest/intro) files that load the built
+extension and exercise it through SQL.
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for the iteration loop and what each test covers.
 
 ## WebAssembly
 
@@ -102,8 +132,9 @@ just config_env   # once: pin the toolchain and add the wasm target
 just build_wasm
 ```
 
-The wasm build uses `src/wasm_lib.rs` (a `staticlib` mirror of `src/lib.rs`); the two crate roots must
-always declare the same set of `mod`s.
+This is what makes the browser build work: kuva's SVG backend is pure Rust, so the whole pipeline
+compiles to `wasm32-unknown-emscripten`. The build uses `src/wasm_lib.rs` (a `staticlib` mirror of
+`src/lib.rs`); the two crate roots must always declare the same set of `mod`s.
 
 ## Documentation site
 
@@ -116,21 +147,18 @@ just docs_start      # dev server at http://localhost:3000
 just docs_build      # the check that matters: onBrokenLinks is set to throw
 ```
 
-The template's pages describe the sample functions; rewrite them (and their translations under
-`docs/i18n/zh-Hans/`) as your API grows, or delete `docs/` — nothing else depends on it. The pages
-carry runnable SQL blocks (powered by [`duckfn-docs-kit`](https://www.npmjs.com/package/duckfn-docs-kit))
-that call the extension right in the browser; `cd docs && npm test` re-runs them. The conventions —
-layout, commands, translation workflow, deployment, the `{{EXTENSION_VERSION}}` version placeholder —
-are in [`docs/README.md`](docs/README.md).
+Its pages carry runnable SQL blocks (powered by
+[`duckfn-docs-kit`](https://www.npmjs.com/package/duckfn-docs-kit)) that call the extension right in the
+browser; `cd docs && npm test` re-runs them. The conventions — layout, commands, translation workflow,
+deployment, the `{{EXTENSION_VERSION}}` version placeholder — are in
+[`docs/README.md`](docs/README.md).
 
 ## Installing the released extension
 
-Releases are GitHub Releases carrying the build matrices' `.duckdb_extension` files, one per platform:
+Releases are GitHub Releases carrying the build matrix's `.duckdb_extension` files, one per platform:
 
-```shell
-duckdb -unsigned -c "
-LOAD 'https://github.com/<owner>/<repo>/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
-"
+```sql
+LOAD 'https://github.com/shijianjs/duckfn-kuva/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
 ```
 
 Publishing to DuckDB's [community extensions](https://duckdb.org/community_extensions/list_of_extensions)

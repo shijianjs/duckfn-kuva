@@ -50,3 +50,18 @@ extension_name := "duckfn_kuva"
 # 克隆模板后第一件事：把扩展名改掉（Cargo.toml / Makefile / Justfile / extension/mod.rs / CI / 文档）
 rename new_name:
     bash scripts/rename.sh "{{new_name}}"
+
+# 覆盖 scripts/common.just 里的 `test`：在官方 sqllogictest 之前先跑一遍纯 Rust 单元测试。
+#
+# 单测（`cargo test --lib`）不需要 DuckDB、不需要 venv，几毫秒就出结果，所以让它排在前面 —— 写错了
+# 先在这里拦下，不必等一整套 make 流程。
+#
+# 为什么不直接改 scripts/common.just：那份是**逐字节共享**的副本（`just check-common` 会拿它跟
+# duckfn 仓库里的源比对，改了下次 `just sync-common` 就丢了）。本文件已经开了
+# `set allow-duplicate-recipes`，同名 recipe 在根文件里覆盖即可；`test` 原本的内容是
+# `test: ci-build` → `make test` → `git clean -fdX -- test/sql`，这里的依赖（`ci-build`）仍复用共享定义，
+# 只多加了 `cargo test --lib` 这一行。共享那份若变动，记得同步这三行。
+test: ci-build
+    cargo test --lib
+    make test
+    git clean -fdX -- test/sql

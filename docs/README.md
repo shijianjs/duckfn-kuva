@@ -4,9 +4,10 @@ Static site for this extension's documentation, built with
 [Docusaurus](https://docusaurus.io/) and deployed by
 [`.github/workflows/DeployDocs.yml`](../.github/workflows/DeployDocs.yml) to GitHub Pages.
 
-The template ships a small bilingual site that already describes the sample functions. Once the
-functions are yours, the pages under `docs/docs/` are yours to rewrite — or delete the whole directory
-if you would rather not have a site (nothing else in the repository depends on it).
+The site is bilingual (English and Simplified Chinese) and documents the extension's one function,
+`kuva_render`, and the JSON chart spec it accepts. The pages under `docs/docs/` are yours to rewrite —
+or delete the whole directory if you would rather not have a site (nothing else in the repository
+depends on it).
 
 ## Layout
 
@@ -71,14 +72,13 @@ editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 
 ````md
 ```sql {"type":"duckfn","show":"table"}
-SELECT name, my_greet_checked(name) AS greeting
-FROM (VALUES ('world'), ('')) t(name);
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4) AS prefix;
 ```
 ````
 
 `"type":"duckfn"` is required; `show` is `table` (default), `text`, `html`, `iframe` or `svg`, and a
 block that demonstrates a failure declares `"expect":"error"` (see `docs/user-guide/intro.md`,
-`docs/user-guide/functions.md` and `docs/development/quick-start.md` for the ones the template ships).
+`docs/user-guide/functions.md` and `docs/development/quick-start.md` for the ones this site ships).
 The full config reference is in the kit's own guide at
 <https://shijianjs.github.io/duckfn/docs/docs-kit/runnable-sql>.
 

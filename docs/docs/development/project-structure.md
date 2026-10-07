@@ -13,11 +13,15 @@ src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; m
 src/bin/duckfn.rs      duckfn CLI entry   ->  #[path] mod extension; + duckfn::cli::run(...)
 
 src/extension/functions/
-    mod.rs             mod aggregate_sum; mod scalar_greet;
-    scalar_greet.rs    my_greet / my_greet_checked
-    aggregate_sum.rs   my_sum
+    mod.rs             mod kuva_render; mod spec;
+    kuva_render.rs     kuva_render(json) -> SVG: the JSON entry point
+    spec/mod.rs        render_json: parse the JSON and render it
+    spec/schema/       the JSON schema as serde types (panel / style / series)
+    spec/schema/series/  one file per chart type (scatter, line, bar, histogram, boxplot, pie)
+    spec/convert/      spec -> kuva translation (layout, enums, one build fn per chart)
+    spec/tests.rs      unit tests: JSON in, SVG out, validated as XML
 src/extension/types/
-    mod.rs             an empty slot: SQL-facing types go here
+    mod.rs             an empty slot: SQL-facing types go here (none yet)
 
 src/extension/functions/…   the registered functions
 test/sql/                   SQLLogicTest files
@@ -66,7 +70,7 @@ and the exported CSV comes out empty — silently.
 | Rule | Why |
 | --- | --- |
 | The extension name is lowercase with underscores, and identical in five places. | It is the entry-point symbol and the artifact file name; DuckDB looks the symbol up by the file name. `just rename` writes all five. |
-| Every registered SQL name carries one short prefix (`my_` here). | DuckDB has no namespaces, and community extensions almost never put the package name into function names. See the conventions in `AGENTS.md`. |
+| Every registered SQL name carries one short prefix (`kuva_` here). | DuckDB has no namespaces, and community extensions almost never put the package name into function names. See the conventions in `AGENTS.md`. |
 | `src/lib.rs` and `src/wasm_lib.rs` always declare the same set of `mod`s. | Otherwise the wasm build fails to compile the module tree. |
 | Temporary files (scripts, data, logs) go to `target/`. | `target/` is git-ignored and never pollutes the tracked tree. |
 | Text files use LF. | The repository stores LF; the `.gitattributes` normalization relies on it. |
@@ -74,9 +78,9 @@ and the exported CSV comes out empty — silently.
 ## Where the development notes are
 
 The repository's own `DEVELOPMENT.md` (and `DEVELOPMENT.zh.md`) carries the design notes the docs site
-does not: why there are two crate roots, how the aggregate state works, which dependencies were chosen
-and why. `AGENTS.md` holds the conventions, the release flow and a topic-by-topic map of duckfn's own
-documentation — everything the attribute macros can do lives there, not in this repository.
+does not: why there are two crate roots, how the JSON spec is translated into kuva, which dependencies
+were chosen and why. `AGENTS.md` holds the conventions, the release flow and a topic-by-topic map of
+duckfn's own documentation — everything the attribute macros can do lives there, not in this repository.
 
 Since duckfn 0.0.11 that documentation, plus a runnable example extension and its SQLLogicTest files,
 ship **inside the crate package**, so they always match the version in `Cargo.toml` and need no clone of

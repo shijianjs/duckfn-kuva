@@ -7,8 +7,8 @@
 # 以及 README / DEVELOPMENT 里出现的那些（加载路径、示例命令）。这些地方必须处处一致，漏一处就是
 # `LOAD` 失败或 CI 构建出的产物名字对不上。
 #
-# 它**不**改示例函数的名字（`my_greet` / `my_greet_checked` / `my_sum`）：那些是给你替换的域代码，
-# 不是扩展名的一部分。函数名前缀的约定见 AGENTS.md，换完自己顺手改掉（连同 test/sql 里的用例）。
+# 它**不**动注册到 SQL 的函数名：那是你的域代码，不是扩展名的一部分。函数名前缀的约定见 AGENTS.md
+# （本仓库现在的函数是 `kuva_render`，前缀 `kuva_`）。
 #
 # 用法 / Usage：
 #   bash scripts/rename.sh <new-extension-name> [old-extension-name]
@@ -19,8 +19,8 @@
 #   bash scripts/rename.sh csv_stats my_extension # 第二次改名时把旧名字显式给出
 #
 # A one-shot rename of the placeholder extension name (`my_extension` by default) — the first thing to
-# do after cloning this template. It touches the extension name and nothing else: the sample functions
-# are domain code for you to replace, and their prefix convention lives in AGENTS.md.
+# do after cloning this template. It touches the extension name and nothing else: the functions
+# registered in SQL are domain code, and their prefix convention lives in AGENTS.md.
 set -euo pipefail
 
 die() {
@@ -105,8 +105,7 @@ cargo metadata --format-version 1 >/dev/null
 
 echo
 echo "已改名的文件如上（共 ${#files[@]} 个）。还要手工过一遍："
-echo "  1. 示例函数（my_greet / my_greet_checked / my_sum）与 test/sql/*.test —— 换成你自己的 API，"
-echo "     顺手把 AGENTS.md 里函数名前缀那条约定（默认 my_）改成你的前缀"
+echo "  1. 注册到 SQL 的函数名与 test/sql/*.test —— 按 AGENTS.md 的前缀约定取名"
 echo "  2. docs/docusaurus.config.ts 的 REPO_URL —— 改成你的仓库地址（本脚本只改扩展名，不动 URL；"
 echo "     它同时是首页徽章与可运行 SQL 预加载的来源，不换会去模板仓库找 Release）"
 echo "  3. community-extension/description.yml —— extension.name / description / maintainers / repo"

@@ -126,10 +126,10 @@ LOAD duckfn_kuva;`;
  * The other half: the functions the extension registers, called exactly like
  * DuckDB's own.
  */
-const USAGE_SAMPLE = `SELECT my_greet_checked('world');  -- Hello, world!
-SELECT my_greet_checked('');       -- NULL
-SELECT my_sum(x) FROM (VALUES (1.5::DOUBLE), (2.5::DOUBLE)) t(x);
--- 4.0`;
+const USAGE_SAMPLE = `SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4);
+-- <svg
+SELECT kuva_render('{"series":[]}');
+-- error: kuva_render: \`series\` must not be empty: a single-figure chart needs at least one series`;
 
 /**
  * The shields.io badges ask for `style=flat`, which is the rounded style; the
@@ -219,7 +219,7 @@ function featuresContent(): FeaturesContent {
           id: 'homepage.features.sql.details',
           description: 'Home page feature card description',
           message:
-            "my_greet, my_greet_checked and my_sum are ordinary DuckDB functions: use them in any query, alongside DuckDB's own, with nothing to import.",
+            "kuva_render is an ordinary DuckDB function: call it in any query, alongside DuckDB's own, with nothing to import. Hand it a JSON chart spec and it returns an SVG.",
         }),
       },
       {
@@ -396,8 +396,8 @@ function CodeShowcase(): ReactNode {
               <Translate
                 id="homepage.showcase.caption"
                 description="Home page note under the SQL code block explaining the trailing comments">
-                The comments are what each call returns — and the last one is a
-                real sum over two rows.
+                The comments are what each call returns \u2014 the first is the
+                SVG a chart renders to, the second is how a bad spec fails.
               </Translate>
             </p>
           </div>

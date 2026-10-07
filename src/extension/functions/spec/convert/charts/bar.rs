@@ -1,8 +1,8 @@
-//! 类别与占比：柱状图（分组 / 堆叠 / 简单）与饼图（含环形图）。
+//! 柱状图 -> `Plot::Bar`。简单模式（每类一根）与分组 / 堆叠模式（每组每类一根）都走这里。
 
 use kuva::prelude::*;
 
-use crate::extension::functions::spec::convert::enums::*;
+use crate::extension::functions::spec::convert::enums::cycle_color;
 use crate::extension::functions::spec::schema::*;
 
 pub(super) fn build_bar(s: BarSeries) -> Result<Plot, String> {
@@ -108,39 +108,6 @@ pub(super) fn build_bar(s: BarSeries) -> Result<Plot, String> {
     }
     if let Some(v) = s.error_cap_width {
         plot = plot.with_error_cap_width(v);
-    }
-    if s.common.tooltips == Some(true) {
-        plot = plot.with_tooltips();
-    }
-    if let Some(v) = s.common.tooltip_labels {
-        plot = plot.with_tooltip_labels(v);
-    }
-    Ok(plot.into())
-}
-
-pub(super) fn build_pie(s: PieSeries) -> Result<Plot, String> {
-    if s.slices.is_empty() {
-        return Err("pie: `slices` must not be empty".into());
-    }
-    let mut plot = PiePlot::new();
-    for (i, slice) in s.slices.iter().enumerate() {
-        let color = slice.color.clone().unwrap_or_else(|| cycle_color(i));
-        plot = plot.with_slice(slice.label.clone(), slice.value, color);
-    }
-    if let Some(v) = s.inner_radius {
-        plot = plot.with_inner_radius(v);
-    }
-    if let Some(v) = &s.common.legend {
-        plot = plot.with_legend(v.clone());
-    }
-    if let Some(v) = &s.label_position {
-        plot = plot.with_label_position(pie_label(v));
-    }
-    if s.percent == Some(true) {
-        plot = plot.with_percent();
-    }
-    if let Some(v) = s.min_label_fraction {
-        plot = plot.with_min_label_fraction(v);
     }
     if s.common.tooltips == Some(true) {
         plot = plot.with_tooltips();

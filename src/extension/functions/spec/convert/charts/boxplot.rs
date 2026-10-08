@@ -56,3 +56,25 @@ pub(super) fn build_box(s: BoxSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const BOX: &str = r#"{
+      "series": [{
+        "type": "box",
+        "groups": [
+          {"label": "A", "values": [1, 2, 2, 3, 3, 3, 4, 5, 9]},
+          {"label": "B", "values": [2, 2.5, 3, 3.5, 4, 4.5, 5, 6]}
+        ],
+        "strip": 0.15,
+        "notch": true
+      }]
+    }"#;
+
+    #[test]
+    fn renders_box() {
+        assert_renders(&render_svg(BOX), "BOX");
+    }
+}

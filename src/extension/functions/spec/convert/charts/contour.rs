@@ -73,3 +73,53 @@ pub(super) fn build_contour(s: ContourSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const CONTOUR_GRID: &str = r##"{
+      "series": [{
+        "type": "contour",
+        "z": [[1, 2, 3], [2, 4, 6], [3, 6, 9]],
+        "x_coords": [0, 1, 2],
+        "y_coords": [0, 1, 2],
+        "n_levels": 6,
+        "filled": true,
+        "color_map": "inferno",
+        "line_width": 1.5,
+        "legend": "z"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_contour_grid() {
+        assert_renders(&render_svg(CONTOUR_GRID), "CONTOUR_GRID");
+    }
+
+    const CONTOUR_POINTS: &str = r##"{
+      "series": [{
+        "type": "contour",
+        "points": [[0, 0, 1], [1, 0, 2], [0, 1, 2], [1, 1, 4], [0.5, 0.5, 3]],
+        "levels": [1, 2, 3],
+        "line_color": "#222222"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_contour_points() {
+        assert_renders(&render_svg(CONTOUR_POINTS), "CONTOUR_POINTS");
+    }
+
+    #[test]
+    fn contour_grid_coordinate_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"contour","z":[[1,2],[3,4]],"x_coords":[0],"y_coords":[0,1]}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("`x_coords` has 1 entries but the grid has 2 columns"),
+            "unexpected message: {err}"
+        );
+    }
+}

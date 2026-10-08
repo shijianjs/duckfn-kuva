@@ -73,3 +73,36 @@ fn slope_value_format(v: &TickFormatSpec) -> SlopeValueFormat {
         _ => SlopeValueFormat::Auto,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const SLOPE: &str = r##"{
+      "series": [{
+        "type": "slope",
+        "points": [
+          {"label": "north", "before": 10, "after": 25},
+          {"label": "south", "before": 20, "after": 18},
+          {"label": "east", "before": 15, "after": 15}
+        ],
+        "before_label": "2023",
+        "after_label": "2024",
+        "color_up": "#2ca02c",
+        "color_down": "#d62728",
+        "color_flat": "#aaaaaa",
+        "color_by_direction": true,
+        "group_colors": ["#4c72b0", "#c44e52", "#55a868"],
+        "dot_radius": 7,
+        "line_width": 2,
+        "show_values": true,
+        "value_format": 1,
+        "legend": "regions"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_slope() {
+        assert_renders(&render_svg(SLOPE), "SLOPE");
+    }
+}

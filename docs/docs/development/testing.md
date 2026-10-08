@@ -14,10 +14,11 @@ the expected result inline, so a test doubles as a worked example of the functio
 | --- | --- |
 | `duckfn_kuva.test` | The smoke test: `kuva_render` does not exist before `LOAD` and does after `require`; the smallest spec renders an SVG from start to finish (it begins with `<svg` and ends with `</svg>`); every implemented chart type produces output; overlays and multi-panel figures render; and malformed input, an unknown series type, an empty `series` list and a length mismatch each fail with a distinctive message. |
 
-The renderer itself is also covered by Rust unit tests in `src/extension/functions/spec/tests.rs`:
-`cargo test --lib` runs them, and one check uses [`quick-xml`](https://crates.io/crates/quick-xml) to
-confirm each rendered result is well-formed XML. `just test` runs both halves — `cargo test --lib` and
-then the SQLLogicTest file.
+The renderer itself is also covered by Rust unit tests: they are inline `#[cfg(test)] mod tests` blocks at
+the bottom of the file they cover — one per chart under `src/extension/functions/spec/convert/charts/`.
+`cargo test --lib` runs them, and one check per chart uses
+[`quick-xml`](https://crates.io/crates/quick-xml) to confirm each rendered result is well-formed XML.
+`just test` runs both halves — `cargo test --lib` and then the SQLLogicTest file.
 
 ## Running them
 

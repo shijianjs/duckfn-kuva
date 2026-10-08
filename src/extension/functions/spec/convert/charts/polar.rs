@@ -77,3 +77,39 @@ pub(super) fn build_polar(s: PolarSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const POLAR: &str = r##"{
+      "series": [{
+        "type": "polar",
+        "series": [
+          {"r": [1, 2, 3, 2], "theta": [0, 90, 180, 270], "label": "a", "mode": "line", "stroke_width": 2},
+          {"r": [2, 3, 1], "theta": [30, 150, 300], "label": "b", "color": "#c44e52", "marker_size": 8}
+        ],
+        "r_max": 4,
+        "r_min": 0,
+        "theta_start": 90,
+        "clockwise": false,
+        "r_grid_lines": 4,
+        "theta_divisions": 8,
+        "show_legend": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_polar() {
+        assert_renders(&render_svg(POLAR), "POLAR");
+    }
+
+    #[test]
+    fn polar_radius_angle_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"polar","series":[{"r":[1,2,3],"theta":[0,90],"label":"a"}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("3 radii but 2 angles"), "unexpected message: {err}");
+    }
+}

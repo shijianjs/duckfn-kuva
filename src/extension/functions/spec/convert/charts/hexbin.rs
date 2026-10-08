@@ -76,3 +76,40 @@ pub(super) fn build_hexbin(s: HexbinSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const HEXBIN: &str = r##"{
+      "series": [{
+        "type": "hexbin",
+        "x": [0.1, 0.3, 0.5, 0.7, 0.9, 0.2, 0.4],
+        "y": [0.2, 0.4, 0.6, 0.8, 0.1, 0.3, 0.5],
+        "z": [1, 2, 3, 4, 5, 6, 7],
+        "reduce": "mean",
+        "n_bins": 12,
+        "color_map": "cividis",
+        "min_count": 1,
+        "log_color": true,
+        "colorbar": true,
+        "colorbar_label": "mean z",
+        "stroke": "#333333",
+        "stroke_width": 0.4,
+        "flat_top": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_hexbin() {
+        assert_renders(&render_svg(HEXBIN), "HEXBIN");
+    }
+
+    #[test]
+    fn hexbin_z_length_mismatch_is_reported() {
+        // 长度对不上时 kuva 直接按点下标取 `z[i]`，会 panic。
+        let err =
+            render_json(r#"{"series":[{"type":"hexbin","x":[1,2],"y":[1,2],"z":[1]}]}"#).unwrap_err();
+        assert!(err.contains("`z` has 1 entries"), "unexpected message: {err}");
+    }
+}

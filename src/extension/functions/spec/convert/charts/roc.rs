@@ -71,3 +71,35 @@ pub(super) fn build_roc(s: RocSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const ROC: &str = r##"{
+      "series": [{
+        "type": "roc",
+        "groups": [
+          {"label": "model A", "predictions": [{"score": 0.9, "label": true}, [0.8, false], [0.6, true], [0.4, true], [0.2, false]], "ci": true, "auc_label": true, "optimal_point": true, "pauc_range": [0, 0.3]},
+          {"label": "model B", "points": [[0, 0], [0.2, 0.7], [0.6, 0.9], [1, 1]], "dasharray": "4 2", "line_width": 2}
+        ],
+        "show_diagonal": true,
+        "diagonal_dasharray": "3 3",
+        "legend": "roc"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_roc() {
+        assert_renders(&render_svg(ROC), "ROC");
+    }
+
+    #[test]
+    fn roc_group_without_any_curve_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"roc","groups":[{"label":"a"}]}]}"#).unwrap_err();
+        assert!(
+            err.contains("needs either `predictions` or `points`"),
+            "unexpected message: {err}"
+        );
+    }
+}

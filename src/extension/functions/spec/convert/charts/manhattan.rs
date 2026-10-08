@@ -107,3 +107,75 @@ pub(super) fn build_manhattan(s: ManhattanSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const MANHATTAN: &str = r##"{
+      "series": [{
+        "type": "manhattan",
+        "points": [
+          {"chromosome": "1", "position": 1000, "pvalue": 1e-8},
+          {"chromosome": "1", "position": 5000, "pvalue": 0.4, "label": "rs1"},
+          {"chromosome": "2", "position": 2000, "pvalue": 1e-5}
+        ],
+        "build": "hg38",
+        "genome_wide": 7.3,
+        "suggestive": 5,
+        "color_a": "steelblue",
+        "color_b": "#5aadcb",
+        "point_size": 3,
+        "label_top": 2,
+        "label_style": "nudge",
+        "legend": "GWAS",
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_manhattan() {
+        assert_renders(&render_svg(MANHATTAN), "MANHATTAN");
+    }
+
+    /// 不给 `build`：这时 x 有两种走法 —— 给了 `position` 就用它，都不给就按染色体序号排。
+    const MANHATTAN_NO_BUILD: &str = r##"{
+      "series": [{
+        "type": "manhattan",
+        "points": [
+          {"chromosome": "chr1", "pvalue": 1e-6},
+          {"chromosome": "chr2", "pvalue": 0.2}
+        ],
+        "genome_wide": 7.3
+      }]
+    }"##;
+
+    #[test]
+    fn renders_manhattan_no_build() {
+        assert_renders(&render_svg(MANHATTAN_NO_BUILD), "MANHATTAN_NO_BUILD");
+    }
+
+    const MANHATTAN_X: &str = r##"{
+      "series": [{
+        "type": "manhattan",
+        "points": [
+          {"chromosome": "1", "position": 10, "pvalue": 1e-6},
+          {"chromosome": "1", "position": 20, "pvalue": 0.5}
+        ]
+      }]
+    }"##;
+
+    #[test]
+    fn renders_manhattan_x() {
+        assert_renders(&render_svg(MANHATTAN_X), "MANHATTAN_X");
+    }
+
+    #[test]
+    fn manhattan_build_without_position_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"manhattan","points":[{"chromosome":"1","pvalue":0.1}],"build":"hg38"}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("needs a `position`"), "unexpected message: {err}");
+    }
+}

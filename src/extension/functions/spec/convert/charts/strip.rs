@@ -59,3 +59,29 @@ pub(super) fn build_strip(s: StripSeries) -> Result<Plot, String> {
     );
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const STRIP: &str = r##"{
+      "series": [{
+        "type": "strip",
+        "groups": [
+          {"label": "a", "values": [1, 2, 2, 3, 4, 9], "point_colors": ["red", "green"], "point_shapes": ["circle", "triangle"]},
+          {"label": "b", "values": [2, 3, 4, 5]}
+        ],
+        "style": "swarm",
+        "point_size": 5,
+        "marker_opacity": 0.6,
+        "color": "slateblue",
+        "legend": "beeswarm",
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_strip() {
+        assert_renders(&render_svg(STRIP), "STRIP");
+    }
+}

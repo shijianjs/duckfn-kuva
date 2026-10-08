@@ -47,3 +47,33 @@ pub(super) fn build_surface3d(s: Surface3DSeries) -> Result<Plot, String> {
     plot = apply_box3d!(plot, &s.box3d);
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const SURFACE3D: &str = r##"{
+      "series": [{
+        "type": "surface3d",
+        "z_data": [[1, 2, 3], [2, 4, 6], [3, 6, 9]],
+        "x_coords": [0, 1, 2],
+        "y_coords": [0, 1, 2],
+        "z_colormap": "viridis",
+        "wireframe": true,
+        "wireframe_color": "#333333",
+        "wireframe_width": 0.8,
+        "alpha": 0.9,
+        "color": "steelblue",
+        "legend": "surface",
+        "x_label": "x",
+        "y_label": "y",
+        "z_label": "z",
+        "show_box": false
+      }]
+    }"##;
+
+    #[test]
+    fn renders_surface3d() {
+        assert_renders(&render_svg(SURFACE3D), "SURFACE3D");
+    }
+}

@@ -117,3 +117,40 @@ pub(super) fn build_bar(s: BarSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const BAR: &str = r#"{
+      "title": "Grouped bars",
+      "legend": {"position": "outside_right_middle"},
+      "series": [{
+        "type": "bar",
+        "categories": ["Jan", "Feb", "Mar", "Apr"],
+        "series": [{"name": "A", "values": [10, 13, 9, 15]}, {"name": "B", "values": [7, 9, 11, 8]}],
+        "stacked": true,
+        "errors": [2, 1, 1.5, 2, 1, 1, 1, 1]
+      }]
+    }"#;
+
+    #[test]
+    fn renders_bar() {
+        assert_renders(&render_svg(BAR), "BAR");
+    }
+
+    #[test]
+    fn grouped_bar_shows_both_series_in_the_legend() {
+        let svg = render_svg(BAR);
+        for text in ["Jan", "Apr", "A", "B"] {
+            assert!(svg.contains(text), "bar output is missing `{text}`");
+        }
+    }
+
+    #[test]
+    fn bar_value_category_mismatch_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"bar","categories":["a","b"],"values":[1]}]}"#)
+            .unwrap_err();
+        assert!(err.contains("`values` has 1 entries"), "unexpected message: {err}");
+    }
+}

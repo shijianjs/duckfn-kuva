@@ -70,3 +70,50 @@ pub(super) fn build_upset(s: UpSetSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const UPSET: &str = r##"{
+      "series": [{
+        "type": "upset",
+        "set_names": ["A", "B", "C"],
+        "set_sizes": [10, 12, 8],
+        "intersections": [
+          {"mask": 1, "count": 5},
+          {"mask": 3, "count": 3},
+          {"mask": 7, "count": 2}
+        ],
+        "sort": "by_degree",
+        "max_visible": 5,
+        "bar_color": "#4c72b0",
+        "dot_color": "#333333"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_upset() {
+        assert_renders(&render_svg(UPSET), "UPSET");
+    }
+
+    #[test]
+    fn upset_mask_beyond_declared_sets_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"upset","set_names":["a"],"set_sizes":[3],
+                 "intersections":[{"mask":3,"count":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("sets bits beyond the 1"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn upset_set_sizes_length_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"upset","set_names":["a","b"],"set_sizes":[3],
+                 "intersections":[{"mask":1,"count":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("`set_sizes` has 1 entries"), "unexpected message: {err}");
+    }
+}

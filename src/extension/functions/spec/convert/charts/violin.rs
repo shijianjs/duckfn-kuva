@@ -76,3 +76,56 @@ pub(super) fn build_violin(s: ViolinSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    /// 批次 1：分布 / 统计类图型。逐个覆盖到「非平凡的选项也都写上」，而不只是最小样例 ——
+    /// 静默失效的字段只有被真正填过才测得出来。
+    const VIOLIN: &str = r##"{
+      "title": "Violin",
+      "series": [{
+        "type": "violin",
+        "groups": [
+          {"label": "A", "values": [1, 2, 2, 3, 3, 4, 5, 9]},
+          {"label": "B", "values": [2, 2.5, 3, 3.5, 4, 5], "color": "seagreen"}
+        ],
+        "colors": ["tomato", "seagreen"],
+        "bandwidth": 0.8,
+        "kde_samples": 128,
+        "strip": 0.15,
+        "width": 0.7,
+        "gap": 0.1,
+        "legend": "cohort"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_violin() {
+        assert_renders(&render_svg(VIOLIN), "VIOLIN");
+    }
+
+    #[test]
+    fn empty_group_values_are_reported() {
+        let err = render_json(r##"{"series":[{"type":"violin","groups":[{"label":"A","values":[]}]}]}"##)
+            .unwrap_err();
+        assert!(
+            err.contains("group `A` has no values"),
+            "unexpected message: {err}"
+        );
+    }
+
+    #[test]
+    fn split_groups_longer_than_groups_is_reported() {
+        let err = render_json(
+            r##"{"series":[{"type":"violin","groups":[{"label":"A","values":[1,2]}],
+                 "split":true,"split_groups":[{"values":[1]},{"values":[2]},{"values":[3]}]}]}"##,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("`split_groups` has 3 entries"),
+            "unexpected message: {err}"
+        );
+    }
+}

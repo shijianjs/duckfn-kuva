@@ -52,3 +52,38 @@ pub(super) fn build_forest(s: ForestSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const FOREST: &str = r##"{
+      "series": [{
+        "type": "forest",
+        "rows": [
+          {"label": "study A", "estimate": 0.42, "ci_lower": 0.11, "ci_upper": 0.73, "weight": 12},
+          {"label": "study B", "estimate": 0.25, "ci_lower": -0.05, "ci_upper": 0.55, "color": "#c44e52"},
+          {"label": "pooled", "estimate": 0.33, "ci_lower": 0.2, "ci_upper": 0.46, "weight": 30}
+        ],
+        "marker_size": 7,
+        "whisker_width": 2,
+        "null_value": 0,
+        "cap_size": 3,
+        "legend": "effect"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_forest() {
+        assert_renders(&render_svg(FOREST), "FOREST");
+    }
+
+    #[test]
+    fn forest_inverted_confidence_interval_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"forest","rows":[{"label":"a","estimate":1,"ci_lower":2,"ci_upper":0}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("ci_lower 2 above ci_upper 0"), "unexpected message: {err}");
+    }
+}

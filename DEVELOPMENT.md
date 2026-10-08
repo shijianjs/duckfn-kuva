@@ -45,7 +45,8 @@ src/extension/functions/
         charts/        **one chart type per file**, mirroring schema/series/
             mod.rs     dispatch + apply_common
             scatter.rs line.rs bar.rs histogram.rs boxplot.rs pie.rs
-    spec/tests.rs      unit tests (JSON in, SVG out, including "is it well-formed XML")
+    inline tests       every file ends with a `#[cfg(test)] mod tests` (JSON in, SVG out, and the
+                       result validated as XML); the two shared helpers live in spec/mod.rs
 src/extension/types/mod.rs
                         an empty slot for now: custom types (STRUCT / ENUM, the row type of a
                         list<struct> result, the options type of a DuckLazy argument) go in this
@@ -294,7 +295,7 @@ make debug && make test    # make test does not rebuild; rerun make debug after 
 
 | File | Coverage |
 | --- | --- |
-| `src/extension/functions/spec/tests.rs` | unit tests: every chart type renders an SVG from JSON, overlay and multi-panel really take effect, the result is well-formed XML (parsed by quick-xml), and eight error paths report what went wrong |
+| `#[cfg(test)] mod tests` inline | unit tests, one module per file it covers: every chart type renders an SVG from its JSON spec and the result is well-formed XML (parsed by quick-xml); overlay, multi-panel and the twin axis really take effect; and each validation reports what went wrong. `spec/mod.rs` also holds `test_support`, the two helpers they share |
 | `test/sql/duckfn_kuva.test` | the SQL layer: the function is missing before `LOAD`, and after `require` the six chart types, an overlay and a `figure` grid all come back as non-empty SVG, plus 5 `statement error` cases (bad JSON, unknown type, empty series, length mismatch, unknown legend position) |
 
 `just test` overrides the copy in `scripts/common.just` from the root Justfile; the only added step is
@@ -329,9 +330,11 @@ Before committing: `cargo clippy --all-targets -- -D warnings` (`just lint`).
 The template's initialisation is done (renaming, the AGENTS.md project facts and function prefix,
 `description.yml`, `LICENSE`). What remains:
 
-1. **Batch the remaining kuva chart types into the JSON entry point** — each one touches three places: a
-   file plus a `SeriesSpec` variant under `spec/schema/series/`, a `build_*` under `spec/convert/charts/`,
-   and an assertion in `spec/tests.rs`.
+1. **Keep up with kuva** — all 64 of its plot types are implemented; when a new one appears, each addition
+   touches three places: a file plus a `SeriesSpec` variant under `spec/schema/series/`, a `build_*` under
+   `spec/convert/charts/`, and that chart's own `#[cfg(test)] mod tests` at the bottom of the same file.
+   `every_plot_type_in_the_kuva_enum_is_reachable` in `spec/convert/charts/mod.rs` fails when the count
+   changes, so a new type cannot slip in unnoticed.
 2. `repo.ref` in `community-extension/description.yml` is still a placeholder: fill in the commit SHA of
    the release once the first tag exists.
 3. Before the first release, make sure the repository has a `main` branch and an `origin` remote:

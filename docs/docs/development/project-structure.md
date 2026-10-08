@@ -19,7 +19,8 @@ src/extension/functions/
     spec/schema/       the JSON schema as serde types (panel / style / series)
     spec/schema/series/  one file per chart type (scatter, line, bar, histogram, boxplot, pie)
     spec/convert/      spec -> kuva translation (layout, enums, one build fn per chart)
-    spec/tests.rs      unit tests: JSON in, SVG out, validated as XML
+                       every file ends with an inline `#[cfg(test)] mod tests`: JSON in, SVG out,
+                       validated as XML (the two shared helpers are in spec/mod.rs)
 src/extension/types/
     mod.rs             an empty slot: SQL-facing types go here (none yet)
 

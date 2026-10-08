@@ -14,8 +14,9 @@ description: test/sql 下的 SQLLogicTest 文件、渲染器背后的 Rust 单�
 | --- | --- |
 | `duckfn_kuva.test` | 冒烟：LOAD 之前 `kuva_render` 不存在、`require` 之后存在；最小的一段规格能从开头到结尾渲染出 SVG（以 `<svg` 开头、以 `</svg>` 结尾）；已实现的每种图型都能产出内容；叠加与多面板图都能渲染；而非法输入、未知 series 类型、空的 `series`、长度不一致等各自以一段醒目的消息失败。 |
 
-渲染器本身还有一组 Rust 单元测试，在 `src/extension/functions/spec/tests.rs`：`cargo test --lib` 会跑
-它们，其中一项用 [`quick-xml`](https://crates.io/crates/quick-xml) 确认每次渲染结果都是合法 XML。
+渲染器本身还有一组 Rust 单元测试：它们是**内联**的 `#[cfg(test)] mod tests`，贴在被测文件末尾 ——
+每种图型一个，在 `src/extension/functions/spec/convert/charts/` 下。`cargo test --lib` 会跑它们，每个图型
+都有一项用 [`quick-xml`](https://crates.io/crates/quick-xml) 确认渲染结果合法 XML。
 `just test` 两半都跑 —— 先 `cargo test --lib`，再跑 SQLLogicTest 文件。
 
 ## 怎么跑

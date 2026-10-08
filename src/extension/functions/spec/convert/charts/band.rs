@@ -37,3 +37,35 @@ pub(super) fn build_band(s: IntervalSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const BAND: &str = r##"{
+      "series": [{
+        "type": "band",
+        "x": [1, 2, 3, 4],
+        "y_lower": [0.8, 1.4, 1.9, 2.5],
+        "y_upper": [1.2, 1.8, 2.4, 3.1],
+        "color": "steelblue",
+        "opacity": 0.25,
+        "legend": "95% CI"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_band() {
+        assert_renders(&render_svg(BAND), "BAND");
+    }
+
+    #[test]
+    fn band_negative_opacity_is_reported() {
+        // 负不透明度会让 kuva 拼出非法的颜色串，渲染时 panic。
+        let err = render_json(
+            r#"{"series":[{"type":"band","x":[1,2],"y_lower":[0,0],"y_upper":[1,1],"opacity":-0.2}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("must not be negative"), "unexpected message: {err}");
+    }
+}

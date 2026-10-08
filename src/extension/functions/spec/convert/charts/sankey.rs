@@ -123,3 +123,54 @@ pub(super) fn build_sankey(s: SankeySeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    /// 批次 3：关系 / 层级类图型。
+    const SANKEY: &str = r##"{
+      "title": "Sankey",
+      "series": [{
+        "type": "sankey",
+        "nodes": [
+          {"label": "coal", "color": "#4c72b0"},
+          {"label": "gas", "color": "#c44e52"},
+          {"label": "power", "color": "#55a868", "column": 1},
+          {"label": "loss", "color": "#bbbbbb", "column": 2}
+        ],
+        "links": [
+          {"source": "coal", "target": "power", "value": 30, "color": "#4c72b0"},
+          {"source": "gas", "target": "power", "value": 20},
+          {"source": "coal", "target": "loss", "value": 10},
+          {"source": "gas", "target": "loss", "value": 5}
+        ],
+        "alluvia": [{"nodes": ["coal", "power", "loss"], "value": 30}],
+        "axis_names": ["fuel", "use", "waste"],
+        "node_order": "crossing_reduction",
+        "node_coloring": "label",
+        "link_color": "gradient",
+        "node_width": 18,
+        "node_gap": 6,
+        "link_opacity": 0.6,
+        "flow_percent": true,
+        "flow_label_min_height": 10,
+        "legend": "energy"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_sankey() {
+        assert_renders(&render_svg(SANKEY), "SANKEY");
+    }
+
+    #[test]
+    fn sankey_unknown_node_reference_is_reported() {
+        // 认不出的节点名会变成指向不存在节点的下标，渲染时越界 panic。
+        let err = render_json(
+            r#"{"series":[{"type":"sankey","nodes":[{"label":"a"}],"links":[{"source":"a","target":"ghost","value":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("unknown node `ghost`"), "unexpected message: {err}");
+    }
+}

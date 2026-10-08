@@ -51,3 +51,30 @@ pub(super) fn build_stacked_area(s: StackedAreaSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const STACKED_AREA: &str = r##"{
+      "series": [{
+        "type": "stacked_area",
+        "x": [1, 2, 3, 4],
+        "series": [
+          {"values": [3, 4, 5, 6], "label": "a", "color": "#4c72b0"},
+          {"values": [2, 3, 2, 4], "label": "b", "color": "#c44e52"},
+          {"values": [1, 1, 2, 1], "label": "c"}
+        ],
+        "fill_opacity": 0.6,
+        "stroke_width": 1.2,
+        "show_strokes": true,
+        "normalized": true,
+        "legend_position": "outside_right_middle"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_stacked_area() {
+        assert_renders(&render_svg(STACKED_AREA), "STACKED_AREA");
+    }
+}

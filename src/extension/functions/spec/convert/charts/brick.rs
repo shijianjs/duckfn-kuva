@@ -128,3 +128,71 @@ fn check_strigar_runs(name: &str, seq: &str) -> Result<(), String> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const BRICK: &str = r##"{
+      "series": [{
+        "type": "brick",
+        "sequences": ["ACGTACGT", "ACGTTCGT", "ACGTACGA"],
+        "names": ["s1", "s2", "s3"],
+        "template": "dna",
+        "x_offset": 0,
+        "x_origin": 0,
+        "show_values": true,
+        "anchor": "left",
+        "mark_primary": true,
+        "consensus_row": 0,
+        "notations": ["n1", null, "n3"],
+        "row_height": 18
+      }]
+    }"##;
+
+    #[test]
+    fn renders_brick() {
+        assert_renders(&render_svg(BRICK), "BRICK");
+    }
+
+    /// STRIGAR 模式：展开后的 strigar 就是画出来的行，`sequences` 不参与。
+    const BRICK_STRIGAR: &str = r##"{
+      "series": [{
+        "type": "brick",
+        "names": ["read_1", "read_2", "read_3"],
+        "strigars": [
+          ["CAG:A", "10A"],
+          ["CAG:A", "8A"],
+          ["CAG:A,C:B", "12A1B"]
+        ],
+        "x_origin": 0,
+        "consensus_row": 0,
+        "row_height": 20
+      }]
+    }"##;
+
+    #[test]
+    fn renders_brick_strigar() {
+        assert_renders(&render_svg(BRICK_STRIGAR), "BRICK_STRIGAR");
+    }
+
+    #[test]
+    fn brick_character_outside_template_is_reported() {
+        // DNA 配色表里没有 `X`；kuva 渲染时找不到就是 panic。
+        let err = render_json(
+            r##"{"series":[{"type":"brick","sequences":["ACGX"],"template":"dna"}]}"##,
+        )
+        .unwrap_err();
+        assert!(err.contains("color template does not cover"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn brick_strigar_without_repeat_count_is_reported() {
+        // kuva 展开 strigar 时对没有次数的字母做 parse().expect(..)，直接 panic。
+        let err = render_json(
+            r#"{"series":[{"type":"brick","names":["r1"],"strigars":[["CAG:A","A"]]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("without a repeat count"), "unexpected message: {err}");
+    }
+}

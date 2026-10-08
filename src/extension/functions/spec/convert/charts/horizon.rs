@@ -56,3 +56,29 @@ pub(super) fn build_horizon(s: HorizonSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const HORIZON: &str = r##"{
+      "series": [{
+        "type": "horizon",
+        "series": [
+          {"label": "a", "x": [1, 2, 3, 4], "y": [1, -2, 3, -4], "pos_color": "#4292c6", "neg_color": "#d73027"},
+          {"label": "b", "x": [1, 2, 3, 4], "y": [2, 1, -1, -2]}
+        ],
+        "n_bands": 3,
+        "row_height": 40,
+        "baseline": 0,
+        "show_legend": true,
+        "value_labels": true,
+        "sign_colors": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_horizon() {
+        assert_renders(&render_svg(HORIZON), "HORIZON");
+    }
+}

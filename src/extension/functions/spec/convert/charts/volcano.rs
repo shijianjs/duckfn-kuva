@@ -56,3 +56,37 @@ pub(super) fn build_volcano(s: VolcanoSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const VOLCANO: &str = r##"{
+      "series": [{
+        "type": "volcano",
+        "points": [
+          {"name": "G1", "log2fc": 3.2, "pvalue": 1e-9},
+          {"name": "G2", "log2fc": -2.8, "pvalue": 1e-6},
+          {"name": "G3", "log2fc": 0.1, "pvalue": 0.4},
+          {"name": "G4", "log2fc": 1.4, "pvalue": 0.02},
+          {"name": "G5", "log2fc": -1.1, "pvalue": 0.03},
+          {"name": "G6", "log2fc": 0.3, "pvalue": 0.6}
+        ],
+        "fc_cutoff": 1,
+        "p_cutoff": 0.05,
+        "color_up": "#c44e52",
+        "color_down": "#4c72b0",
+        "color_ns": "#bbbbbb",
+        "point_size": 6,
+        "label_top": 3,
+        "label_style": {"offset_x": 20, "offset_y": 14},
+        "legend": "DE",
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_volcano() {
+        assert_renders(&render_svg(VOLCANO), "VOLCANO");
+    }
+}

@@ -37,3 +37,31 @@ pub(super) fn build_pie(s: PieSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const PIE: &str = r#"{
+      "title": "Donut",
+      "series": [{
+        "type": "pie",
+        "slices": [{"label": "Rust", "value": 40}, {"label": "Python", "value": 30}, {"label": "R", "value": 20}, {"label": "Other", "value": 10}],
+        "inner_radius": 60,
+        "percent": true,
+        "legend": "langs"
+      }]
+    }"#;
+
+    #[test]
+    fn renders_pie() {
+        assert_renders(&render_svg(PIE), "PIE");
+    }
+
+    #[test]
+    fn pie_renders_one_path_per_slice() {
+        let svg = render_svg(PIE);
+        let paths = svg.matches("<path").count();
+        assert!(paths >= 4, "expected at least 4 slice paths, found {paths}");
+    }
+}

@@ -114,3 +114,47 @@ fn node_shape(k: &NodeShapeKind) -> NodeShape {
         NodeShapeKind::Diamond => NodeShape::Diamond,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const NETWORK: &str = r##"{
+      "series": [{
+        "type": "network",
+        "nodes": [
+          {"label": "hub", "size": 12, "group": "core", "color": "#4c72b0", "shape": "square"},
+          {"label": "a", "group": "leaf"},
+          {"label": "b", "group": "leaf", "shape": "triangle"},
+          {"label": "c", "group": "leaf", "position": [0.2, 0.8]}
+        ],
+        "edges": [
+          {"source": "hub", "target": "a", "weight": 3, "label": "3"},
+          {"source": "hub", "target": "b", "weight": 2, "curve": 0.3, "color": "#c44e52"},
+          {"source": "a", "target": "b", "weight": 1}
+        ],
+        "directed": true,
+        "layout": "kamada_kawai",
+        "node_radius": 10,
+        "edge_opacity": 0.5,
+        "show_labels": true,
+        "repel_labels": true,
+        "label_size": 12,
+        "legend": "graph"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_network() {
+        assert_renders(&render_svg(NETWORK), "NETWORK");
+    }
+
+    #[test]
+    fn network_unknown_node_reference_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"network","nodes":[{"label":"a"}],"edges":[{"source":"a","target":"ghost","weight":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("unknown node `ghost`"), "unexpected message: {err}");
+    }
+}

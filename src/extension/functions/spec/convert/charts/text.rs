@@ -46,3 +46,38 @@ pub(super) fn build_text(s: TextSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const TEXT: &str = r##"{
+      "series": [{
+        "type": "text",
+        "body": "# Report\n---\nSome **bold** text.\n\nSecond paragraph.",
+        "title": "Summary",
+        "font_size": 14,
+        "padding": 20,
+        "background": "#f8f8f8",
+        "border_color": "#cccccc",
+        "border_width": 1,
+        "text_align": "left",
+        "text_color": "#222222"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_text() {
+        assert_renders(&render_svg(TEXT), "TEXT");
+    }
+
+    #[test]
+    fn text_zero_font_size_is_reported() {
+        // kuva 用字号去除字符宽度，0 会除零 panic。
+        let err = render_json(
+            r#"{"series":[{"type":"text","body":"hi","font_size":0}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("at least 1"), "unexpected message: {err}");
+    }
+}

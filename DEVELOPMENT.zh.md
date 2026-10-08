@@ -42,7 +42,8 @@ src/extension/functions/
         charts/        **一个图型一个文件**，与 schema/series/ 一一镜像
             mod.rs     分派 + apply_common
             scatter.rs line.rs bar.rs histogram.rs boxplot.rs pie.rs
-    spec/tests.rs      单元测试（JSON 进、SVG 出，含产物是不是合法 XML）
+    (内联测试)         每个文件末尾都是 `#[cfg(test)] mod tests`（JSON 进、SVG 出，并验证产物合法 XML）；
+                       两个共用的小工具在 spec/mod.rs 里
 src/extension/types/mod.rs
                         目前是空的占位：自定义类型（STRUCT / ENUM / list<struct> 行类型 /
                         DuckLazy 参数的配置类型）都放这一层，用到了再往里挂 `mod`
@@ -261,7 +262,7 @@ make debug && make test    # make test 不会自动重新构建，改完 Rust �
 
 | 文件 | 覆盖什么 |
 | --- | --- |
-| `src/extension/functions/spec/tests.rs` | 单元测试：六个图型各自能从 JSON 渲出 SVG、叠加与多面板真的生效、产物是合法 XML（quick-xml 真解析一遍）、八条错误路径各自的报错信息 |
+| `#[cfg(test)] mod tests`（内联） | 单元测试，一个文件一份、贴在被测代码下面：每种图型都能从 JSON 渲出 SVG 且产物是合法 XML（quick-xml 真解析一遍）、叠加与多面板与双轴真的生效、每条校验都带出能定位的报错。两个共用小工具放在 `spec/mod.rs` 的 `test_support` |
 | `test/sql/duckfn_kuva.test` | SQL 层：LOAD 之前函数不存在、`require` 之后六个图型 + 叠加 + `figure` 网格都返回非空 SVG，外加 5 条 `statement error`（JSON 非法、未知 type、空 series、长度不一致、未知图例位置） |
 
 `just test` 在主 Justfile 里覆盖了 `scripts/common.just` 的那一份，多出来的就是 `cargo test --lib` 这一步
@@ -294,7 +295,9 @@ make debug && make test    # make test 不会自动重新构建，改完 Rust �
 模板初始化那几步都已经做完（改名、`AGENTS.md` 的项目事实与函数前缀、`description.yml`、`LICENSE`）。
 剩下的是：
 
-1. **把余下的 kuva 图型补进 JSON 入口** —— 每加一型就是三处：`spec/schema/series/` 加一个文件与一个
-   `SeriesSpec` 变体，`spec/convert/charts/` 加一个 `build_*`，`spec/tests.rs` 加一条断言。
+1. **跟上 kuva** —— 它的 64 种图型已经全部实现；以后每加一型仍是三处：`spec/schema/series/` 加一个文件与
+   一个 `SeriesSpec` 变体，`spec/convert/charts/` 加一个 `build_*`，并在同一个文件末尾加它自己的
+   `#[cfg(test)] mod tests`。`spec/convert/charts/mod.rs` 里的
+   `every_plot_type_in_the_kuva_enum_is_reachable` 会在数量变化时失败，新图型溜不过去。
 2. `community-extension/description.yml` 的 `repo.ref` 仍是占位符：首次发版后填那次发布的提交 SHA。
 3. 首次发版前确认仓库有 `main` 分支与 `origin` 远程：`release_tag` 会推 `main` 与 tag。

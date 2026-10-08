@@ -105,3 +105,62 @@ pub(super) fn build_phylo(s: PhyloSeries) -> Result<Plot, String> {
     }
     Ok(tree.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const PHYLO: &str = r##"{
+      "series": [{
+        "type": "phylo",
+        "newick": "((A:0.1,B:0.2):0.15,(C:0.3,D:0.25):0.1);",
+        "orientation": "right",
+        "branch_style": "rectangular",
+        "phylogram": true,
+        "branch_color": "#333333",
+        "leaf_color": "#4c72b0",
+        "support_threshold": 0.5,
+        "legend": "tree"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_phylo() {
+        assert_renders(&render_svg(PHYLO), "PHYLO");
+    }
+
+    const PHYLO_EDGES: &str = r##"{
+      "series": [{
+        "type": "phylo",
+        "edges": [
+          {"parent": "root", "child": "A", "length": 0.1},
+          {"parent": "root", "child": "B", "length": 0.2}
+        ],
+        "orientation": "top",
+        "branch_style": "slanted"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_phylo_edges() {
+        assert_renders(&render_svg(PHYLO_EDGES), "PHYLO_EDGES");
+    }
+
+    #[test]
+    fn phylo_multiple_input_forms_are_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"phylo","newick":"(A,B);","edges":[{"parent":"r","child":"A","length":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("mutually exclusive"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn phylo_clade_color_index_is_reported() {
+        let err = render_json(
+            r##"{"series":[{"type":"phylo","newick":"(A,B);","clade_colors":[[99,"#fff"]]}]}"##,
+        )
+        .unwrap_err();
+        assert!(err.contains("refers to node 99"), "unexpected message: {err}");
+    }
+}

@@ -54,3 +54,39 @@ pub(super) fn build_line(s: LineSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    /// 折线本身（叠加折线 + 散点的组合样例在 `convert/mod.rs`）。
+    const LINE: &str = r##"{
+      "title": "Line",
+      "x_axis": {"name": "t", "tick_format": "integer"},
+      "y_axis": {"name": "value", "min": 0, "max": 10},
+      "legend": {"position": "inside_top_left"},
+      "series": [{
+        "type": "line",
+        "data": [[0, 1], [1, 2.5], [2, 2], [3, 4.5], [4, 6], [5, 5.5]],
+        "legend": "measured",
+        "stroke_width": 3,
+        "stroke_dasharray": "6 3",
+        "color": "#4c72b0",
+        "step": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_line() {
+        assert_renders(&render_svg(LINE), "LINE");
+    }
+
+    #[test]
+    fn empty_line_data_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"line","data":[]}]}"#).unwrap_err();
+        assert!(
+            err.contains("`data` must not be empty"),
+            "unexpected message: {err}"
+        );
+    }
+}

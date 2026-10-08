@@ -56,3 +56,32 @@ pub(super) fn build_gantt(s: GanttSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const GANTT: &str = r##"{
+      "series": [{
+        "type": "gantt",
+        "tasks": [
+          {"label": "design", "start": 0, "end": 3, "group": "p1", "progress": 1},
+          {"label": "build", "start": 2, "end": 6, "group": "p1", "progress": 0.5, "color": "#c44e52"},
+          {"label": "ship", "start": 6, "end": 6, "group": "p1", "milestone": true}
+        ],
+        "now_line": 4,
+        "group_order": ["p1"],
+        "bar_height": 0.7,
+        "milestone_size": 8,
+        "show_labels": true,
+        "color": "steelblue",
+        "group_bg": "#f0f0f0",
+        "legend": "plan"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_gantt() {
+        assert_renders(&render_svg(GANTT), "GANTT");
+    }
+}

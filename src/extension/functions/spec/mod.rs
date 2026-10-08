@@ -6,14 +6,14 @@
 //!
 //! 模块分工：
 //! - `schema`：serde 类型定义 = JSON 的 schema（纯映射，不做校验）；
-//! - `convert`：把结构体翻译成 kuva 的 `Vec<Plot>` + `Layout` / `Figure`，并做校验；
-//! - `tests`：单元测试（JSON 进、SVG 出，并验证产物是合法 XML）。
+//! - `convert`：把结构体翻译成 kuva 的 `Vec<Plot>` + `Layout` / `Figure`，并做校验。
+//!
+//! 单元测试（JSON 进、SVG 出）不在单独的文件里，而是以 `#[cfg(test)] mod tests` 贴在被测代码旁边：
+//! 每个图型的样例与断言在 `convert/charts/<图型>.rs`，布局与 figure 的在 `convert/mod.rs` /
+//! `convert/layout.rs`，`render_json` 自身的在下面。共用的两个小工具在 [`test_support`]。
 
 mod convert;
 mod schema;
-
-#[cfg(test)]
-mod tests;
 
 pub(crate) use schema::RenderSpec;
 
@@ -25,4 +25,72 @@ pub(crate) use schema::RenderSpec;
 pub(crate) fn render_json(json: &str) -> Result<String, String> {
     let spec: RenderSpec = serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
     convert::render(spec)
+}
+
+/// 测试用的两个小工具 —— 各图型的测试都从这里取。
+///
+/// 刻意不放进 `tests/` 目录：那是另一个 crate，摸不到 `pub(crate)` 的 `render_json`；
+/// 而且 `#[cfg(test)]` 的内联模块能跟着被测代码一起搬，不必再多一份模块清单。
+#[cfg(test)]
+pub(crate) mod test_support {
+    pub(crate) use super::render_json;
+
+    /// 渲染，失败直接 panic（附上原始错误）。
+    pub(crate) fn render_svg(json: &str) -> String {
+        match render_json(json) {
+            Ok(svg) => svg,
+            Err(e) => panic!("expected the spec to render, but got: {e}"),
+        }
+    }
+
+    /// 冒烟断言：产物是一个完整的 SVG 文档、体积不像一张白图、且能被真正的 XML 解析器读完
+    /// （而不是数尖括号 —— 字符串拼出来的 SVG 最容易出的问题就是标签没闭合）。
+    pub(crate) fn assert_renders(svg: &str, what: &str) {
+        assert!(svg.starts_with("<svg"), "{what}: expected an <svg> root");
+        assert!(
+            svg.trim_end().ends_with("</svg>"),
+            "{what}: expected a closing </svg>"
+        );
+        assert!(
+            svg.len() > 500,
+            "{what}: suspiciously small output ({} bytes)",
+            svg.len()
+        );
+        let mut reader = quick_xml::Reader::from_str(svg);
+        loop {
+            match reader.read_event() {
+                Ok(quick_xml::events::Event::Eof) => break,
+                Ok(_) => {}
+                Err(e) => panic!("{what}: rendered SVG is not well-formed XML: {e}"),
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::render_json;
+
+    #[test]
+    fn malformed_json_is_reported() {
+        let err = render_json("{oops").unwrap_err();
+        assert!(err.contains("invalid JSON"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn unknown_series_type_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"nope"}]}"#).unwrap_err();
+        assert!(err.contains("invalid JSON"), "unexpected message: {err}");
+        // 报错要列出可用的图型，不然用的人得回去翻文档。
+        assert!(err.contains("scatter"), "the message should list the known types: {err}");
+    }
+
+    #[test]
+    fn empty_series_is_reported() {
+        let err = render_json(r#"{"series":[]}"#).unwrap_err();
+        assert!(
+            err.contains("`series` must not be empty"),
+            "unexpected message: {err}"
+        );
+    }
 }

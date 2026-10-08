@@ -90,3 +90,38 @@ pub(super) fn build_quiver(s: QuiverSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const QUIVER: &str = r##"{
+      "series": [{
+        "type": "quiver",
+        "arrows": [
+          {"x": 0, "y": 0, "u": 1, "v": 1},
+          {"x": 1, "y": 0, "u": 0.5, "v": 2, "color": "#c44e52"},
+          {"x": 0, "y": 1, "u": -1, "v": 0.5}
+        ],
+        "color": "steelblue",
+        "scale": 1,
+        "shaft_width": 1.5,
+        "head_length": 8,
+        "head_ratio": 0.3,
+        "head_min_px": 4,
+        "head_max_px": 14,
+        "color_map": "viridis",
+        "color_range": [0, 2],
+        "color_legend_label": "magnitude",
+        "legend": "field",
+        "tight_bounds": true,
+        "clip_to_plot_area": true,
+        "pivot": "middle"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_quiver() {
+        assert_renders(&render_svg(QUIVER), "QUIVER");
+    }
+}

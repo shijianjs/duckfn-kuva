@@ -59,3 +59,31 @@ pub(super) fn build_waffle(s: WaffleSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const WAFFLE: &str = r##"{
+      "series": [{
+        "type": "waffle",
+        "categories": [
+          {"label": "yes", "value": 6, "color": "#4c72b0"},
+          {"label": "no", "value": 3},
+          {"label": "maybe", "value": 1}
+        ],
+        "rows": 5,
+        "cols": 4,
+        "gap": 0.15,
+        "fill_order": "row_major_bottom_left",
+        "shape": "circle",
+        "show_percents": true,
+        "unit_label": "1 cell = 2 votes"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_waffle() {
+        assert_renders(&render_svg(WAFFLE), "WAFFLE");
+    }
+}

@@ -110,3 +110,43 @@ pub(super) fn build_joint(s: JointSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const JOINT: &str = r##"{
+      "series": [{
+        "type": "jointplot",
+        "groups": [
+          {"x": [1, 2, 3, 4, 5], "y": [2, 4, 3, 5, 6], "label": "a", "color": "#4c72b0", "marker": "circle", "trend": true, "equation": true, "correlation": true},
+          {"x": [2, 3, 4], "y": [3, 4, 5], "label": "b", "sizes": [4, 6, 8], "colors": ["#c44e52", "#c44e52", "#c44e52"]}
+        ],
+        "marginal_type": "histogram",
+        "show_top": true,
+        "show_right": true,
+        "marginal_size": 90,
+        "marginal_gap": 5,
+        "bins": 12,
+        "marginal_alpha": 0.5,
+        "x_label": "x",
+        "y_label": "y",
+        "marker_size": 5,
+        "marker_opacity": 0.7
+      }]
+    }"##;
+
+    #[test]
+    fn renders_joint() {
+        assert_renders(&render_svg(JOINT), "JOINT");
+    }
+
+    #[test]
+    fn jointplot_xy_length_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"jointplot","groups":[{"x":[1,2,3],"y":[1,2]}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("3 x values but 2 y values"), "unexpected message: {err}");
+    }
+}

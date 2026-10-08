@@ -64,3 +64,38 @@ pub(super) fn build_pareto(s: ParetoSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const PARETO: &str = r##"{
+      "series": [{
+        "type": "pareto",
+        "categories": [
+          {"label": "a", "value": 40},
+          {"label": "b", "value": 25},
+          {"label": "c", "value": 15},
+          {"label": "d", "value": 12},
+          {"label": "e", "value": 8}
+        ],
+        "color": "steelblue",
+        "line_color": "firebrick",
+        "width": 0.8,
+        "sorted": true,
+        "cumulative_labels": true,
+        "show_threshold": true,
+        "threshold": 80,
+        "bar_legend_label": "count",
+        "line_legend_label": "cum %",
+        "show_legend": true,
+        "max_categories": 4,
+        "other_label": "rest"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_pareto() {
+        assert_renders(&render_svg(PARETO), "PARETO");
+    }
+}

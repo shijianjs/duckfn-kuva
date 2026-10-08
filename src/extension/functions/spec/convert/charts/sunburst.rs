@@ -55,3 +55,33 @@ pub(super) fn build_sunburst(s: SunburstSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const SUNBURST: &str = r##"{
+      "series": [{
+        "type": "sunburst",
+        "roots": [{
+          "label": "root",
+          "children": [
+            {"label": "a", "children": [{"label": "a1", "value": 30}, {"label": "a2", "value": 20}]},
+            {"label": "b", "value": 15}
+          ]
+        }],
+        "color_mode": "by_parent",
+        "show_labels": true,
+        "min_label_angle": 10,
+        "inner_radius": 0.2,
+        "ring_gap": 2,
+        "start_angle": 90,
+        "rotate_labels": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_sunburst() {
+        assert_renders(&render_svg(SUNBURST), "SUNBURST");
+    }
+}

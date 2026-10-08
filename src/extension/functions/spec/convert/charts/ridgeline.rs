@@ -46,3 +46,29 @@ pub(super) fn build_ridgeline(s: RidgelineSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const RIDGELINE: &str = r##"{
+      "series": [{
+        "type": "ridgeline",
+        "groups": [
+          {"label": "jan", "values": [1, 2, 2, 3, 4], "color": "#4c72b0"},
+          {"label": "feb", "values": [2, 3, 3, 4, 5, 6], "color": "#dd8452"}
+        ],
+        "overlap": 0.7,
+        "normalize": true,
+        "filled": true,
+        "opacity": 0.8,
+        "show_legend": true,
+        "bandwidth": 0.7
+      }]
+    }"##;
+
+    #[test]
+    fn renders_ridgeline() {
+        assert_renders(&render_svg(RIDGELINE), "RIDGELINE");
+    }
+}

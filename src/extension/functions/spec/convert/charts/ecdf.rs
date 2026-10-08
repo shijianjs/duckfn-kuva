@@ -58,3 +58,31 @@ pub(super) fn build_ecdf(s: EcdfSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const ECDF: &str = r##"{
+      "series": [{
+        "type": "ecdf",
+        "groups": [
+          {"label": "fast", "values": [1, 2, 2, 3, 4, 6]},
+          {"label": "slow", "values": [2, 4, 5, 5, 7, 9], "color": "darkorange"}
+        ],
+        "confidence_band": true,
+        "band_alpha": 0.15,
+        "rug": true,
+        "rug_height": 8,
+        "percentile_lines": [25, 50, 75],
+        "markers": true,
+        "smooth": true,
+        "legend": "cdf"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_ecdf() {
+        assert_renders(&render_svg(ECDF), "ECDF");
+    }
+}

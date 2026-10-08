@@ -77,3 +77,42 @@ pub(super) fn build_scatter(s: ScatterSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const SCATTER: &str = r#"{
+      "title": "Scatter",
+      "x_axis": { "name": "x" },
+      "y_axis": { "name": "y" },
+      "series": [{
+        "type": "scatter",
+        "data": [{"x": 1, "y": 2, "y_err": 0.4}, {"x": 2, "y": 3.5}, {"x": 3, "y": 3}, {"x": 4, "y": 5.2, "x_err": [0.1, 0.3]}],
+        "color": "steelblue",
+        "legend": "samples",
+        "size": 6,
+        "marker": "diamond",
+        "trend": {"type": "linear", "equation": true, "correlation": true}
+      }]
+    }"#;
+
+    #[test]
+    fn renders_scatter() {
+        assert_renders(&render_svg(SCATTER), "SCATTER");
+    }
+
+    #[test]
+    fn scatter_carries_title_and_axis_labels() {
+        let svg = render_svg(SCATTER);
+        for text in ["Scatter", "x", "y", "samples"] {
+            assert!(svg.contains(text), "scatter output is missing `{text}`");
+        }
+    }
+
+    #[test]
+    fn empty_scatter_data_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"scatter","data":[]}]}"#).unwrap_err();
+        assert!(err.contains("`data` must not be empty"), "unexpected message: {err}");
+    }
+}

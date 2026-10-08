@@ -87,3 +87,46 @@ fn annotation_track(t: &AnnotationTrackSpec) -> AnnotationTrack {
     }
     track
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const CLUSTERMAP: &str = r##"{
+      "series": [{
+        "type": "clustermap",
+        "data": [[1, 2, 3, 4], [2, 1, 4, 3], [5, 6, 1, 2], [6, 5, 2, 1]],
+        "row_labels": ["a", "b", "c", "d"],
+        "col_labels": ["w", "x", "y", "z"],
+        "cluster_rows": true,
+        "cluster_cols": true,
+        "color_map": "blue_green",
+        "show_values": true,
+        "normalization": "row_zscore",
+        "branch_color": "#555555",
+        "row_dendrogram_width": 90,
+        "col_dendrogram_height": 70,
+        "row_annotations": [{"colors": ["#ff0000", "#00ff00", "#0000ff", "#ffff00"], "label": "grp", "width": 12}],
+        "col_annotations": [{"colors": ["#111111", "#222222", "#333333", "#444444"]}],
+        "legend": "z"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_clustermap() {
+        assert_renders(&render_svg(CLUSTERMAP), "CLUSTERMAP");
+    }
+
+    #[test]
+    fn clustermap_annotation_length_is_reported() {
+        let err = render_json(
+            r##"{"series":[{"type":"clustermap","data":[[1,2],[3,4]],
+                 "row_annotations":[{"colors":["#fff"]}]}]}"##,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("`row_annotations[0]` has 1 colors"),
+            "unexpected message: {err}"
+        );
+    }
+}

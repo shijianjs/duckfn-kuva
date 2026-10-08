@@ -66,3 +66,31 @@ pub(super) fn build_histogram(s: HistogramSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const HISTOGRAM: &str = r#"{
+      "series": [{
+        "type": "histogram",
+        "values": [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 8, 9, 9, 10],
+        "bins": 8,
+        "kde": true,
+        "kde_color": "crimson",
+        "legend": "n=20"
+      }]
+    }"#;
+
+    #[test]
+    fn renders_histogram() {
+        assert_renders(&render_svg(HISTOGRAM), "HISTOGRAM");
+    }
+
+    #[test]
+    fn histogram_edge_count_mismatch_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"histogram","edges":[0,1,2],"counts":[1]}]}"#)
+            .unwrap_err();
+        assert!(err.contains("one more than `counts`"), "unexpected message: {err}");
+    }
+}

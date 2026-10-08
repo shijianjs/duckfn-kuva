@@ -99,3 +99,45 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const DICE_PLOT: &str = r##"{
+      "series": [{
+        "type": "dice_plot",
+        "ndots": 4,
+        "x_categories": ["m1", "m2"],
+        "y_categories": ["c1", "c2"],
+        "category_labels": ["1", "2", "3", "4"],
+        "points": [
+          {"x": "m1", "y": "c1", "present": [0, 2], "fill": 0.8, "size": 12},
+          {"x": "m2", "y": "c2", "present": [0, 1, 3], "fill": 0.3, "size": 6}
+        ],
+        "color_map": "plasma",
+        "fill_range": [0, 1],
+        "size_range": [4, 16],
+        "fill_legend_label": "fill",
+        "size_legend_label": "size",
+        "position_legend_label": "count",
+        "dot_legend": [["1", "one"], ["2", "two"], ["3", "three"], ["4", "four"]],
+        "grid_lines": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_dice_plot() {
+        assert_renders(&render_svg(DICE_PLOT), "DICE_PLOT");
+    }
+
+    #[test]
+    fn dice_plot_pip_out_of_range_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"dice_plot","ndots":3,"x_categories":["a"],"y_categories":["b"],
+                 "points":[{"x":"a","y":"b","present":[0,3]}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("lists pip 3"), "unexpected message: {err}");
+    }
+}

@@ -142,8 +142,9 @@ just test          # cargo test --lib, then make configure + make debug + make t
 cargo test --lib   # the Rust unit tests alone — no DuckDB, no venv, milliseconds
 ```
 
-The unit tests under `src/extension/functions/spec/tests.rs` render each chart type from a JSON string
-and assert the result, including that the SVG parses as well-formed XML. `test/sql/*.test` are
+The Rust unit tests are inline `#[cfg(test)] mod tests` blocks at the bottom of the file they cover —
+one per chart under `src/extension/functions/spec/convert/charts/`. Each renders its chart from a JSON
+string and asserts the result, including that the SVG parses as well-formed XML. `test/sql/*.test` are
 [SQLLogicTest](https://duckdb.org/docs/stable/dev/sqllogictest/intro) files that load the built
 extension and exercise it through SQL.
 

@@ -60,3 +60,31 @@ pub(super) fn build_ternary(s: TernarySeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const TERNARY: &str = r##"{
+      "series": [{
+        "type": "ternary",
+        "points": [
+          {"a": 0.6, "b": 0.3, "c": 0.1, "group": "x"},
+          {"a": 0.2, "b": 0.5, "c": 0.3, "group": "y"},
+          {"a": 0.4, "b": 0.2, "c": 0.4, "group": "x"}
+        ],
+        "corner_labels": ["top", "left", "right"],
+        "normalize": true,
+        "marker_size": 7,
+        "grid_lines": 4,
+        "show_legend": true,
+        "show_percentages": true,
+        "marker_opacity": 0.8
+      }]
+    }"##;
+
+    #[test]
+    fn renders_ternary() {
+        assert_renders(&render_svg(TERNARY), "TERNARY");
+    }
+}

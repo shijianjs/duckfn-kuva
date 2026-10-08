@@ -379,3 +379,44 @@ pub(super) fn apply_common(
         *tooltip_labels = Some(v);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::render_json;
+
+    /// 「全部实现了」的守卫：kuva 的 `Plot` 每多一个变体，这里就得加一行，并补上对应的实现与测试。
+    ///
+    /// 这里只回答「这个 `type` 认不认」——最小样例会因为缺必填字段而报别的错，但不该是
+    /// `unknown variant`。每个图型**真的能画出来**由各自模块里的 `renders_*` 测试负责。
+    #[test]
+    fn every_plot_type_in_the_kuva_enum_is_reachable() {
+        const REGISTERED: &[&str] = &[
+            "scatter", "line", "bar", "histogram", "box", "pie", "violin", "ridgeline", "raincloud",
+            "strip", "dot_plot", "lollipop", "density", "ecdf", "qq", "forest", "pr", "roc",
+            "survival", "volcano", "heatmap", "histogram2d", "hexbin", "clustermap", "contour",
+            "ternary", "polar", "dice_plot", "scatter3d", "surface3d", "sankey", "chord", "network",
+            "treemap", "sunburst", "venn", "upset", "waffle", "mosaic", "phylo", "synteny",
+            "candlestick", "calendar", "gantt", "horizon", "manhattan", "waterfall", "bump",
+            "pareto", "brick", "funnel", "slope", "pyramid", "series", "radar", "parallel",
+            "stacked_area", "streamgraph", "band", "text", "legend_plot", "quiver", "jointplot",
+            "rose",
+        ];
+        // kuva 0.5 的 `Plot` 就是 64 个变体。数量对不上，说明这版 kuva 动了枚举
+        // —— 先看漏了哪个，再决定是补实现还是把这一行改掉。
+        assert_eq!(
+            REGISTERED.len(),
+            64,
+            "kuva 0.5 has 64 plot types; a different count means the enum changed"
+        );
+
+        for name in REGISTERED {
+            let json = format!(r#"{{"series":[{{"type":"{name}"}}]}}"#);
+            if let Err(e) = render_json(&json) {
+                assert!(
+                    !e.contains("unknown variant"),
+                    "{name} is registered but not dispatchable: {e}"
+                );
+            }
+        }
+    }
+}

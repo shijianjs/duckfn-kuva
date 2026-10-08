@@ -65,3 +65,26 @@ pub(super) fn build_pr(s: PrSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const PR: &str = r##"{
+      "series": [{
+        "type": "pr",
+        "groups": [
+          {"label": "model A", "predictions": [[0.9, true], [0.8, false], [0.6, true], [0.4, true], [0.2, false]], "auc_label": true, "optimal_point": true},
+          {"label": "model B", "points": [[1, 1], [0.8, 0.7], [0.5, 0.4], [0, 0]], "prevalence": 0.4, "dasharray": "4 2", "line_width": 2}
+        ],
+        "show_baseline": true,
+        "baseline_dasharray": "2 2",
+        "legend": "precision-recall"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_pr() {
+        assert_renders(&render_svg(PR), "PR");
+    }
+}

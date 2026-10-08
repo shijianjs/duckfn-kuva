@@ -48,3 +48,25 @@ pub(super) fn build_chord(s: ChordSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const CHORD: &str = r##"{
+      "series": [{
+        "type": "chord",
+        "matrix": [[10, 5, 3], [4, 8, 2], [1, 6, 7]],
+        "labels": ["a", "b", "c"],
+        "colors": ["#4c72b0", "#c44e52", "#55a868"],
+        "gap_degrees": 3,
+        "ribbon_opacity": 0.6,
+        "legend": "flows"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_chord() {
+        assert_renders(&render_svg(CHORD), "CHORD");
+    }
+}

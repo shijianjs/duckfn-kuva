@@ -79,3 +79,46 @@ pub(super) fn build_funnel(s: FunnelSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const FUNNEL: &str = r##"{
+      "series": [{
+        "type": "funnel",
+        "stages": [
+          {"label": "visits", "value": 1000, "color": "#4c72b0"},
+          {"label": "signups", "value": 300},
+          {"label": "paid", "value": 80}
+        ],
+        "mirror": [{"label": "bounce", "value": 400}],
+        "left_label": "funnel",
+        "right_label": "drop-off",
+        "orientation": "vertical",
+        "show_connectors": true,
+        "connector_opacity": 0.3,
+        "show_values": true,
+        "show_percents": true,
+        "show_conversion": true,
+        "color_mode": "by_stage",
+        "stage_gap": 5,
+        "legend": "steps"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_funnel() {
+        assert_renders(&render_svg(FUNNEL), "FUNNEL");
+    }
+
+    #[test]
+    fn funnel_with_all_zero_stages_is_reported() {
+        // kuva 求最大值用的是 fold(0.0, max)，全 0 时整张图不画。
+        let err = render_json(
+            r#"{"series":[{"type":"funnel","stages":[{"label":"a","value":0},{"label":"b","value":0}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("would come out blank"), "unexpected message: {err}");
+    }
+}

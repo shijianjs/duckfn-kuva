@@ -58,3 +58,41 @@ pub(super) fn build_qq(s: QqSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const QQ: &str = r##"{
+      "series": [{
+        "type": "qq",
+        "groups": [{"label": "sample", "values": [1.1, 0.9, 1.4, 0.7, 1.9, 1.2, 0.5, 1.6]}],
+        "mode": "normal",
+        "reference_line": true,
+        "ci_band": true,
+        "ci_alpha": 0.12,
+        "lambda": false,
+        "marker_size": 4,
+        "legend": "normality"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_qq() {
+        assert_renders(&render_svg(QQ), "QQ");
+    }
+
+    const QQ_GENOMIC: &str = r##"{
+      "series": [{
+        "type": "qq",
+        "groups": [{"label": "gwas", "values": [0.0001, 0.01, 0.2, 0.5, 0.9], "color": "purple"}],
+        "mode": "genomic",
+        "lambda": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_qq_genomic() {
+        assert_renders(&render_svg(QQ_GENOMIC), "QQ_GENOMIC");
+    }
+}

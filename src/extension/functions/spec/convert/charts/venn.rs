@@ -95,3 +95,72 @@ pub(super) fn build_venn(s: VennSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const VENN: &str = r##"{
+      "series": [{
+        "type": "venn",
+        "sets": [
+          {"label": "A", "size": 20},
+          {"label": "B", "size": 18},
+          {"label": "C", "size": 15}
+        ],
+        "overlaps": [
+          {"sets": ["A", "B"], "size": 8},
+          {"sets": ["A", "B", "C"], "size": 3}
+        ],
+        "counts": true,
+        "percentages": true,
+        "fill_opacity": 0.3,
+        "proportional": true,
+        "leader_lines": true,
+        "colors": ["#4c72b0", "#c44e52", "#55a868"],
+        "legend": "sets"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_venn() {
+        assert_renders(&render_svg(VENN), "VENN");
+    }
+
+    const VENN_ELEMENTS: &str = r##"{
+      "series": [{
+        "type": "venn",
+        "sets": [
+          {"label": "A", "elements": ["x", "y", "z"]},
+          {"label": "B", "elements": ["y", "z", "w"]}
+        ],
+        "set_labels": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_venn_elements() {
+        assert_renders(&render_svg(VENN_ELEMENTS), "VENN_ELEMENTS");
+    }
+
+    #[test]
+    fn venn_with_too_many_sets_is_reported() {
+        // kuva 对超过 4 个集合直接不画（一行白图）。
+        let err = render_json(
+            r#"{"series":[{"type":"venn","sets":[{"label":"a","size":1},{"label":"b","size":1},
+                 {"label":"c","size":1},{"label":"d","size":1},{"label":"e","size":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("it supports 1 to 4"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn venn_mixed_set_forms_are_reported() {
+        // 一个 set 带 elements 就整体走原始元素模式，预计算的 size/overlap 会被静默忽略。
+        let err = render_json(
+            r#"{"series":[{"type":"venn","sets":[{"label":"a","elements":["x"]},{"label":"b","size":3}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("mix the two set forms"), "unexpected message: {err}");
+    }
+}

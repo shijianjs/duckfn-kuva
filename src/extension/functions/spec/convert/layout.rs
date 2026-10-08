@@ -424,3 +424,17 @@ fn apply_annotations(mut l: Layout, ann: &AnnotationsSpec) -> Layout {
     }
     l
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::render_json;
+
+    #[test]
+    fn unknown_legend_position_is_reported() {
+        let err = render_json(
+            r#"{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[[1,2]]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("unknown legend.position"), "unexpected message: {err}");
+    }
+}

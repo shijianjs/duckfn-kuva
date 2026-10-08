@@ -76,3 +76,36 @@ pub(super) fn build_streamgraph(s: StreamgraphSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const STREAMGRAPH: &str = r##"{
+      "series": [{
+        "type": "streamgraph",
+        "x": [1, 2, 3, 4, 5],
+        "series": [
+          {"values": [3, 5, 4, 6, 5], "label": "in", "color": "#4c72b0"},
+          {"values": [2, 3, 3, 2, 4], "label": "mid", "color": "#c44e52"},
+          {"values": [1, 2, 2, 3, 2], "label": "out", "color": "#55a868"}
+        ],
+        "baseline": "symmetric",
+        "order": "by_total",
+        "smooth": false,
+        "fill_opacity": 0.8,
+        "stroke_between": true,
+        "stroke_width": 0.7,
+        "show_labels": true,
+        "min_label_height": 12,
+        "normalized": true,
+        "legend": "flow",
+        "legend_position": "outside_bottom_center"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_streamgraph() {
+        assert_renders(&render_svg(STREAMGRAPH), "STREAMGRAPH");
+    }
+}

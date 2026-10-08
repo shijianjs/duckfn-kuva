@@ -85,3 +85,45 @@ pub(crate) fn tree_node(spec: &TreeNodeSpec) -> Result<TreemapNode, String> {
     node.color = spec.color.clone();
     Ok(node)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const TREEMAP: &str = r##"{
+      "series": [{
+        "type": "treemap",
+        "roots": [{
+          "label": "root",
+          "children": [
+            {"label": "a", "children": [{"label": "a1", "value": 30}, {"label": "a2", "value": 20}]},
+            {"label": "b", "children": [{"label": "b1", "value": 10, "color": "#ff0000"}]}
+          ]
+        }],
+        "color_mode": {"color_map": "viridis"},
+        "color_values": [3, 2, 1, 0.5],
+        "layout": "squarify",
+        "padding": 3,
+        "border_width": 0.6,
+        "colorbar": true,
+        "colorbar_label": "value",
+        "max_depth": 3,
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_treemap() {
+        assert_renders(&render_svg(TREEMAP), "TREEMAP");
+    }
+
+    #[test]
+    fn treemap_leaf_without_value_is_reported() {
+        // 所有 value <= 0 的根会被整棵树跳过（静默出白图）。
+        let err = render_json(
+            r#"{"series":[{"type":"treemap","roots":[{"label":"root","children":[{"label":"leaf"}]}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("leaf `leaf` needs a `value`"), "unexpected message: {err}");
+    }
+}

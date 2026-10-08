@@ -96,3 +96,42 @@ pub(super) fn build_dot_plot(s: DotPlotSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const DOT_PLOT: &str = r##"{
+      "series": [{
+        "type": "dot_plot",
+        "x_categories": ["m1", "m2", "m3"],
+        "y_categories": ["c1", "c2"],
+        "sizes": [[1, 5, 9], [4, 2, 7]],
+        "colors": [[0.1, 0.5, 0.9], [0.3, 0.2, 0.8]],
+        "color_map": "magma",
+        "size_range": [3, 14],
+        "color_range": [0, 1],
+        "size_label": "count",
+        "colorbar_label": "score",
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_dot_plot() {
+        assert_renders(&render_svg(DOT_PLOT), "DOT_PLOT");
+    }
+
+    #[test]
+    fn dot_plot_matrix_shape_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"dot_plot","x_categories":["a","b"],"y_categories":["c","d"],
+                 "sizes":[[1,2]],"colors":[[1,2],[3,4]]}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("`sizes` has 1 rows"),
+            "unexpected message: {err}"
+        );
+    }
+}

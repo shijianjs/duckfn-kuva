@@ -104,3 +104,57 @@ pub(super) fn build_radar(s: RadarSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const RADAR: &str = r##"{
+      "series": [{
+        "type": "radar",
+        "axes": ["speed", "power", "range", "cost"],
+        "series": [
+          {"values": [0.8, 0.6, 0.9, 0.4], "label": "model A", "color": "#4c72b0", "errors": [0.05, 0.05, 0.05, 0.05]},
+          {"values": [0.5, 0.9, 0.6, 0.7], "label": "model B", "dasharray": "4 2"}
+        ],
+        "references": [{"values": [0.6, 0.6, 0.6, 0.6], "label": "target", "color": "#999999"}],
+        "filled": true,
+        "opacity": 0.2,
+        "range": [0, 1],
+        "axis_ranges": [[3, [0, 2]]],
+        "inverted_axes": [3],
+        "grid_lines": 4,
+        "circular_grid": true,
+        "show_legend": true,
+        "dot_size": 3,
+        "normalize": true,
+        "vertex_labels": true,
+        "start_angle": -90,
+        "axis_ticks": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_radar() {
+        assert_renders(&render_svg(RADAR), "RADAR");
+    }
+
+    #[test]
+    fn radar_with_too_few_axes_is_reported() {
+        // kuva 在轴数 < 3 时早退，整张图不画。
+        let err = render_json(
+            r#"{"series":[{"type":"radar","axes":["a","b"],"series":[{"values":[1,2]}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("needs at least 3"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn radar_value_count_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"radar","axes":["a","b","c"],"series":[{"values":[1,2]}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("2 values but there are 3 axes"), "unexpected message: {err}");
+    }
+}

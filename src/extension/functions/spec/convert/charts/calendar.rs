@@ -88,3 +88,38 @@ pub(super) fn build_calendar(s: CalendarSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const CALENDAR: &str = r##"{
+      "series": [{
+        "type": "calendar",
+        "data": [
+          {"date": "2024-01-01", "value": 3},
+          {"date": "2024-01-02", "value": 5},
+          {"date": "2024-02-14", "value": 9}
+        ],
+        "events": ["2024-03-01", "2024-03-02"],
+        "aggregation": "sum",
+        "color_map": "greens",
+        "missing_color": "#f0f0f0",
+        "zero_color": "#ffffff",
+        "week_start": "sunday",
+        "month_labels": true,
+        "day_labels": false,
+        "cell_size": 12,
+        "cell_gap": 2,
+        "legend": true,
+        "legend_label": "commits",
+        "value_range": [0, 10],
+        "periods": [{"label": "Q1", "start": "2024-01-01", "end": "2024-03-31"}]
+      }]
+    }"##;
+
+    #[test]
+    fn renders_calendar() {
+        assert_renders(&render_svg(CALENDAR), "CALENDAR");
+    }
+}

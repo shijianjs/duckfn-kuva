@@ -69,3 +69,30 @@ pub(super) fn build_lollipop(s: LollipopSeries) -> Result<Plot, String> {
     );
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const LOLLIPOP: &str = r##"{
+      "series": [{
+        "type": "lollipop",
+        "points": [
+          {"x": 1.0, "y": 12.0, "label": "p1", "color": "#4c72b0"},
+          {"x": 2.0, "y": 19.0, "label": "p2"},
+          {"x": 3.0, "y": 7.0}
+        ],
+        "domains": [{"start": 0.5, "end": 2.5, "label": "normal", "color": "#c44e52", "opacity": 0.2}],
+        "baseline": 0,
+        "dot_radius": 6,
+        "stem_width": 2,
+        "domain_height": 0.4,
+        "legend": "items"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_lollipop() {
+        assert_renders(&render_svg(LOLLIPOP), "LOLLIPOP");
+    }
+}

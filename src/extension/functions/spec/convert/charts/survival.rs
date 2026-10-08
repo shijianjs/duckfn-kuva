@@ -58,3 +58,42 @@ pub(super) fn build_survival(s: SurvivalSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const SURVIVAL: &str = r##"{
+      "series": [{
+        "type": "survival",
+        "groups": [
+          {"label": "drug", "times": [1, 3, 4, 6, 8, 10], "events": [true, false, true, true, false, true], "color": "#4c72b0"},
+          {"label": "control", "times": [2, 2, 5, 7, 9, 12], "events": [true, true, false, true, false, false]}
+        ],
+        "ci": true,
+        "ci_alpha": 0.15,
+        "censoring": true,
+        "censoring_size": 5,
+        "line_width": 2,
+        "pvalue_text": "log-rank p = 0.031",
+        "legend": "cohort"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_survival() {
+        assert_renders(&render_svg(SURVIVAL), "SURVIVAL");
+    }
+
+    #[test]
+    fn survival_time_event_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"survival","groups":[{"label":"a","times":[1,2,3],"events":[true]}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("3 times but 1 events"),
+            "unexpected message: {err}"
+        );
+    }
+}

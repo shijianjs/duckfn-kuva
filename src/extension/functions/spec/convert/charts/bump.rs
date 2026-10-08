@@ -77,3 +77,45 @@ pub(super) fn build_bump(s: BumpSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const BUMP: &str = r##"{
+      "series": [{
+        "type": "bump",
+        "series": [
+          {"name": "a", "ranks": [1, 2, 2, 3], "color": "#4c72b0"},
+          {"name": "b", "ranks": [2, 1, 1, 2]},
+          {"name": "c", "values": [50, 80, 60, 90]}
+        ],
+        "x_labels": ["w1", "w2", "w3", "w4"],
+        "curve_style": "straight",
+        "show_rank_labels": true,
+        "show_series_labels": true,
+        "dot_radius": 5,
+        "stroke_width": 2,
+        "highlight": "b",
+        "legend": true,
+        "rank_ascending": true,
+        "tie_break": "min"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_bump() {
+        assert_renders(&render_svg(BUMP), "BUMP");
+    }
+
+    #[test]
+    fn bump_with_more_than_ten_series_is_reported() {
+        // kuva 给第 11 条系列取色时索引一个 10 色的表（不取模），会越界 panic。
+        let series: Vec<String> = (0..11)
+            .map(|i| format!(r#"{{"name":"s{i}","ranks":[1]}}"#))
+            .collect();
+        let json = format!(r#"{{"series":[{{"type":"bump","series":[{}]}}]}}"#, series.join(","));
+        let err = render_json(&json).unwrap_err();
+        assert!(err.contains("only covers 10"), "unexpected message: {err}");
+    }
+}

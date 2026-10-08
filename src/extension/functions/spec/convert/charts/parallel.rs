@@ -82,3 +82,37 @@ pub(super) fn build_parallel(s: ParallelSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const PARALLEL: &str = r##"{
+      "series": [{
+        "type": "parallel",
+        "axis_names": ["age", "income", "score"],
+        "rows": [
+          {"values": [20, 30, 70], "group": "a"},
+          {"values": [35, 60, 55], "group": "b"},
+          {"values": [50, 45, 40], "group": "a"}
+        ],
+        "normalize": true,
+        "curved": true,
+        "stroke_width": 1.5,
+        "opacity": 0.5,
+        "group_colors": ["#4c72b0", "#c44e52"],
+        "show_axis_ticks": true,
+        "axis_ticks": 4,
+        "show_mean": true,
+        "mean_stroke_width": 3,
+        "inverted_axes": [1],
+        "show_axis_bands": true,
+        "legend": "cohort"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_parallel() {
+        assert_renders(&render_svg(PARALLEL), "PARALLEL");
+    }
+}

@@ -80,3 +80,35 @@ pub(super) fn build_waterfall(s: WaterfallSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const WATERFALL: &str = r##"{
+      "series": [{
+        "type": "waterfall",
+        "bars": [
+          {"label": "start", "kind": "total", "value": 100},
+          {"label": "up", "value": 30},
+          {"label": "down", "value": -20},
+          {"label": "shift", "from": 50, "to": 70},
+          {"label": "end", "kind": "total"}
+        ],
+        "bar_width": 0.6,
+        "gap": 0.1,
+        "color_positive": "#2ca02c",
+        "color_negative": "#d62728",
+        "color_total": "steelblue",
+        "connectors": true,
+        "show_values": true,
+        "legend": "P&L",
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_waterfall() {
+        assert_renders(&render_svg(WATERFALL), "WATERFALL");
+    }
+}

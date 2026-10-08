@@ -128,3 +128,123 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
 fn build_series(specs: Vec<SeriesSpec>) -> Result<Vec<Plot>, String> {
     specs.into_iter().map(SeriesSpec::build).collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const FIGURE: &str = r#"{
+      "figure": {
+        "rows": 1,
+        "cols": 2,
+        "title": "Panels",
+        "labels": "uppercase",
+        "shared_legend": "right_top",
+        "panels": [
+          {"title": "left panel", "series": [{"type": "scatter", "data": [[1, 2], [2, 3]], "legend": "s1"}]},
+          {"title": "right panel", "series": [{"type": "histogram", "values": [1, 2, 2, 3, 3, 3, 4], "bins": 5, "legend": "h1"}]}
+        ]
+      }
+    }"#;
+
+    #[test]
+    fn renders_figure() {
+        assert_renders(&render_svg(FIGURE), "FIGURE");
+    }
+
+    /// 折线 + 散点叠加到同一套坐标轴，外加参考线与阴影区间。
+    const OVERLAY: &str = r#"{
+      "title": {"text": "Overlay", "subtext": "line + scatter"},
+      "theme": "dark",
+      "annotations": {
+        "reference_lines": [{"orientation": "horizontal", "value": 2.5, "label": "target"}],
+        "shaded_regions": [{"orientation": "horizontal", "min": 0.8, "max": 1.4, "opacity": 0.3}]
+      },
+      "series": [
+        {"type": "line", "data": [[0, 1], [1, 2], [2, 1.5], [3, 2.8]], "legend": "signal", "fill": true},
+        {"type": "scatter", "data": [[0, 1.1], [1, 1.9], [2, 1.6], [3, 2.7]], "legend": "observed"}
+      ]
+    }"#;
+
+    #[test]
+    fn renders_overlay() {
+        assert_renders(&render_svg(OVERLAY), "OVERLAY");
+    }
+
+    /// 双 Y 轴：`secondary_series` 画在右侧那根轴上。
+    const TWIN_Y: &str = r##"{
+      "title": "twin axis",
+      "y_axis": {"name": "price", "min": 0, "max": 100},
+      "y2_axis": {"name": "volume", "min": 0, "max": 1000, "log": false, "tick_format": "sci"},
+      "x_axis": {"tick_step": 1, "label_offset": [0, 4]},
+      "series": [{"type": "line", "data": [[0, 20], [1, 45], [2, 60]], "legend": "price", "color": "#4c72b0"}],
+      "secondary_series": [{"type": "bar", "categories": ["a", "b", "c"], "values": [300, 700, 500], "legend": "volume", "color": "#c44e52"}]
+    }"##;
+
+    #[test]
+    fn renders_twin_y() {
+        assert_renders(&render_svg(TWIN_Y), "TWIN_Y");
+    }
+
+    /// 日期轴 + 统计框。
+    const DATETIME_AND_STATS: &str = r##"{
+      "x_datetime": {"unit": "day", "step": 7, "format": "%Y-%m-%d"},
+      "stats_box": {
+        "title": "fit",
+        "entries": ["n = 128", "R2 = 0.91"],
+        "position": "inside_top_right",
+        "border": true
+      },
+      "series": [{"type": "scatter", "data": [[1704067200, 2], [1706745600, 5], [1709251200, 3]], "legend": "y"}]
+    }"##;
+
+    #[test]
+    fn renders_datetime_and_stats() {
+        assert_renders(&render_svg(DATETIME_AND_STATS), "DATETIME_AND_STATS");
+    }
+
+    #[test]
+    fn overlay_shares_one_layout_between_two_series() {
+        let svg = render_svg(OVERLAY);
+        // 两个 series 的图例文字都要在同一张图里出现，说明它们确实叠加了。
+        for text in ["signal", "observed", "target"] {
+            assert!(svg.contains(text), "overlay output is missing `{text}`");
+        }
+    }
+
+    #[test]
+    fn figure_renders_both_panel_titles() {
+        let svg = render_svg(FIGURE);
+        for text in ["Panels", "left panel", "right panel"] {
+            assert!(svg.contains(text), "figure output is missing `{text}`");
+        }
+    }
+
+    #[test]
+    fn figure_panel_count_mismatch_is_reported() {
+        let err = render_json(
+            r#"{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2]]}]}]}}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("panels were given"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn secondary_x_axis_needs_both_ends() {
+        // kuva 的第二根 x 轴只有 `with_x2_range(min, max)`，没有单端 setter。
+        let err = render_json(
+            r#"{"x2_axis":{"min":0},"series":[{"type":"scatter","data":[[1,2]]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("`min` and `max` together"), "unexpected message: {err}");
+    }
+
+    #[test]
+    fn secondary_axis_without_secondary_series_renders_a_normal_chart() {
+        // 第二根轴只在 `render_twin_y` 下才画，所以只给 y2_axis 而没有 secondary_series 时
+        // 就是一张普通的单轴图（不报错，只是那根轴不出现）。
+        let svg = render_svg(r#"{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}]}"#);
+        assert!(svg.starts_with("<svg"));
+        assert!(!svg.contains(">right<"), "the second axis should not be drawn without secondary_series");
+    }
+}

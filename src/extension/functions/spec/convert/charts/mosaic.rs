@@ -45,3 +45,32 @@ pub(super) fn build_mosaic(s: MosaicSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const MOSAIC: &str = r##"{
+      "series": [{
+        "type": "mosaic",
+        "cells": [
+          {"col": "m", "row": "yes", "value": 30},
+          {"col": "m", "row": "no", "value": 10},
+          {"col": "f", "row": "yes", "value": 20},
+          {"col": "f", "row": "no", "value": 25}
+        ],
+        "col_order": ["m", "f"],
+        "row_order": ["yes", "no"],
+        "group_colors": ["#4c72b0", "#c44e52"],
+        "gap": 2,
+        "values": true,
+        "percents": true,
+        "legend": "survey"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_mosaic() {
+        assert_renders(&render_svg(MOSAIC), "MOSAIC");
+    }
+}

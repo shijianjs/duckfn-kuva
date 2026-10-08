@@ -132,8 +132,9 @@ just test          # 先 cargo test --lib，再 make configure + make debug + ma
 cargo test --lib   # 只跑 Rust 单元测试 —— 不需要 DuckDB、不需要 venv，毫秒级
 ```
 
-`src/extension/functions/spec/tests.rs` 里的单测把每种图型从 JSON 渲一遍并断言结果，其中一条是用真正的
-XML 解析器确认产物合法。`test/sql/*.test` 是
+Rust 单测是**内联**的 `#[cfg(test)] mod tests`，贴在被测文件末尾 —— 每种图型一个，在
+`src/extension/functions/spec/convert/charts/` 下。每个都把该图型从 JSON 渲一遍并断言结果，其中一条是用
+真正的 XML 解析器确认产物合法。`test/sql/*.test` 是
 [SQLLogicTest](https://duckdb.org/docs/stable/dev/sqllogictest/intro) 用例，加载构建好的产物、从 SQL
 侧走一遍。
 

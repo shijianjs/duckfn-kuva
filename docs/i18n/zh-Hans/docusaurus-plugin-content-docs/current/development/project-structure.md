@@ -19,7 +19,8 @@ src/extension/functions/
     spec/schema/       JSON 的 schema，一组 serde 类型（面板 / 外观 / series）
     spec/schema/series/  每种图型一个文件（scatter、line、bar、histogram、boxplot、pie）
     spec/convert/      spec -> kuva 的翻译（布局、枚举、每型一个 build 函数）
-    spec/tests.rs      单元测试：JSON 进、SVG 出，并验证是合法 XML
+                       每个文件末尾都是内联的 `#[cfg(test)] mod tests`：JSON 进、SVG 出，并验证是合法 XML
+                       （两个共用小工具在 spec/mod.rs）
 src/extension/types/
     mod.rs             空的槽：面向 SQL 的类型放这一层（目前为空）
 

@@ -32,3 +32,40 @@ pub(super) fn build_histogram2d(s: Histogram2DSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const HISTOGRAM2D: &str = r##"{
+      "series": [{
+        "type": "histogram2d",
+        "data": [[0.1, 0.2], [0.4, 0.9], [0.7, 0.3], [0.2, 0.8], [0.9, 0.1]],
+        "x_range": [0, 1],
+        "y_range": [0, 1],
+        "bins_x": 5,
+        "bins_y": 4,
+        "color_map": "magma",
+        "correlation": true,
+        "log_count": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_histogram2d() {
+        assert_renders(&render_svg(HISTOGRAM2D), "HISTOGRAM2D");
+    }
+
+    #[test]
+    fn zero_bins_is_reported() {
+        // kuva 内部按 `bins_x - 1` 算格子宽，0 会下溢 panic。
+        let err = render_json(
+            r#"{"series":[{"type":"histogram2d","data":[[0,0]],"x_range":[0,1],"y_range":[0,1],"bins_x":0}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("must both be greater than 0"),
+            "unexpected message: {err}"
+        );
+    }
+}

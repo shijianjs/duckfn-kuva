@@ -60,3 +60,42 @@ pub(super) fn build_density(s: DensitySeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    const DENSITY: &str = r##"{
+      "series": [{
+        "type": "density",
+        "values": [1, 1.5, 2, 2.1, 2.4, 3, 3.2, 3.9, 4.5, 5],
+        "filled": true,
+        "opacity": 0.4,
+        "bandwidth": 0.5,
+        "kde_samples": 256,
+        "stroke_width": 2,
+        "line_dash": "5 2",
+        "x_range": [0, 6],
+        "fit": true,
+        "legend": "kde"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_density() {
+        assert_renders(&render_svg(DENSITY), "DENSITY");
+    }
+
+    const DENSITY_CURVE: &str = r##"{
+      "series": [{
+        "type": "density",
+        "curve": {"x": [0, 1, 2, 3], "y": [0.1, 0.8, 0.4, 0.05]},
+        "color": "crimson"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_density_curve() {
+        assert_renders(&render_svg(DENSITY_CURVE), "DENSITY_CURVE");
+    }
+}

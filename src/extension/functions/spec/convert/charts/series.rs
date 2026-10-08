@@ -30,3 +30,26 @@ pub(super) fn build_series(s: SeriesPlotSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    /// 批次 5：序列 / 场 / 文字。
+    const SERIES: &str = r##"{
+      "series": [{
+        "type": "series",
+        "values": [3, 5, 4, 6, 8, 7, 9],
+        "style": "both",
+        "color": "#4c72b0",
+        "stroke_width": 2,
+        "point_radius": 4,
+        "legend": "signal"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_series() {
+        assert_renders(&render_svg(SERIES), "SERIES");
+    }
+}

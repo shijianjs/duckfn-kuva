@@ -72,3 +72,43 @@ pub(super) fn build_synteny(s: SyntenySeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+
+    const SYNTENY: &str = r##"{
+      "series": [{
+        "type": "synteny",
+        "sequences": [
+          {"label": "chr1", "length": 100, "color": "#4c72b0"},
+          {"label": "chr2", "length": 120},
+          {"label": "chr3", "length": 90}
+        ],
+        "blocks": [
+          {"seq1": 0, "start1": 10, "end1": 50, "seq2": 1, "start2": 20, "end2": 60, "color": "#c44e52"},
+          {"seq1": 1, "start1": 30, "end1": 70, "seq2": 2, "start2": 10, "end2": 50, "strand": "reverse"}
+        ],
+        "bar_height": 16,
+        "block_opacity": 0.5,
+        "shared_scale": true,
+        "legend": "blocks"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_synteny() {
+        assert_renders(&render_svg(SYNTENY), "SYNTENY");
+    }
+
+    #[test]
+    fn synteny_block_sequence_index_is_reported() {
+        // 越界的 block 会被 kuva 静默跳过，块一多就看不出「少画了几块」。
+        let err = render_json(
+            r#"{"series":[{"type":"synteny","sequences":[{"label":"a","length":10}],
+                 "blocks":[{"seq1":0,"start1":0,"end1":5,"seq2":7,"start2":0,"end2":5}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(err.contains("`seq2` = 7"), "unexpected message: {err}");
+    }
+}

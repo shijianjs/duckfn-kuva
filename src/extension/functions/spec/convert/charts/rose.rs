@@ -108,3 +108,56 @@ pub(super) fn build_rose(s: RoseSpec) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    /// 玫瑰图：单系列的逐扇区写法。
+    const ROSE: &str = r##"{
+      "series": [{
+        "type": "rose",
+        "slices": [
+          {"label": "Jan", "value": 30, "color": "#4c72b0"},
+          {"label": "Feb", "value": 20},
+          {"label": "Mar", "value": 45, "color": "#c44e52"},
+          {"label": "Apr", "value": 38}
+        ],
+        "encoding": "area",
+        "start_angle": 0,
+        "clockwise": true,
+        "inner_radius": 0.1,
+        "gap": 2,
+        "grid_lines": 4,
+        "show_spokes": true,
+        "show_labels": true,
+        "show_values": true,
+        "legend": "months"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_rose() {
+        assert_renders(&render_svg(ROSE), "ROSE");
+    }
+
+    /// 玫瑰图：多系列的堆叠写法。
+    const ROSE_STACKED: &str = r##"{
+      "series": [{
+        "type": "rose",
+        "labels": ["Q1", "Q2", "Q3", "Q4"],
+        "series": [
+          {"name": "2023", "values": [10, 14, 9, 12], "color": "#4c72b0"},
+          {"name": "2024", "values": [15, 11, 13, 17]}
+        ],
+        "mode": "stacked",
+        "encoding": "radius",
+        "show_values": false
+      }]
+    }"##;
+
+    #[test]
+    fn renders_rose_stacked() {
+        assert_renders(&render_svg(ROSE_STACKED), "ROSE_STACKED");
+    }
+}

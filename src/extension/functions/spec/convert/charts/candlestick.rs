@@ -67,3 +67,37 @@ pub(super) fn build_candlestick(s: CandlestickSeries) -> Result<Plot, String> {
     }
     Ok(plot.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+
+    /// 批次 4：时间 / 金融 / 排名 / 对比类图型。
+    const CANDLESTICK: &str = r##"{
+      "title": "OHLC",
+      "series": [{
+        "type": "candlestick",
+        "candles": [
+          {"label": "d1", "open": 10, "high": 13, "low": 9, "close": 12, "volume": 120},
+          {"label": "d2", "open": 12, "high": 14, "low": 11, "close": 11.5, "volume": 90},
+          {"label": "d3", "open": 11.5, "high": 15, "low": 11, "close": 14, "volume": 150},
+          {"label": "d4", "x": 4.5, "open": 14, "high": 14, "low": 13, "close": 14, "volume": 60}
+        ],
+        "candle_width": 0.6,
+        "gap": 0.1,
+        "wick_width": 1.2,
+        "color_up": "#2ca02c",
+        "color_down": "#d62728",
+        "color_doji": "#888888",
+        "show_volume": true,
+        "volume_ratio": 0.25,
+        "legend": "price",
+        "tooltips": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_candlestick() {
+        assert_renders(&render_svg(CANDLESTICK), "CANDLESTICK");
+    }
+}

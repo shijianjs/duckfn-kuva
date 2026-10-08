@@ -75,7 +75,7 @@ editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 ````
 
@@ -93,9 +93,11 @@ stretched.
 
 The examples read their data from the site's own files under `static/data/` (kuva's sample
 datasets), served through an asset mount declared in `tests/docs.spec.mts`. Their URLs are
-absolute — DuckDB-Wasm resolves nothing relative to the page, so `{{DFK_ORIGIN}}` (expanded by the kit
-to `window.location.origin` before the SQL runs) is what makes one block work both on the deployed
-sub-path and on the test harness's random port. See [`AGENTS.md`](./AGENTS.md) for that and the
+absolute — DuckDB-Wasm resolves nothing relative to the page, so a block writes
+`'{{DFK_BASE_URL}}data/x.tsv'` and the kit expands it to origin + this page's baseUrl
+just before the SQL runs. That is also what makes one block work in both locales
+(Docusaurus copies `static/` per locale) and on the test harness's random port, and
+`<dfk-sql>` shows the expanded URL in its editor, so a reader never sees the token. See [`AGENTS.md`](./AGENTS.md) for that and the
 other conventions this site's examples follow. The full config reference is in the kit's own guide
 at <https://shijianjs.github.io/duckfn/docs/docs-kit/runnable-sql>.
 

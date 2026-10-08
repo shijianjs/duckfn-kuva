@@ -32,7 +32,7 @@ The smallest useful call — read a column pair and render it:
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
 Every block below asks for `"show":"svg"`, so pressing **Run** draws the chart in the result area —
@@ -89,7 +89,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
-  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv')
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv')
   GROUP BY "group"
 );
 ```
@@ -100,7 +100,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
-  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   GROUP BY "group"
 );
 ```
@@ -113,14 +113,14 @@ SELECT kuva_render(to_json({
     'values': list(count ORDER BY count DESC)
   }]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/bar.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/bar.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 SELECT kuva_render(to_json({
   'series': [{'type': 'histogram', 'values': list(value), 'bins': 20}]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/histogram.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
@@ -129,7 +129,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT "group" AS g, list(expression) AS vals
-  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/samples.tsv')
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
   GROUP BY "group"
 );
 ```
@@ -141,7 +141,7 @@ SELECT kuva_render(to_json({
     'slices': list({'label': feature, 'value': percentage} ORDER BY percentage DESC)
   }]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/pie.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/pie.tsv');
 ```
 
 ### Axes
@@ -199,7 +199,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT array_agg([time, value] ORDER BY time) AS pts
-  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );
 ```
@@ -216,8 +216,8 @@ SELECT kuva_render(to_json({
   'figure': {
     'rows': 1, 'cols': 2,
     'panels': [
-      {'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv'))}]},
-      {'series': [{'type': 'histogram', 'values': (SELECT list(value) FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/histogram.tsv')), 'bins': 20}]}
+      {'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv'))}]},
+      {'series': [{'type': 'histogram', 'values': (SELECT list(value) FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv')), 'bins': 20}]}
     ]
   }
 })) AS chart;

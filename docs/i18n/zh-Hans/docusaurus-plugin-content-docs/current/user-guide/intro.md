@@ -36,7 +36,7 @@ LOAD duckfn_kuva;
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
 上面这个块就在你的浏览器里真跑：站点从项目的最新 Release 预加载了这个扩展，所以这里不用写 `LOAD`。

@@ -70,7 +70,7 @@ duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
@@ -80,7 +80,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
-  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   GROUP BY "group"
 );
 ```

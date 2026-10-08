@@ -38,7 +38,7 @@ Then call the function in any query:
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
 })) AS chart
-FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
+FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
 That block runs right here, in your browser: the site preloads the extension from the project's latest

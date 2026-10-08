@@ -25,6 +25,8 @@ pub(super) fn build_joint(s: JointSpec) -> Result<Plot, String> {
         }
         super::check_optional_len("jointplot", "sizes", g.sizes.as_ref().map(|v| v.len()), g.x.len())?;
         super::check_optional_len("jointplot", "colors", g.colors.as_ref().map(|v| v.len()), g.x.len())?;
+        super::check_optional_len("jointplot", "x_err", g.x_err.as_ref().map(|v| v.len()), g.x.len())?;
+        super::check_optional_len("jointplot", "y_err", g.y_err.as_ref().map(|v| v.len()), g.x.len())?;
     }
     if s.bins == Some(0) {
         return Err("jointplot: `bins` must be at least 1 (0 divides by zero when normalizing)".into());
@@ -47,6 +49,24 @@ pub(super) fn build_joint(s: JointSpec) -> Result<Plot, String> {
         }
         if let Some(v) = &g.colors {
             group = group.with_colors(v.clone());
+        }
+        // 逐组的样式优先；没给就套顶层的默认值 —— kuva 只在 `with_xy` / `with_group`
+        // 里套用 `marker_size` / `marker_opacity`，我们走的是 `with_joint_group`，得自己套。
+        if let Some(v) = g.marker_size.or(s.marker_size) {
+            group = group.with_marker_size(v);
+        }
+        if let Some(v) = g.marker_opacity.or(s.marker_opacity) {
+            group = group.with_marker_opacity(v);
+        }
+        if let Some(v) = g.marker_stroke_width {
+            group = group.with_marker_stroke_width(v);
+        }
+        // 误差棒：对称值也走不对称那条 builder（`(e, e)` 就是对称）。
+        if let Some(v) = &g.x_err {
+            group = group.with_x_err_asymmetric(v.iter().map(|e| (*e).arms()));
+        }
+        if let Some(v) = &g.y_err {
+            group = group.with_y_err_asymmetric(v.iter().map(|e| (*e).arms()));
         }
         if g.trend == Some(true) {
             group = group.with_trend(TrendLine::Linear);
@@ -119,7 +139,9 @@ mod tests {
       "series": [{
         "type": "jointplot",
         "groups": [
-          {"x": [1, 2, 3, 4, 5], "y": [2, 4, 3, 5, 6], "label": "a", "color": "#4c72b0", "marker": "circle", "trend": true, "equation": true, "correlation": true},
+          {"x": [1, 2, 3, 4, 5], "y": [2, 4, 3, 5, 6], "label": "a", "color": "#4c72b0", "marker": "circle", "trend": true, "equation": true, "correlation": true,
+           "x_err": [0.1, 0.2, 0.1, 0.15, 0.2], "y_err": [0.3, 0.3, 0.3, 0.3, 0.3],
+           "marker_size": 6, "marker_opacity": 0.6, "marker_stroke_width": 0.5},
           {"x": [2, 3, 4], "y": [3, 4, 5], "label": "b", "sizes": [4, 6, 8], "colors": ["#c44e52", "#c44e52", "#c44e52"]}
         ],
         "marginal_type": "histogram",

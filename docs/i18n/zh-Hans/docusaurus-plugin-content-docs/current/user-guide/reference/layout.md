@@ -16,7 +16,7 @@ description: 画布尺寸、标题块、字号，以及 x / y 轴上的每一项
 | `height` | number | 画布高度（像素）。 |
 
 kuva 的自然尺寸约为 `675 × 511`。两个都别写，图才会保持这个比例 —— 钉进一个又宽又扁的框里会被压扁。
-想把图展示得更大，改的是**预览框**的高度（可运行块选项里的 `height`），不是画布。
+文档页里也不需要别的：`"show":"svg"` 的块按 SVG 自身的高度自动撑开，所以预览框同样不用钉。
 
 ## 标题
 
@@ -70,6 +70,16 @@ kuva 的自然尺寸约为 `675 × 511`。两个都别写，图才会保持这�
 两根轴都适用。
 
 :::
+
+## 色条
+
+带色条的图 —— [热力图](../plots/distributions/heatmap.md)、[六边形分箱图](../plots/distributions/hexbin.md)、
+[二维直方图](../plots/distributions/histogram2d.md)、[等高线图](../plots/relationships/contour.md) ——
+再多一个图级字段：
+
+| 字段 | 类型 | 设置什么 |
+| --- | --- | --- |
+| `colorbar_tick_format` | string \| integer | 色条标签的格式：`"auto"`（默认）· `"sci"` · `"integer"` · `"percent"` · `"degree"`，或一个整数表示小数位。 |
 
 ## 示例
 

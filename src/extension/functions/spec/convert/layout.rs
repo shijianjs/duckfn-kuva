@@ -83,7 +83,20 @@ pub(super) fn build_layout(
     if let Some(ann) = &panel.annotations {
         l = apply_annotations(l, ann);
     }
+    if let Some(v) = &panel.colorbar_tick_format {
+        l = l.with_colorbar_tick_format(tick_format(v));
+    }
     Ok(l)
+}
+
+/// 一条手工图例条目。形状缺省是方块（`rect`）。
+fn legend_entry(e: &LegendEntrySpec) -> LegendEntry {
+    LegendEntry {
+        label: e.label.clone(),
+        color: e.color.clone(),
+        shape: e.shape.as_ref().map_or(LegendShape::Rect, legend_shape),
+        dasharray: e.dasharray.clone(),
+    }
 }
 
 fn apply_title(mut l: Layout, t: &TitleSpec) -> Layout {
@@ -370,6 +383,10 @@ fn apply_legend(mut l: Layout, g: &LegendSpec) -> Result<Layout, String> {
     if let Some((x, y)) = g.at_data {
         l = l.with_legend_at_data(x, y);
     }
+    // 手工条目：给出它就绕开自动收集（见 `Layout::with_legend_entries`）。
+    if let Some(v) = &g.entries {
+        l = l.with_legend_entries(v.iter().map(legend_entry).collect());
+    }
     Ok(l)
 }
 
@@ -427,7 +444,7 @@ fn apply_annotations(mut l: Layout, ann: &AnnotationsSpec) -> Layout {
 
 #[cfg(test)]
 mod tests {
-    use crate::extension::functions::spec::test_support::render_json;
+    use crate::extension::functions::spec::test_support::{render_json, render_svg};
 
     #[test]
     fn unknown_legend_position_is_reported() {
@@ -436,5 +453,26 @@ mod tests {
         )
         .unwrap_err();
         assert!(err.contains("unknown legend.position"), "unexpected message: {err}");
+    }
+
+    /// 手工图例条目会绕开自动收集，图例上的文字就来自 entries —— 断言它真的画出来了。
+    /// 同一条规格里顺带把色条刻度格式也过一遍（它只影响色条标签，能渲染即通过）。
+    #[test]
+    fn manual_legend_entries_reach_the_svg() {
+        let svg = render_svg(
+            r##"{
+              "colorbar_tick_format": "sci",
+              "legend": {
+                "position": "outside_right_top",
+                "entries": [{"label": "ATTC", "color": "tomato", "shape": "circle"}]
+              },
+              "series": [{
+                "type": "strip",
+                "groups": [{"label": "sample", "values": [1, 2, 3],
+                            "point_colors": ["tomato", "seagreen", "goldenrod"]}]
+              }]
+            }"##,
+        );
+        assert!(svg.contains("ATTC"), "the manual legend entry is missing");
     }
 }

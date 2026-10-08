@@ -57,6 +57,16 @@ pub(crate) struct JointGroupSpec {
     pub sizes: Option<Vec<f64>>,
     /// 逐点颜色。
     pub colors: Option<Vec<String>>,
+    /// 逐点 x 误差：一个数是对称的，`[下, 上]` 是不对称的。长度须与 `x` 一致。
+    pub x_err: Option<Vec<super::common::ErrSpec>>,
+    /// 逐点 y 误差，写法同 `x_err`。
+    pub y_err: Option<Vec<super::common::ErrSpec>>,
+    /// 这一组的点半径；不给就用顶层的 `marker_size`。
+    pub marker_size: Option<f64>,
+    /// 这一组的点不透明度；不给就用顶层的 `marker_opacity`。
+    pub marker_opacity: Option<f64>,
+    /// 这一组的点描边宽度。
+    pub marker_stroke_width: Option<f64>,
     /// 画趋势线（最小二乘）。
     pub trend: Option<bool>,
     /// 在图上标出回归方程。

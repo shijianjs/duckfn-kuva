@@ -52,6 +52,13 @@ pub(super) fn build_density(s: DensitySeries) -> Result<Plot, String> {
     if let Some((lo, hi)) = s.x_range {
         plot = plot.with_x_range(lo, hi);
     }
+    // 单侧边界：kuva 里是在 `x_range` 之后单独设的，两侧都写时也以前者为准。
+    if let Some(v) = s.x_lo {
+        plot = plot.with_x_lo(v);
+    }
+    if let Some(v) = s.x_hi {
+        plot = plot.with_x_hi(v);
+    }
     if s.fit == Some(true) {
         plot = plot.with_fit();
     }
@@ -97,5 +104,20 @@ mod tests {
     #[test]
     fn renders_density_curve() {
         assert_renders(&render_svg(DENSITY_CURVE), "DENSITY_CURVE");
+    }
+
+    /// 单侧边界（只有下界 / 只有上界）也要能渲染。
+    const DENSITY_X_LO: &str = r##"{
+      "series": [{
+        "type": "density",
+        "values": [1, 1.5, 2, 2.4, 3, 3.2, 4, 5],
+        "x_lo": 0,
+        "filled": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_density_with_one_sided_bounds() {
+        assert_renders(&render_svg(DENSITY_X_LO), "DENSITY_X_LO");
     }
 }

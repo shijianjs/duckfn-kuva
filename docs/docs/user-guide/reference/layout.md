@@ -17,8 +17,8 @@ multi-panel mode, where each [panel](./figure.md) carries its own copy.
 | `height` | number | Canvas height in pixels. |
 
 kuva's natural size is about `675 × 511`. Leave both unset so the chart keeps that proportion — a chart
-pinned into a wide, short box is squashed. To show a chart larger, grow the *preview box* (the `height`
-in the runnable block's options), not the canvas.
+pinned into a wide, short box is squashed. Nothing else is needed in a docs page either: a
+`"show":"svg"` block grows to the SVG's own height, so the preview box is never pinned.
 
 ## Title
 
@@ -72,6 +72,16 @@ Sizes for every piece of text, in one place. A `theme` can set the family too.
 axis. Everything else above works on both.
 
 :::
+
+## Colour bar
+
+Charts that draw a colour bar — [heatmap](../plots/distributions/heatmap.md),
+[hexbin](../plots/distributions/hexbin.md), [2D histogram](../plots/distributions/histogram2d.md) and
+[contour](../plots/relationships/contour.md) — take one more figure-level field:
+
+| Field | Type | What it sets |
+| --- | --- | --- |
+| `colorbar_tick_format` | string \| integer | Colour-bar label format: `"auto"` (default) · `"sci"` · `"integer"` · `"percent"` · `"degree"`, or a number of decimal places. |
 
 ## Examples
 

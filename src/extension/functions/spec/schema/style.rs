@@ -214,6 +214,9 @@ pub(crate) struct LegendSpec {
     pub at: Option<(f64, f64)>,
     /// 数据坐标 `[x, y]`。
     pub at_data: Option<(f64, f64)>,
+    /// 手工给出的图例条目，绕过自动收集。用于「颜色编码在数据里、图例得自己写」的场景
+    /// （例如散点带图的逐点颜色）。给了它，自动收集的条目就不再生效。
+    pub entries: Option<Vec<super::series::LegendEntrySpec>>,
 }
 
 // ============================================================================

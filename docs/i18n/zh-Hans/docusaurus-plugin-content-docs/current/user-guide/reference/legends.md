@@ -21,6 +21,55 @@ description: 图例的显示、位置与排布。
 | `wrap` | integer | 条目文字按字符数折行。 |
 | `at` | `[number, number]` | 把图例放在画布上的绝对像素位置。 |
 | `at_data` | `[number, number]` | 把图例放在某个数据坐标上。 |
+| `entries` | entry[] | 手写的图例条目，绕开自动收集（见下）。 |
+
+## 手写条目
+
+`entries` 会取代自动收集：不再「一个带 `legend` 的 series 一条」，而是**你写什么就显示什么**。当颜色编码
+藏在**数据里**、而不是藏在 series 列表里时，就需要它 —— 带逐点 `colors` 的散点带图、热力图的色条、手工上色
+的图。
+
+```json
+{ "entries": [ { "label": "ATTC", "color": "tomato", "shape": "circle" } ] }
+```
+
+| 条目字段 | 类型 | 设置什么 |
+| --- | --- | --- |
+| `label` | string | **必填。** 条目文字。 |
+| `color` | string | **必填。** 色块颜色。 |
+| `shape` | string \| object | `"rect"`（默认）· `"line"` · `"circle"` · `{"marker": "triangle"}` · `{"size": 6}`。 |
+| `dasharray` | string | 虚线样式（配 `"line"` 形状）。 |
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (
+  SELECT "group" AS g, expression
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+  WHERE "group" = 'Control'
+)
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'sample'},
+  'y_axis': {'name': 'expression'},
+  'legend': {
+    'position': 'outside_right_top',
+    'title': 'above median',
+    'entries': [
+      {'label': 'high', 'color': '#c44e52', 'shape': 'circle'},
+      {'label': 'low',  'color': '#4c72b0', 'shape': 'circle'}
+    ]
+  },
+  'series': [{
+    'type': 'strip',
+    'groups': [{
+      'label': 'Control',
+      'values': (SELECT list(expression ORDER BY expression) FROM d),
+      'point_colors': (SELECT list(CASE WHEN expression > 5 THEN '#c44e52' ELSE '#4c72b0' END
+                                    ORDER BY expression) FROM d)
+    }],
+    'point_size': 4,
+    'style': 'swarm'
+  }]
+})) AS chart;
+```
 
 ## 位置
 

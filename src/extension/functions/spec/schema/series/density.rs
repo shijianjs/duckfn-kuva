@@ -22,8 +22,12 @@ pub(crate) struct DensitySeries {
     pub stroke_width: Option<f64>,
     /// 虚线样式，如 `"4 2"`。
     pub line_dash: Option<String>,
-    /// 只画 `[lo, hi]` 这一段。
+    /// 只画 `[lo, hi]` 这一段（两侧同时反射）。
     pub x_range: Option<(f64, f64)>,
+    /// 只钉下界：在 `lo` 处反射，上侧的尾巴仍然自由。
+    pub x_lo: Option<f64>,
+    /// 只钉上界：在 `hi` 处反射，下侧的尾巴仍然自由。
+    pub x_hi: Option<f64>,
     /// 在图上标出拟合优度。
     pub fit: Option<bool>,
 }

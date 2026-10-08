@@ -30,7 +30,9 @@ info string 是 JSON 的 `sql` 围栏会变成能就地跑的示例（详见 `RE
   `.parquet`，约 950 KB，MIT License），并附了一份说明来源与规矩的
   [`README.md`](./static/data/README.md)。随着图表页补齐，其中绝大多数文件都会被某个示例用到；
   新示例优先复用已经在用的那几个，需要新数据集时再从这里挑。
-- **不要手工编辑那些文件**，也不要用自造的玩具数据（如 `[[1,2],[3,4]]`）——画出来很难看。
+- **不要手工编辑那些文件**。示例优先读它们（真实数据画出来才好看）；只有该功能点**必须有专门的
+  数据形态**（误差棒、逐点大小、空心点……）时才用内联数据，且内联的数值**照抄 kuva 自己的示例**
+  (`S:\workspace\github\Psy-Fer\kuva\examples\<chart>.rs`)，不要现编 `[[1,2],[3,4]]` 这类玩具数据。
   需要新数据集就从 kuva 的 `examples/data/` 再拷一份过来（拷完统一 LF）。
 - 每个文件有哪些列、适合画什么图，看上游那份
   [examples/data/README](https://github.com/Psy-Fer/kuva/blob/master/examples/data/README.md)。
@@ -88,6 +90,34 @@ CLI 的 `--base-url` / `--asset`）。
 - 站点运行时从 CDN（jsDelivr）取引擎 wasm，**本机没有外网时站内点 Run 会停在「正在初始化
   DuckDB…」**；这不是代码问题。离线验证走 `npm test`：kit 的 harness 用本地引擎与 loopback
   服务器，28 个块都在那里跑。
+
+## 图表页的形态：前半段对齐官方文档，`## 字段` 之后才是本站增量
+
+kuva 自己的文档（本机克隆 `S:\workspace\github\Psy-Fer\kuva`，页面在 `docs/src/plots/<slug>.md`）
+一页通常七八个小节，一节讲一个功能点、配一张图。本站图型页的前半段（标题、简介、示例）**对齐那份
+文档**：小节划分、讲解顺序、注意事项照搬，只做三类替换 ——
+
+| 官方文档里 | 本站写成 |
+| --- | --- |
+| ```` ```rust ```` 代码块 | 可运行的 ```` ```sql ```` 块（JSON 规格，读 `docs/static/data/` 的数据） |
+| `<img src="../assets/…">` | **不要图片** —— 该节的 SQL 块本身就是那张图 |
+| 描述里的 Rust 方法名/类型名（`.with_trend(TrendLine::Linear)`） | 本站的 JSON 字段名（`"trend": {"type": "linear"}`），以本仓库 schema 为准 |
+
+官方页尾的 `## API reference`（Rust builder 方法表）与 `## CLI`（子命令旗标）**不要照搬** ——
+本站的「字段」表对标的正是这两节，而且更全。
+
+于是每页的形态是：
+
+1. 标题 + 一句话简介（可用官方那句，去掉 Rust 说法）；
+2. 官方那几节功能示例，逐节落成可运行 SQL（数据优先用官方 TSV，见上一节）；
+3. `## 字段` —— 本站增量，对标官方的 API reference + CLI，**比官方那两节更重要**：kuva 是库、
+   读者能翻代码，SQL 用户遇到文档里没有的东西是两眼一抹黑的；
+4. `## 说明` —— 必填项、默认值、会报错的情形，取自本仓库 `convert/` 的实现；
+5. `## 另见` —— 首条永远是 kuva 官方文档链接
+   `https://psy-fer.github.io/kuva/plots/<slug>.html`（slug 与本站文件名不一定相同：`box`→`boxplot`、
+   `dot_plot`→`dotplot`、`dice_plot`→`diceplot`、`legend_plot`→`legend`）。
+
+按类别一页页推进，中英成对。
 
 ## 中英双语要成对改
 

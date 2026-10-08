@@ -19,7 +19,7 @@ pub(crate) struct EcdfSeries {
     pub rug: Option<bool>,
     /// rug 的高度（像素）。
     pub rug_height: Option<f64>,
-    /// 画这些分位数的水平参考线，如 `[25, 50, 75]`。
+    /// 画这些分位数的水平参考线。给的是 **0~1 的 F 值**，如 `[0.25, 0.5, 0.75]`。
     pub percentile_lines: Option<Vec<f64>>,
     /// 在观测点上打点。
     pub markers: Option<bool>,

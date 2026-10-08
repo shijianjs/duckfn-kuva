@@ -38,6 +38,9 @@ pub(crate) struct PanelSpec {
     pub palette: Option<PaletteSpec>,
     pub font: Option<FontSpec>,
     pub annotations: Option<AnnotationsSpec>,
+    /// 色条刻度标签的格式（热力图 / 二维直方图 / 六边形分箱图 / 等高线图）。
+    /// 取值同 `x_axis.tick_format`。
+    pub colorbar_tick_format: Option<super::style::TickFormatSpec>,
     pub width: Option<f64>,
     pub height: Option<f64>,
     /// 叠加到同一套坐标轴上的 series。

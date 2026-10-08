@@ -21,6 +21,55 @@ sits and how it is laid out. With no series labelled, nothing is drawn.
 | `wrap` | integer | Wrap long entry labels after this many characters. |
 | `at` | `[number, number]` | Place the legend at an absolute canvas pixel position. |
 | `at_data` | `[number, number]` | Place the legend at a data coordinate. |
+| `entries` | entry[] | Hand-written entries, bypassing auto-collection (see below). |
+
+## Hand-written entries
+
+`entries` replaces auto-collection: instead of one key per labelled series, the legend shows exactly the
+entries you write. That is what you need when the colour encoding lives **inside** the data rather than in
+the series list — a `strip` with per-point `colors`, a heatmap's colour bar, a manually coloured chart.
+
+```json
+{ "entries": [ { "label": "ATTC", "color": "tomato", "shape": "circle" } ] }
+```
+
+| Entry field | Type | What it sets |
+| --- | --- | --- |
+| `label` | string | **Required.** The entry's text. |
+| `color` | string | **Required.** The swatch colour. |
+| `shape` | string \| object | `"rect"` (default) · `"line"` · `"circle"` · `{"marker": "triangle"}` · `{"size": 6}`. |
+| `dasharray` | string | A dash pattern, for a `"line"` swatch. |
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (
+  SELECT "group" AS g, expression
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+  WHERE "group" = 'Control'
+)
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'sample'},
+  'y_axis': {'name': 'expression'},
+  'legend': {
+    'position': 'outside_right_top',
+    'title': 'above median',
+    'entries': [
+      {'label': 'high', 'color': '#c44e52', 'shape': 'circle'},
+      {'label': 'low',  'color': '#4c72b0', 'shape': 'circle'}
+    ]
+  },
+  'series': [{
+    'type': 'strip',
+    'groups': [{
+      'label': 'Control',
+      'values': (SELECT list(expression ORDER BY expression) FROM d),
+      'point_colors': (SELECT list(CASE WHEN expression > 5 THEN '#c44e52' ELSE '#4c72b0' END
+                                    ORDER BY expression) FROM d)
+    }],
+    'point_size': 4,
+    'style': 'swarm'
+  }]
+})) AS chart;
+```
 
 ## Positions
 

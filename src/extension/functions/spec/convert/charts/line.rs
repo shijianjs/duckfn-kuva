@@ -70,7 +70,7 @@ mod tests {
         "data": [[0, 1], [1, 2.5], [2, 2], [3, 4.5], [4, 6], [5, 5.5]],
         "legend": "measured",
         "stroke_width": 3,
-        "stroke_dasharray": "6 3",
+        "line_style": "6 3",
         "color": "#4c72b0",
         "step": true
       }]
@@ -79,6 +79,25 @@ mod tests {
     #[test]
     fn renders_line() {
         assert_renders(&render_svg(LINE), "LINE");
+    }
+
+    /// `line_style` 的字符串写法就是一条自定义 dasharray —— 断言它真的进了 SVG
+    /// （光断言「能渲染」看不出来，写错键名时 serde 会默默丢掉）。
+    #[test]
+    fn custom_line_style_reaches_the_svg() {
+        let svg = render_svg(
+            r##"{
+              "series": [{
+                "type": "line",
+                "data": [[0, 0], [1, 1], [2, 0.5]],
+                "line_style": "6 3"
+              }]
+            }"##,
+        );
+        assert!(
+            svg.contains(r#"stroke-dasharray="6 3""#),
+            "the custom dasharray was dropped"
+        );
     }
 
     #[test]

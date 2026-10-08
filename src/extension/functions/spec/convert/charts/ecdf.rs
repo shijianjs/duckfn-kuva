@@ -74,7 +74,7 @@ mod tests {
         "band_alpha": 0.15,
         "rug": true,
         "rug_height": 8,
-        "percentile_lines": [25, 50, 75],
+        "percentile_lines": [0.25, 0.5, 0.75],
         "markers": true,
         "smooth": true,
         "legend": "cdf"

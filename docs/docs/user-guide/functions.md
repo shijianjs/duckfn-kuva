@@ -25,11 +25,14 @@ Because the drawing happens inside the extension, a chart renders identically wh
 CLI, a Python or R session, a JVM host, or DuckDB-Wasm in the browser — with no matplotlib or ggplot2 on
 the host.
 
-The smallest useful call:
+The smallest useful call — read a column pair and render it:
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- press Run: the result is a complete SVG document, and it is drawn right here
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 
 Every block below asks for `"show":"svg"`, so pressing **Run** draws the chart in the result area —
@@ -76,28 +79,69 @@ For `scatter` and `line`, `data` is a list of points, either as `[x, y]` pairs o
 (`{"x":…,"y":…,"x_err":…,"y_err":…}`); an error bar is a single number for a symmetric one or a
 `[lower, upper]` pair for an asymmetric one.
 
+The six blocks run against the plot library's own [example datasets](https://github.com/Psy-Fer/kuva/tree/master/examples/data),
+served from this site — which is also how a real query builds the spec: aggregate the rows into the
+`data` / `categories` / `values` / `slices` a series wants, then `to_json` the whole object.
+
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': list({'type': 'scatter', 'data': pts, 'legend': g} ORDER BY g)
+})) AS chart
+FROM (
+  SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv')
+  GROUP BY "group"
+);
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
+})) AS chart
+FROM (
+  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  GROUP BY "group"
+);
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{
+    'type': 'bar',
+    'categories': list(category ORDER BY count DESC),
+    'values': list(count ORDER BY count DESC)
+  }]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/bar.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'histogram', 'values': list(value), 'bins': 20}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/histogram.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'box', 'groups': list({'label': g, 'values': vals} ORDER BY g)}]
+})) AS chart
+FROM (
+  SELECT "group" AS g, list(expression) AS vals
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/samples.tsv')
+  GROUP BY "group"
+);
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{
+    'type': 'pie',
+    'slices': list({'label': feature, 'value': percentage} ORDER BY percentage DESC)
+  }]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/pie.tsv');
 ```
 
 ### Axes
@@ -144,10 +188,20 @@ strings.
 Two kinds of composition are supported.
 
 **Overlay.** Put several series in one `series` list; they share one set of axes. A line plus its points,
-for example:
+for example (both built from the same rows, so the two series cannot drift apart):
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [
+    {'type': 'line', 'data': pts, 'legend': 'trend'},
+    {'type': 'scatter', 'data': pts, 'legend': 'points'}
+  ]
+})) AS chart
+FROM (
+  SELECT array_agg([time, value] ORDER BY time) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  WHERE "group" = 'Condition_A'
+);
 ```
 
 **Multiple panels.** Add a top-level `figure` object instead of drawing a single panel. It carries `rows`,
@@ -158,8 +212,20 @@ object per cell, each with its own layout fields and `series`. `panels` must hav
 entries, in row-major order.
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"figure":{"rows":1,"cols":2,"figure_width":700,"figure_height":320,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}') AS chart;
+SELECT kuva_render(to_json({
+  'figure': {
+    'rows': 1, 'cols': 2,
+    'panels': [
+      {'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv'))}]},
+      {'series': [{'type': 'histogram', 'values': (SELECT list(value) FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/histogram.tsv')), 'bins': 20}]}
+    ]
+  }
+})) AS chart;
 ```
+
+Leave `figure_width` / `figure_height` unset and kuva lays the panels out at its own default cell size
+(`500x380` each), so a panel keeps the same proportions as a single figure. Pinning the figure to a
+wide, short box would squash every panel inside it.
 
 ## Errors
 

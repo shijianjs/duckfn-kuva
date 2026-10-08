@@ -24,11 +24,14 @@ kuva_render(spec_json VARCHAR) -> VARCHAR
 任何地方都长一样 —— CLI、Python / R 会话、JVM 宿主，或浏览器里的 DuckDB-Wasm —— 宿主机上不需要
 matplotlib / ggplot2。
 
-最小可用的一次调用：
+最小可用的一次调用 —— 读一对列，然后把它画出来：
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- 点一下 Run：结果是一整份 SVG 文档，直接画在这里
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 
 下面每个块都写了 `"show":"svg"`，点 **Run** 就会把图画在结果区里；缩放与平移在全屏里。
@@ -72,28 +75,69 @@ SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}')
 `scatter` 与 `line` 的 `data` 是一串点，可以写成 `[x, y]`，也可以写成对象
 （`{"x":…,"y":…,"x_err":…,"y_err":…}`）；误差是单个数字表示对称，`[下, 上]` 表示不对称。
 
+这六个块跑在绘图库自带的[示例数据集](https://github.com/Psy-Fer/kuva/tree/master/examples/data)上，
+数据由本站直接供出 —— 真实查询也正是这样拼 spec 的：先把行聚合成 series 要的
+`data` / `categories` / `values` / `slices`，再把整个对象交给 `to_json`。
+
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': list({'type': 'scatter', 'data': pts, 'legend': g} ORDER BY g)
+})) AS chart
+FROM (
+  SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv')
+  GROUP BY "group"
+);
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
+})) AS chart
+FROM (
+  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  GROUP BY "group"
+);
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{
+    'type': 'bar',
+    'categories': list(category ORDER BY count DESC),
+    'values': list(count ORDER BY count DESC)
+  }]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/bar.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'histogram', 'values': list(value), 'bins': 20}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/histogram.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'box', 'groups': list({'label': g, 'values': vals} ORDER BY g)}]
+})) AS chart
+FROM (
+  SELECT "group" AS g, list(expression) AS vals
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/samples.tsv')
+  GROUP BY "group"
+);
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{
+    'type': 'pie',
+    'slices': list({'label': feature, 'value': percentage} ORDER BY percentage DESC)
+  }]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/pie.tsv');
 ```
 
 ### 坐标轴
@@ -137,10 +181,21 @@ SELECT kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{
 
 支持两种组合方式。
 
-**叠加。** 在一个 `series` 里放多个 series，它们共用一套坐标轴。比如一条折线加它的散点：
+**叠加。** 在一个 `series` 里放多个 series，它们共用一套坐标轴。比如一条折线加它的散点（两者都由同一
+批行生成，因此不会各走各的）：
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [
+    {'type': 'line', 'data': pts, 'legend': 'trend'},
+    {'type': 'scatter', 'data': pts, 'legend': 'points'}
+  ]
+})) AS chart
+FROM (
+  SELECT array_agg([time, value] ORDER BY time) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  WHERE "group" = 'Condition_A'
+);
 ```
 
 **多面板。** 用顶层的 `figure` 对象代替单张画布。它带 `rows`、`cols`、`title`、`title_size`、
@@ -150,8 +205,19 @@ SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"}
 `series`。`panels` 的个数必须正好等于 `rows * cols`，按行优先排列。
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render('{"figure":{"rows":1,"cols":2,"figure_width":700,"figure_height":320,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}') AS chart;
+SELECT kuva_render(to_json({
+  'figure': {
+    'rows': 1, 'cols': 2,
+    'panels': [
+      {'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv'))}]},
+      {'series': [{'type': 'histogram', 'values': (SELECT list(value) FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/histogram.tsv')), 'bins': 20}]}
+    ]
+  }
+})) AS chart;
 ```
+
+不要设 `figure_width` / `figure_height`，让 kuva 用它默认的单元格尺寸（每个 `500x380`）来排布面板，
+这样单个面板的比例与单张图一致。把整张 figure 钉成又宽又扁的框，会把里面每个面板都压扁。
 
 ## 错误
 

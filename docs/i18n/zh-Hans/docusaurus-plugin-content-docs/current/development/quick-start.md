@@ -67,12 +67,22 @@ duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- 一张散点图
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
--- 多个 series 叠在同一套坐标轴上
-SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+-- 每个 condition 一条折线，叠在同一套布局上
+SELECT kuva_render(to_json({
+  'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
+})) AS chart
+FROM (
+  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  GROUP BY "group"
+);
 ```
 
 失败路径同样是个可运行块 —— 它自己声明了「应该失败」：

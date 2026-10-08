@@ -33,7 +33,10 @@ LOAD duckfn_kuva;
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- 点一下 Run：图就地画出来
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 
 上面这个块就在你的浏览器里真跑：站点从项目的最新 Release 预加载了这个扩展，所以这里不用写 `LOAD`。

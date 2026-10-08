@@ -70,12 +70,22 @@ live, and the `Table` tab always holds the raw SVG.
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- a scatter plot
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
--- several series overlaid on one layout
-SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}') AS chart;
+-- one line per condition, overlaid on one layout
+SELECT kuva_render(to_json({
+  'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
+})) AS chart
+FROM (
+  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/measurements.tsv')
+  GROUP BY "group"
+);
 ```
 
 The failure path is a runnable block too — it declares that it is supposed to fail:

@@ -58,13 +58,19 @@ const preloadedExtension: UrlPreloadEntry =
     : {url: 'duckdb-extensions/duckfn_kuva.duckdb_extension.wasm'};
 
 // GitHub Pages 把项目站挂在子路径下（https://<owner>.github.io/<repo>），所以 `url` / `baseUrl`
-// 由工作流注入（见 ../.github/workflows/DeployDocs.yml）。下面两个是本地开发的兜底值。
+// 由工作流注入（见 ../.github/workflows/DeployDocs.yml）。下面两个是本地开发的兜底值，`baseUrl`
+// 直接写成部署用的子路径 `/duckfn-kuva/` —— 可运行块读的数据 URL 是
+// `{{DFK_ORIGIN}}/duckfn-kuva/data/*.tsv`（`{{DFK_ORIGIN}}` 由 kit 在运行时替换成页面 origin），
+// 本地 `docusaurus start` 只有挂在这个前缀下才与线上一致。
 //
 // GitHub Pages serves a project site from a sub-path (https://<owner>.github.io/<repo>), so `url` and
 // `baseUrl` are injected by the workflow (see ../.github/workflows/DeployDocs.yml); the values below
-// are the local-development fallbacks.
+// are the local-development fallbacks. `baseUrl` is written as the deployed sub-path `/duckfn-kuva/`:
+// a runnable block reads `{{DFK_ORIGIN}}/duckfn-kuva/data/*.tsv` (`{{DFK_ORIGIN}}` is expanded to the
+// page origin at run time), so a local `docusaurus start` only matches the deployed site when it
+// serves the same prefix.
 const url = process.env.DOCS_URL ?? 'http://localhost:3000';
-const baseUrl = process.env.DOCS_BASE_URL ?? '/';
+const baseUrl = process.env.DOCS_BASE_URL ?? '/duckfn-kuva/';
 
 const config: Config = {
   title: 'duckfn_kuva',

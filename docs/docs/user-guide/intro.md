@@ -35,7 +35,10 @@ Then call the function in any query:
 
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
 -- press Run: the chart is drawn right here
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 
 That block runs right here, in your browser: the site preloads the extension from the project's latest

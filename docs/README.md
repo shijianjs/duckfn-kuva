@@ -72,7 +72,10 @@ editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 
 ````md
 ```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}') AS chart;
+SELECT kuva_render(to_json({
+  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+})) AS chart
+FROM read_csv_auto('{{DFK_ORIGIN}}/duckfn-kuva/data/scatter.tsv');
 ```
 ````
 
@@ -81,10 +84,20 @@ block that demonstrates a failure declares `"expect":"error"` (see `docs/user-gu
 `docs/user-guide/functions.md` and `docs/development/quick-start.md` for the ones this site ships).
 Because this extension's result *is* an SVG document, every chart block asks for `"show":"svg"`: the
 chart is drawn in the result area (fullscreen zooms and pans), and the trailing `Table` tab keeps the
-raw markup one click away. The spec also pins the canvas with `"width"` / `"height"` — kuva's default
-is around 675x511, which would spill out of the preview box.
-The full config reference is in the kit's own guide at
-<https://shijianjs.github.io/duckfn/docs/docs-kit/runnable-sql>.
+raw markup one click away.
+
+**Do not pin the canvas** with `"width"` / `"height"`: kuva's natural size is what keeps a chart in
+proportion. `option.height` is the preview *box*, not the chart — set it tall enough (about
+`520px`) for the box to clear kuva's ~675×511 and the SVG is scaled down to the box's width, never
+stretched.
+
+The examples read their data from the site's own files under `static/data/` (kuva's sample
+datasets), served through an asset mount declared in `tests/docs.spec.mts`. Their URLs are
+absolute — DuckDB-Wasm resolves nothing relative to the page, so `{{DFK_ORIGIN}}` (expanded by the kit
+to `window.location.origin` before the SQL runs) is what makes one block work both on the deployed
+sub-path and on the test harness's random port. See [`AGENTS.md`](./AGENTS.md) for that and the
+other conventions this site's examples follow. The full config reference is in the kit's own guide
+at <https://shijianjs.github.io/duckfn/docs/docs-kit/runnable-sql>.
 
 ## Preloaded extensions
 
@@ -248,9 +261,11 @@ succeeded, was started by pushing a `v*.*.*` tag, and the tag is then checked ou
 stop at that guard. The workflow can still be started by hand from the Actions tab. A clone that renames
 the pipeline workflow should rename it here too, in `workflows:`.
 
-`url` and `baseUrl` are not hard-coded — the workflow reads them from `actions/configure-pages` and
-passes them to the build as `DOCS_URL` and `DOCS_BASE_URL`, which `docusaurus.config.ts` picks up.
-Outside CI they fall back to `http://localhost:3000` and `/`.
+`url` is not hard-coded — the workflow reads it from `actions/configure-pages` and passes it to the
+build as `DOCS_URL`. `baseUrl` is pinned to `/duckfn-kuva/` in `docusaurus.config.ts`, because the
+runnable blocks read their data through root-relative paths (`/duckfn-kuva/data/…`) that have to
+resolve under the same prefix locally and on GitHub Pages; `DOCS_BASE_URL` can still override it.
+Outside CI `url` falls back to `http://localhost:3000`.
 
 One-time setup: in the repository settings, set **Pages → Build and deployment → Source** to
 **GitHub Actions**.

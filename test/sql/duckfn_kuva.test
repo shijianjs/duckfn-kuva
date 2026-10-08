@@ -21,7 +21,9 @@ SELECT right(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}')
 ----
 </svg>
 
-# Every chart type implemented so far renders something.
+# Every implemented chart type renders something. The detailed per-type options are covered by the
+# Rust unit tests (src/extension/functions/spec/tests.rs); here we only check that each `type`
+# dispatches and produces an SVG document.
 query I
 SELECT bool_and(length(svg) > 500)
 FROM (VALUES
@@ -31,6 +33,105 @@ FROM (VALUES
   (kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}')),
   (kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
   (kuva_render('{"series":[{"type":"pie","slices":[{"label":"a","value":3},{"label":"b","value":7}]}]}'))
+) t(svg);
+----
+true
+
+# Distributions and statistics.
+query I
+SELECT bool_and(length(svg) > 500)
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"violin","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"ridgeline","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"raincloud","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"strip","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"dot_plot","points":[{"x":"c","y":"r","size":1,"color":0.5}]}]}')),
+  (kuva_render('{"series":[{"type":"lollipop","points":[{"x":1,"y":2}]}]}')),
+  (kuva_render('{"series":[{"type":"density","values":[1,2,3,4,5]}]}')),
+  (kuva_render('{"series":[{"type":"ecdf","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"qq","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
+  (kuva_render('{"series":[{"type":"forest","rows":[{"label":"a","estimate":1,"ci_lower":0,"ci_upper":2}]}]}')),
+  (kuva_render('{"series":[{"type":"pr","groups":[{"label":"a","points":[[1,1],[0.5,0.5]]}]}]}')),
+  (kuva_render('{"series":[{"type":"roc","groups":[{"label":"a","points":[[0,0],[1,1]]}]}]}')),
+  (kuva_render('{"series":[{"type":"survival","groups":[{"label":"a","times":[1,2],"events":[true,false]}]}]}')),
+  (kuva_render('{"series":[{"type":"volcano","points":[{"name":"g","log2fc":2,"pvalue":0.001}]}]}'))
+) t(svg);
+----
+true
+
+# Matrices, grids and 3D.
+query I
+SELECT bool_and(length(svg) > 500)
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"heatmap","data":[[1,2],[3,4]]}]}')),
+  (kuva_render('{"series":[{"type":"histogram2d","data":[[0.1,0.2],[0.3,0.4]],"x_range":[0,1],"y_range":[0,1]}]}')),
+  (kuva_render('{"series":[{"type":"hexbin","x":[0.1,0.5],"y":[0.2,0.6]}]}')),
+  (kuva_render('{"series":[{"type":"clustermap","data":[[1,2],[3,4]],"row_labels":["a","b"],"col_labels":["c","d"]}]}')),
+  (kuva_render('{"series":[{"type":"contour","z":[[1,2],[3,4]],"x_coords":[0,1],"y_coords":[0,1]}]}')),
+  (kuva_render('{"series":[{"type":"ternary","points":[{"a":0.5,"b":0.3,"c":0.2}]}]}')),
+  (kuva_render('{"series":[{"type":"polar","series":[{"r":[1,2],"theta":[0,90]}]}]}')),
+  (kuva_render('{"series":[{"type":"dice_plot","x_categories":["a"],"y_categories":["b"],"points":[{"x":"a","y":"b","present":[0]}]}]}')),
+  (kuva_render('{"series":[{"type":"scatter3d","data":[[1,2,3],[2,3,4]]}]}')),
+  (kuva_render('{"series":[{"type":"surface3d","z_data":[[1,2],[3,4]]}]}'))
+) t(svg);
+----
+true
+
+# Relationships and hierarchies.
+query I
+SELECT bool_and(length(svg) > 500)
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"sankey","nodes":[{"label":"a"},{"label":"b"}],"links":[{"source":"a","target":"b","value":1}]}]}')),
+  (kuva_render('{"series":[{"type":"chord","matrix":[[1,2],[3,4]],"labels":["a","b"]}]}')),
+  (kuva_render('{"series":[{"type":"network","nodes":[{"label":"a"},{"label":"b"}],"edges":[{"source":"a","target":"b","weight":1}]}]}')),
+  (kuva_render('{"series":[{"type":"treemap","roots":[{"label":"r","children":[{"label":"l","value":1}]}]}]}')),
+  (kuva_render('{"series":[{"type":"sunburst","roots":[{"label":"r","children":[{"label":"l","value":1}]}]}]}')),
+  (kuva_render('{"series":[{"type":"venn","sets":[{"label":"a","size":3},{"label":"b","size":4}],"overlaps":[{"sets":["a","b"],"size":1}]}]}')),
+  (kuva_render('{"series":[{"type":"upset","set_names":["a","b"],"set_sizes":[3,4],"intersections":[{"mask":1,"count":2}]}]}')),
+  (kuva_render('{"series":[{"type":"waffle","categories":[{"label":"a","value":3}]}]}')),
+  (kuva_render('{"series":[{"type":"mosaic","cells":[{"col":"a","row":"x","value":1}]}]}')),
+  (kuva_render('{"series":[{"type":"phylo","newick":"(A,B);"}]}')),
+  (kuva_render('{"series":[{"type":"synteny","sequences":[{"label":"s1","length":10},{"label":"s2","length":10}],"blocks":[{"seq1":0,"start1":0,"end1":5,"seq2":1,"start2":0,"end2":5}]}]}'))
+) t(svg);
+----
+true
+
+# Time, finance, ranking and comparison.
+query I
+SELECT bool_and(length(svg) > 500)
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"candlestick","candles":[{"label":"d","open":1,"high":2,"low":0.5,"close":1.5}]}]}')),
+  (kuva_render('{"series":[{"type":"calendar","data":[{"date":"2024-01-01","value":1}],"year":2024}]}')),
+  (kuva_render('{"series":[{"type":"gantt","tasks":[{"label":"t","start":0,"end":3}]}]}')),
+  (kuva_render('{"series":[{"type":"horizon","series":[{"label":"a","x":[1,2],"y":[1,-1]}]}]}')),
+  (kuva_render('{"series":[{"type":"manhattan","points":[{"chromosome":"1","pvalue":0.001}]}]}')),
+  (kuva_render('{"series":[{"type":"waterfall","bars":[{"label":"a","value":5}]}]}')),
+  (kuva_render('{"series":[{"type":"bump","series":[{"name":"a","ranks":[1,2]}],"x_labels":["a","b"]}]}')),
+  (kuva_render('{"series":[{"type":"pareto","categories":[{"label":"a","value":5}]}]}')),
+  (kuva_render('{"series":[{"type":"brick","sequences":["ACGT"],"names":["s1"]}]}')),
+  (kuva_render('{"series":[{"type":"funnel","stages":[{"label":"a","value":10},{"label":"b","value":4}]}]}')),
+  (kuva_render('{"series":[{"type":"slope","points":[{"label":"a","before":1,"after":2}]}]}')),
+  (kuva_render('{"series":[{"type":"pyramid","series":[{"label":"a","groups":[{"age":"0-9","left":1,"right":2}]}]}]}'))
+) t(svg);
+----
+true
+
+# Series, fields and text. A couple of these (a one-line text block, a single-entry legend) are
+# legitimately tiny, so assert the invariant that actually holds for all of them: a complete SVG.
+query I
+SELECT bool_and(left(svg, 4) = '<svg' AND right(svg, 6) = '</svg>')
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"series","values":[1,2,3]}]}')),
+  (kuva_render('{"series":[{"type":"radar","axes":["a","b","c"],"series":[{"values":[1,2,3]}]}]}')),
+  (kuva_render('{"series":[{"type":"parallel","axis_names":["a","b"],"rows":[{"values":[1,2]}]}]}')),
+  (kuva_render('{"series":[{"type":"stacked_area","x":[1,2],"series":[{"values":[1,2]}]}]}')),
+  (kuva_render('{"series":[{"type":"streamgraph","x":[1,2],"series":[{"values":[1,2]}]}]}')),
+  (kuva_render('{"series":[{"type":"band","x":[1,2],"y_lower":[0,0],"y_upper":[1,1]}]}')),
+  (kuva_render('{"series":[{"type":"text","body":"# hi"}]}')),
+  (kuva_render('{"series":[{"type":"legend_plot","entries":[{"label":"a","color":"red"}]}]}')),
+  (kuva_render('{"series":[{"type":"quiver","arrows":[{"x":0,"y":0,"u":1,"v":1}]}]}')),
+  (kuva_render('{"series":[{"type":"jointplot","groups":[{"x":[1,2],"y":[2,3]}]}]}')),
+  (kuva_render('{"series":[{"type":"rose","slices":[{"label":"a","value":3}]}]}'))
 ) t(svg);
 ----
 true
@@ -76,3 +177,33 @@ statement error
 SELECT kuva_render('{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[[1,2]]}]}');
 ----
 unknown legend.position
+
+# A ragged matrix is rejected instead of silently dropping columns.
+statement error
+SELECT kuva_render('{"series":[{"type":"heatmap","data":[[1,2],[3]]}]}');
+----
+every row must be the same length
+
+# A node reference that does not resolve is reported by name (it would otherwise be an out-of-range index).
+statement error
+SELECT kuva_render('{"series":[{"type":"sankey","nodes":[{"label":"a"}],"links":[{"source":"a","target":"ghost","value":1}]}]}');
+----
+unknown node `ghost`
+
+# Survival needs one `events` entry per time, or the tail observations are silently dropped.
+statement error
+SELECT kuva_render('{"series":[{"type":"survival","groups":[{"label":"a","times":[1,2,3],"events":[true]}]}]}');
+----
+3 times but 1 events
+
+# Brick needs a color template that covers every character in the sequences.
+statement error
+SELECT kuva_render('{"series":[{"type":"brick","sequences":["ACGX"]}]}');
+----
+color template does not cover
+
+# A second y axis only means something together with `secondary_series`.
+query I
+SELECT length(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}],"secondary_series":[{"type":"line","data":[[1,10],[2,20]]}]}')) > 500;
+----
+true

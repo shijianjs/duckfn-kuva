@@ -4,6 +4,7 @@
 //! 比较，所以 `outsideRightTop`、`outside_right_top`、`OutsideRightTop` 都能命中同一个变体 ——
 //! 文档以 snake_case 为主，但宽容一点不花什么代价。
 
+use kuva::plot::brick::BrickTemplate;
 use kuva::plot::line::LineStyle;
 use kuva::prelude::*;
 use kuva::AxisLabelOverlap;
@@ -132,8 +133,7 @@ pub(super) fn tick_format(f: &TickFormatSpec) -> TickFormat {
     }
 }
 
-pub(super) fn label_overlap(v: &LabelOverlapKind) -> AxisLabelOverlap {
-    match v {
+pub(super) fn label_overlap(v: &LabelOverlapKind) -> AxisLabelOverlap {    match v {
         LabelOverlapKind::Allow => AxisLabelOverlap::Allow,
         LabelOverlapKind::Thin => AxisLabelOverlap::Thin,
         LabelOverlapKind::Stagger => AxisLabelOverlap::Stagger,
@@ -161,6 +161,203 @@ pub(super) fn tick_pos(v: &TickPosKind) -> TickPos {
         TickPosKind::Both => TickPos::Both,
     }
 }
+
+pub(super) fn color_map(v: &ColorMapSpec) -> ColorMap {
+    match v {
+        ColorMapSpec::Turbo => ColorMap::Turbo,
+        ColorMapSpec::Viridis => ColorMap::Viridis,
+        ColorMapSpec::Inferno => ColorMap::Inferno,
+        ColorMapSpec::Magma => ColorMap::Magma,
+        ColorMapSpec::Plasma => ColorMap::Plasma,
+        ColorMapSpec::Cividis => ColorMap::Cividis,
+        ColorMapSpec::Warm => ColorMap::Warm,
+        ColorMapSpec::Cool => ColorMap::Cool,
+        ColorMapSpec::Cubehelix => ColorMap::Cubehelix,
+        ColorMapSpec::BlueGreen => ColorMap::BlueGreen,
+        ColorMapSpec::BluePurple => ColorMap::BluePurple,
+        ColorMapSpec::GreenBlue => ColorMap::GreenBlue,
+        ColorMapSpec::OrangeRed => ColorMap::OrangeRed,
+        ColorMapSpec::PurpleBlueGreen => ColorMap::PurpleBlueGreen,
+        ColorMapSpec::PurpleBlue => ColorMap::PurpleBlue,
+        ColorMapSpec::PurpleRed => ColorMap::PurpleRed,
+        ColorMapSpec::RedPurple => ColorMap::RedPurple,
+        ColorMapSpec::YellowGreenBlue => ColorMap::YellowGreenBlue,
+        ColorMapSpec::YellowGreen => ColorMap::YellowGreen,
+        ColorMapSpec::YellowOrangeBrown => ColorMap::YellowOrangeBrown,
+        ColorMapSpec::YellowOrangeRed => ColorMap::YellowOrangeRed,
+        ColorMapSpec::Blues => ColorMap::Blues,
+        ColorMapSpec::Greens => ColorMap::Greens,
+        ColorMapSpec::Grayscale => ColorMap::Grayscale,
+        ColorMapSpec::Oranges => ColorMap::Oranges,
+        ColorMapSpec::Purples => ColorMap::Purples,
+        ColorMapSpec::Reds => ColorMap::Reds,
+        ColorMapSpec::BrownGreen => ColorMap::BrownGreen,
+        ColorMapSpec::PinkGreen => ColorMap::PinkGreen,
+        ColorMapSpec::PurpleGreen => ColorMap::PurpleGreen,
+        ColorMapSpec::PurpleOrange => ColorMap::PurpleOrange,
+        ColorMapSpec::RedBlue => ColorMap::RedBlue,
+        ColorMapSpec::RedGrey => ColorMap::RedGrey,
+        ColorMapSpec::RedYellowBlue => ColorMap::RedYellowBlue,
+        ColorMapSpec::RedYellowGreen => ColorMap::RedYellowGreen,
+        ColorMapSpec::Spectral => ColorMap::Spectral,
+        ColorMapSpec::Rainbow => ColorMap::Rainbow,
+        ColorMapSpec::Sinebow => ColorMap::Sinebow,
+    }
+}
+
+/// 摆点方式。具名值取 kuva 的默认值（`strip` 是 0.3 的抖动）；对象形式只给抖动幅度。
+pub(super) fn strip_style(s: &StripStyleSpec) -> StripStyle {
+    match s {
+        StripStyleSpec::Named(StripStyleKind::Swarm) => StripStyle::Swarm,
+        StripStyleSpec::Named(StripStyleKind::Center) => StripStyle::Center,
+        StripStyleSpec::Named(StripStyleKind::Strip) => StripStyle::Strip { jitter: 0.3 },
+        StripStyleSpec::Detailed(d) => match &d.kind {
+            Some(StripStyleKind::Swarm) => StripStyle::Swarm,
+            Some(StripStyleKind::Center) => StripStyle::Center,
+            Some(StripStyleKind::Strip) | None => {
+                StripStyle::Strip { jitter: d.jitter.unwrap_or(0.3) }
+            }
+        },
+    }
+}
+
+/// 火山图标签的避让方式。箭头标签没给偏移时用「右上方 24×18」这一组默认值。
+pub(super) fn volcano_label_style(s: &VolcanoLabelSpec) -> VolcanoLabelStyle {
+    match s {
+        VolcanoLabelSpec::Named(VolcanoLabelKind::Exact) => VolcanoLabelStyle::Exact,
+        VolcanoLabelSpec::Named(VolcanoLabelKind::Nudge) => VolcanoLabelStyle::Nudge,
+        VolcanoLabelSpec::Arrow { offset_x, offset_y } => VolcanoLabelStyle::Arrow {
+            offset_x: offset_x.unwrap_or(24.0),
+            offset_y: offset_y.unwrap_or(18.0),
+        },
+    }
+}
+
+pub(super) fn z_reduce(k: &ZReduceKind) -> ZReduce {
+    match k {
+        ZReduceKind::Count => ZReduce::Count,
+        ZReduceKind::Mean => ZReduce::Mean,
+        ZReduceKind::Sum => ZReduce::Sum,
+        ZReduceKind::Median => ZReduce::Median,
+        ZReduceKind::Min => ZReduce::Min,
+        ZReduceKind::Max => ZReduce::Max,
+    }
+}
+
+pub(super) fn clustermap_norm(k: &ClustermapNormKind) -> ClustermapNorm {
+    match k {
+        ClustermapNormKind::None => ClustermapNorm::None,
+        ClustermapNormKind::RowZScore => ClustermapNorm::RowZScore,
+        ClustermapNormKind::ColZScore => ClustermapNorm::ColZScore,
+    }
+}
+
+pub(super) fn polar_mode(k: &PolarModeKind) -> PolarMode {
+    match k {
+        PolarModeKind::Scatter => PolarMode::Scatter,
+        PolarModeKind::Line => PolarMode::Line,
+    }
+}
+
+/// 树 / 旭日图的着色方式。`by_value` 一定要带一个色图 —— kuva 的枚举本身是 `ByValue(ColorMap)`，
+/// 没法凭空造一个，所以缺省给 Viridis（也是 kuva 自己的缺省）。
+pub(super) fn tree_color_mode(k: &TreeColorModeSpec) -> TreemapColorMode {
+    match k {
+        TreeColorModeSpec::Named(TreeColorModeKind::ByParent) => TreemapColorMode::ByParent,
+        TreeColorModeSpec::Named(TreeColorModeKind::Explicit) => TreemapColorMode::Explicit,
+        TreeColorModeSpec::Named(TreeColorModeKind::ByValue) => {
+            TreemapColorMode::ByValue(ColorMap::Viridis)
+        }
+        // 绑定的名字故意不叫 `color_map`：那会把同名的翻译函数遮住。
+        TreeColorModeSpec::ByValue { color_map: cmap } => {
+            TreemapColorMode::ByValue(match cmap {
+                Some(c) => color_map(c),
+                None => ColorMap::Viridis,
+            })
+        }
+    }
+}
+/// 同上，但目标是旭日图的枚举。
+pub(super) fn tree_sunburst_color_mode(k: &TreeColorModeSpec) -> SunburstColorMode {
+    match k {
+        TreeColorModeSpec::Named(TreeColorModeKind::ByParent) => SunburstColorMode::ByParent,
+        TreeColorModeSpec::Named(TreeColorModeKind::Explicit) => SunburstColorMode::Explicit,
+        TreeColorModeSpec::Named(TreeColorModeKind::ByValue) => {
+            SunburstColorMode::ByValue(ColorMap::Viridis)
+        }
+        TreeColorModeSpec::ByValue { color_map: cmap } => {
+            SunburstColorMode::ByValue(match cmap {
+                Some(c) => color_map(c),
+                None => ColorMap::Viridis,
+            })
+        }
+    }
+}
+
+/// 独立图例的符号形状。
+pub(super) fn legend_shape(s: &LegendShapeSpec) -> LegendShape {
+    match s {
+        LegendShapeSpec::Named(LegendShapeKind::Rect) => LegendShape::Rect,
+        LegendShapeSpec::Named(LegendShapeKind::Line) => LegendShape::Line,
+        LegendShapeSpec::Named(LegendShapeKind::Circle) => LegendShape::Circle,
+        LegendShapeSpec::Marker { marker } => LegendShape::Marker(marker_shape(marker)),
+        LegendShapeSpec::CircleSize { size } => LegendShape::CircleSize(*size),
+    }
+}
+
+/// 砖墙图的字符配色表。kuva 没有「按序列内容自动选模板」的能力，所以缺省给 DNA。
+pub(super) fn brick_template(s: &BrickTemplateSpec) -> std::collections::HashMap<char, String> {
+    match s {
+        BrickTemplateSpec::Custom(map) => map.clone(),
+        BrickTemplateSpec::Named(BrickTemplateKind::Dna) => BrickTemplate::new().dna().template,
+        BrickTemplateSpec::Named(BrickTemplateKind::Rna) => BrickTemplate::new().rna().template,
+    }
+}
+
+/// `Box3DSpec` -> 3D 图的视角 / 轴 / 网格选项。
+///
+/// 写成宏而不是泛型：`scatter3d` 与 `surface3d` 的这套方法同名同签名，但它们是两个**具体**类型，
+/// 没法在不引入 trait 的前提下绑成同一个泛型；而为一个函数去定义 trait 也不值当。
+macro_rules! apply_box3d {
+    ($plot:expr, $spec:expr) => {{
+        let mut plot = $plot;
+        let spec = $spec;
+        if let Some(v) = spec.azimuth {
+            plot = plot.with_azimuth(v);
+        }
+        if let Some(v) = spec.elevation {
+            plot = plot.with_elevation(v);
+        }
+        if let Some(v) = &spec.x_label {
+            plot = plot.with_x_label(v.clone());
+        }
+        if let Some(v) = &spec.y_label {
+            plot = plot.with_y_label(v.clone());
+        }
+        if let Some(v) = &spec.z_label {
+            plot = plot.with_z_label(v.clone());
+        }
+        // 这两个是「关掉」的开关型方法（`with_no_grid` / `with_no_box`），所以只在显式给
+        // `false` 时才调；给 `true` 走 kuva 的默认值即可。
+        if spec.show_grid == Some(false) {
+            plot = plot.with_no_grid();
+        }
+        if spec.show_box == Some(false) {
+            plot = plot.with_no_box();
+        }
+        if let Some(v) = spec.grid_lines {
+            plot = plot.with_grid_lines(v);
+        }
+        if let Some(v) = spec.z_axis_right {
+            plot = plot.with_z_axis_right(v);
+        }
+        if spec.z_axis_auto == Some(true) {
+            plot = plot.with_z_axis_auto();
+        }
+        plot
+    }};
+}
+pub(crate) use apply_box3d;
 
 pub(super) fn legend_position(s: &str) -> Result<LegendPosition, String> {
     let key = normalize(s);

@@ -50,6 +50,63 @@ pub(crate) struct AxisSpec {
     pub label_overlap: Option<LabelOverlapKind>,
     /// 轴标题折行宽度（字符）。
     pub wrap: Option<usize>,
+    /// 主刻度的间隔（给了就按它取整刻度）。
+    pub tick_step: Option<f64>,
+    /// 轴标题相对默认位置的偏移（像素）。
+    pub label_offset: Option<(f64, f64)>,
+}
+
+/// 第二根轴（双 Y / 双 X 图）。字段与 [`AxisSpec`] 一一对应，只是作用在另一侧。
+#[derive(Debug, Deserialize)]
+pub(crate) struct SecondaryAxisSpec {
+    /// 轴标题。
+    pub name: Option<String>,
+    pub min: Option<f64>,
+    pub max: Option<f64>,
+    /// 对数轴。
+    pub log: Option<bool>,
+    /// 刻度格式，同 `AxisSpec.tick_format`。
+    pub tick_format: Option<TickFormatSpec>,
+    /// 轴标题折行宽度（字符）。
+    pub wrap: Option<usize>,
+    pub label_offset: Option<(f64, f64)>,
+}
+
+/// 日期轴：把坐标值当时间戳来排布刻度。
+#[derive(Debug, Deserialize)]
+pub(crate) struct DateTimeAxisSpec {
+    /// 时间单位：`"year"` / `"month"` / `"week"` / `"day"` / `"hour"` / `"minute"` / `"second"`。
+    pub unit: DateUnitKind,
+    /// 每几个单位一个刻度，默认 1。
+    pub step: Option<usize>,
+    /// 刻度标签的格式串（chrono 风格，如 `"%Y-%m"`）。
+    pub format: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum DateUnitKind {
+    Year,
+    Month,
+    Week,
+    Day,
+    Hour,
+    Minute,
+    Second,
+}
+
+/// 统计框：图角上的一小块文字（样本量、p 值、模型名…）。
+#[derive(Debug, Deserialize)]
+pub(crate) struct StatsBoxSpec {
+    /// 逐行文字。
+    #[serde(default)]
+    pub entries: Vec<String>,
+    /// 粗体标题。
+    pub title: Option<String>,
+    /// 位置具名值，同 `legend.position`。
+    pub position: Option<String>,
+    /// 给外框。
+    pub border: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -230,6 +287,60 @@ pub(crate) struct FontSpec {
     pub label_size: Option<u32>,
     pub tick_size: Option<u32>,
     pub body_size: Option<u32>,
+}
+
+// ============================================================================
+// 色图（连续值 -> 颜色）
+// ============================================================================
+
+/// 连续色图。变体与 kuva 的 `ColorMap` 一一对应（`custom` 除外：自定义映射是 Rust 闭包，
+/// SQL 侧给不了，所以这里不开放）。
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum ColorMapSpec {
+    // 顺序型（感知均匀）
+    Turbo,
+    Viridis,
+    Inferno,
+    Magma,
+    Plasma,
+    Cividis,
+    Warm,
+    Cool,
+    Cubehelix,
+    // 顺序型（ColorBrewer）
+    BlueGreen,
+    BluePurple,
+    GreenBlue,
+    OrangeRed,
+    PurpleBlueGreen,
+    PurpleBlue,
+    PurpleRed,
+    RedPurple,
+    YellowGreenBlue,
+    YellowGreen,
+    YellowOrangeBrown,
+    YellowOrangeRed,
+    // 顺序型（单色相）
+    Blues,
+    Greens,
+    Grayscale,
+    Oranges,
+    Purples,
+    Reds,
+    // 双向型（数据有中点，如 fold change、相关性）
+    BrownGreen,
+    PinkGreen,
+    PurpleGreen,
+    PurpleOrange,
+    RedBlue,
+    RedGrey,
+    RedYellowBlue,
+    RedYellowGreen,
+    Spectral,
+    // 周期型（相位、角度、一天中的时刻）
+    Rainbow,
+    Sinebow,
 }
 
 // ============================================================================

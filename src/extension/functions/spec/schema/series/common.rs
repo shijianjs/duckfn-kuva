@@ -17,6 +17,15 @@ pub(crate) struct CommonStyle {
     pub tooltip_labels: Option<Vec<String>>,
 }
 
+/// 「一个标签 + 一列观测值」的分组：violin / ridgeline / raincloud / strip / ecdf / qq 都用它。
+#[derive(Debug, Clone, Deserialize)]
+pub(crate) struct ValuesGroup {
+    pub label: String,
+    pub values: Vec<f64>,
+    /// 缺省则整组用 series 的主色。
+    pub color: Option<String>,
+}
+
 /// 误差棒：一个数是对称的，`[下, 上]` 是不对称的两个臂。
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[serde(untagged)]
@@ -107,4 +116,49 @@ pub(crate) struct TrendDetailed {
 pub(crate) struct BandSpec {
     pub lower: Vec<f64>,
     pub upper: Vec<f64>,
+}
+
+/// 一个三维点：`[x, y, z]` 或 `{"x":…, "y":…, "z":…}`。
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(untagged)]
+pub(crate) enum PointSpec3 {
+    Triple([f64; 3]),
+    Full {
+        x: f64,
+        y: f64,
+        z: f64,
+    },
+}
+
+impl PointSpec3 {
+    pub fn xyz(self) -> (f64, f64, f64) {
+        match self {
+            PointSpec3::Triple([x, y, z]) => (x, y, z),
+            PointSpec3::Full { x, y, z } => (x, y, z),
+        }
+    }
+}
+
+/// 3D 图（`scatter3d` / `surface3d`）共用的立方体外观：视角、轴标题、网格与边框。
+///
+/// 这两个图型用的是同一个 `Box3DConfig`，方法名也一模一样，所以合成一个平铺进来的结构。
+#[derive(Debug, Default, Deserialize)]
+pub(crate) struct Box3DSpec {
+    /// 方位角（度）。
+    pub azimuth: Option<f64>,
+    /// 仰角（度）。
+    pub elevation: Option<f64>,
+    pub x_label: Option<String>,
+    pub y_label: Option<String>,
+    pub z_label: Option<String>,
+    /// 画网格。
+    pub show_grid: Option<bool>,
+    /// 画立方体外框。
+    pub show_box: Option<bool>,
+    /// 网格线密度。
+    pub grid_lines: Option<usize>,
+    /// z 轴放右侧。
+    pub z_axis_right: Option<bool>,
+    /// 自动决定 z 轴放哪一侧。
+    pub z_axis_auto: Option<bool>,
 }

@@ -23,8 +23,17 @@ pub(crate) struct PanelSpec {
     pub title: Option<TitleSpec>,
     pub x_axis: Option<AxisSpec>,
     pub y_axis: Option<AxisSpec>,
+    /// 第二根 x 轴（配 `secondary_series` 用；给它就切到双轴渲染）。
+    pub x2_axis: Option<SecondaryAxisSpec>,
+    /// 第二根 y 轴（右侧）。配 `secondary_series` 用。
+    pub y2_axis: Option<SecondaryAxisSpec>,
+    /// 把 x / y 轴当日期轴排刻度。
+    pub x_datetime: Option<DateTimeAxisSpec>,
+    pub y_datetime: Option<DateTimeAxisSpec>,
     pub grid: Option<GridSpec>,
     pub legend: Option<LegendSpec>,
+    /// 图角上的统计框。
+    pub stats_box: Option<StatsBoxSpec>,
     pub theme: Option<ThemeSpec>,
     pub palette: Option<PaletteSpec>,
     pub font: Option<FontSpec>,
@@ -34,6 +43,11 @@ pub(crate) struct PanelSpec {
     /// 叠加到同一套坐标轴上的 series。
     #[serde(default)]
     pub series: Vec<super::series::SeriesSpec>,
+    /// 画在**第二根 y 轴**上的 series（右侧那根）。给了它就走双 Y 轴渲染。
+    ///
+    /// 与 `series` 互不影响：两拨各自成图，共用一张画布。
+    #[serde(default)]
+    pub secondary_series: Vec<super::series::SeriesSpec>,
 }
 
 /// 多面板网格（对应 kuva 的 `Figure`）。

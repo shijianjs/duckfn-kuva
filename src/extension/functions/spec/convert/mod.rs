@@ -29,13 +29,24 @@ pub(crate) fn render(spec: RenderSpec) -> Result<String, String> {
 fn render_single(panel: PanelSpec) -> Result<String, String> {
     let mut panel = panel;
     let series = std::mem::take(&mut panel.series);
-    if series.is_empty() {
+    let secondary = std::mem::take(&mut panel.secondary_series);
+    if series.is_empty() && secondary.is_empty() {
         return Err("`series` must not be empty: a single-figure chart needs at least one series".into());
     }
-    let has_explicit_color = series.iter().any(SeriesSpec::has_explicit_color);
+    let has_explicit_color = series.iter().chain(secondary.iter()).any(SeriesSpec::has_explicit_color);
     let plots = build_series(series)?;
+    let secondary_plots = build_series(secondary)?;
     let layout = build_layout(&panel, &plots, has_explicit_color)?;
-    Ok(SvgBackend.render_scene(&render_multiple(plots, layout)))
+
+    if secondary_plots.is_empty() {
+        return Ok(SvgBackend.render_scene(&render_multiple(plots, layout)));
+    }
+    // 右侧那根轴：kuva 用独立的入口渲染，它会自己把 layout 的 y 轴范围让给第二组。
+    Ok(SvgBackend.render_scene(&render_twin_y(
+        plots,
+        secondary_plots,
+        layout,
+    )))
 }
 
 /// 多面板：每个 panel 各自构建 plots + layout，再交给 `Figure` 排版。

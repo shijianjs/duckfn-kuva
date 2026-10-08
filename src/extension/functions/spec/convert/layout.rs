@@ -59,11 +59,26 @@ pub(super) fn build_layout(
     if let Some(a) = &panel.y_axis {
         l = apply_y_axis(l, a)?;
     }
+    if let Some(a) = &panel.x2_axis {
+        l = apply_secondary_axis(l, a, Secondary::X)?;
+    }
+    if let Some(a) = &panel.y2_axis {
+        l = apply_secondary_axis(l, a, Secondary::Y)?;
+    }
+    if let Some(a) = &panel.x_datetime {
+        l = l.with_x_datetime(datetime_axis(a));
+    }
+    if let Some(a) = &panel.y_datetime {
+        l = l.with_y_datetime(datetime_axis(a));
+    }
     if let Some(g) = &panel.grid {
         l = apply_grid(l, g);
     }
     if let Some(g) = &panel.legend {
         l = apply_legend(l, g)?;
+    }
+    if let Some(s) = &panel.stats_box {
+        l = apply_stats_box(l, s)?;
     }
     if let Some(ann) = &panel.annotations {
         l = apply_annotations(l, ann);
@@ -130,6 +145,12 @@ fn apply_x_axis(mut l: Layout, a: &AxisSpec) -> Result<Layout, String> {
     if let Some(v) = a.wrap {
         l = l.with_x_label_wrap(v);
     }
+    if let Some(v) = a.tick_step {
+        l = l.with_x_tick_step(v);
+    }
+    if let Some((dx, dy)) = a.label_offset {
+        l = l.with_x_label_offset(dx, dy);
+    }
     Ok(l)
 }
 
@@ -154,6 +175,105 @@ fn apply_y_axis(mut l: Layout, a: &AxisSpec) -> Result<Layout, String> {
     }
     if let Some(v) = a.wrap {
         l = l.with_y_label_wrap(v);
+    }
+    if let Some(v) = a.tick_step {
+        l = l.with_y_tick_step(v);
+    }
+    if let Some((dx, dy)) = a.label_offset {
+        l = l.with_y_label_offset(dx, dy);
+    }
+    Ok(l)
+}
+
+/// 第二根轴是哪一根。kuva 的方法名是 `x2_*` / `y2_*`，这里用枚举把两条路合成一个函数。
+enum Secondary {
+    X,
+    Y,
+}
+
+fn apply_secondary_axis(mut l: Layout, a: &SecondaryAxisSpec, which: Secondary) -> Result<Layout, String> {
+    if let Some(v) = &a.name {
+        l = match which {
+            Secondary::X => l.with_x2_label(v.clone()),
+            Secondary::Y => l.with_y2_label(v.clone()),
+        };
+    }
+    // kuva 的第二根 x 轴只有 `with_x2_range(min, max)`（没有单端 setter），
+    // 第二根 y 轴两种都有 —— 所以这里按轴分开处理。
+    match (a.min, a.max) {
+        (Some(lo), Some(hi)) => {
+            l = match which {
+                Secondary::X => l.with_x2_range(lo, hi),
+                Secondary::Y => l.with_y2_range(lo, hi),
+            };
+        }
+        (Some(lo), None) if matches!(which, Secondary::Y) => l = l.with_y2_axis_min(lo),
+        (None, Some(hi)) if matches!(which, Secondary::Y) => l = l.with_y2_axis_max(hi),
+        (Some(_), None) | (None, Some(_)) => {
+            return Err(match which {
+                Secondary::X => "x2_axis: the secondary x axis takes `min` and `max` together"
+                    .to_string(),
+                Secondary::Y => "y2_axis: unreachable".to_string(),
+            });
+        }
+        (None, None) => {}
+    }
+    if a.log == Some(true) {
+        l = match which {
+            Secondary::X => l.with_log_x2(),
+            Secondary::Y => l.with_log_y2(),
+        };
+    }
+    if let Some(v) = &a.tick_format {
+        let fmt = tick_format(v);
+        l = match which {
+            Secondary::X => l.with_x2_tick_format(fmt),
+            Secondary::Y => l.with_y2_tick_format(fmt),
+        };
+    }
+    if let Some(v) = a.wrap {
+        l = match which {
+            Secondary::X => l.with_x2_label_wrap(v),
+            Secondary::Y => l.with_y2_label_wrap(v),
+        };
+    }
+    if let Some((dx, dy)) = a.label_offset {
+        l = match which {
+            Secondary::X => l.with_x2_label_offset(dx, dy),
+            Secondary::Y => l.with_y2_label_offset(dx, dy),
+        };
+    }
+    Ok(l)
+}
+
+fn datetime_axis(a: &DateTimeAxisSpec) -> DateTimeAxis {
+    DateTimeAxis {
+        unit: match a.unit {
+            DateUnitKind::Year => DateUnit::Year,
+            DateUnitKind::Month => DateUnit::Month,
+            DateUnitKind::Week => DateUnit::Week,
+            DateUnitKind::Day => DateUnit::Day,
+            DateUnitKind::Hour => DateUnit::Hour,
+            DateUnitKind::Minute => DateUnit::Minute,
+            DateUnitKind::Second => DateUnit::Second,
+        },
+        step: a.step.unwrap_or(1).max(1),
+        format: a.format.clone(),
+    }
+}
+
+fn apply_stats_box(mut l: Layout, s: &StatsBoxSpec) -> Result<Layout, String> {
+    if let Some(v) = &s.position {
+        // kuva 的 `with_stats_box_at` 是「位置 + 条目」一起设的，正好把 entries 交给它。
+        l = l.with_stats_box_at(legend_position(v)?, s.entries.clone());
+    } else if !s.entries.is_empty() {
+        l = l.with_stats_box(s.entries.clone());
+    }
+    if let Some(v) = &s.title {
+        l = l.with_stats_title(v.clone());
+    }
+    if let Some(v) = s.border {
+        l = l.with_stats_box_border(v);
     }
     Ok(l)
 }

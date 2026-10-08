@@ -50,19 +50,30 @@ Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 ca
 ## JSON 规格
 
 规格用 snake_case 写，描述的是**怎么画**而不是某一张具体的图。顶层键有 `title`、`x_axis`、`y_axis`、
-`grid`、`legend`、`theme`、`palette`、`font`、`annotations`、`width`、`height` 与 `series`；除
-`series` 外都是可选的。
+`x2_axis`、`y2_axis`、`x_datetime`、`y_datetime`、`grid`、`legend`、`stats_box`、`theme`、`palette`、
+`font`、`annotations`、`width`、`height`、`series` 与 `secondary_series`；除 `series` 外都是可选的。
 
-`series` 的每个元素带一个 `type`，只声明这个类型用得上的字段。目前实现了六种：
+`series` 的每个元素带一个 `type`，只声明这个类型用得上的字段。**kuva 的 64 种图型全部实现了**，
+按画什么分组如下；每个类型的确切字段见[文档站](docs/README.md)：
 
-| `type` | 入参 | 说明 |
-| --- | --- | --- |
-| `scatter` | `data`，`[x, y]` 数组或 `{"x":…,"y":…}` 对象 | 逐点误差棒、气泡大小、逐点颜色、六种 marker、线性 `trend`（可标方程 / 相关系数）、置信 `band` |
-| `line` | `data` 同上 | 线宽、线型（含自定义 dash 数组）、`step`、`fill` 与透明度、`band` |
-| `bar` | `categories` + `values`，或多个具名 `series` | 分组与 `stacked`、`horizontal`、逐柱颜色、误差棒 |
-| `histogram` | `values`（配 `bins` / `range`）或预分箱 `edges` + `counts` | `normalize`，以及 `kde` 叠加曲线 |
-| `box` | `groups`（每组一列原始值） | `strip` 抖动或 `swarm` 蜂群叠加、缺口箱线、横向 |
-| `pie` | `slices` | `inner_radius` 变环形图、`label_position`、百分比 |
+| 分组 | `type` |
+| --- | --- |
+| 基础 | `scatter` `line` `bar` `histogram` `box` `pie` |
+| 分布 | `violin` `ridgeline` `raincloud` `strip` `dot_plot` `lollipop` `density` `ecdf` `qq` |
+| 检验与模型诊断 | `forest` `pr` `roc` `survival` `volcano` `manhattan` |
+| 矩阵与网格 | `heatmap` `histogram2d` `hexbin` `clustermap` `contour` `dice_plot` `ternary` `polar` |
+| 三维 | `scatter3d` `surface3d` |
+| 关系与层级 | `sankey` `chord` `network` `treemap` `sunburst` `venn` `upset` `waffle` `mosaic` `phylo` `synteny` |
+| 时间、金融、排名 | `candlestick` `calendar` `gantt` `horizon` `waterfall` `bump` `pareto` `funnel` `slope` `pyramid` `brick` |
+| 序列、场、文字 | `series` `radar` `parallel` `stacked_area` `streamgraph` `band` `quiver` `jointplot` `text` `legend_plot` `rose` |
+
+两个例子，看一个 `type` 能带多少东西：
+
+```json
+{"type": "scatter", "data": [[1, 2], {"x": 3, "y": 4, "y_err": [0.1, 0.3]}],
+ "trend": {"type": "linear", "equation": true}, "legend": "samples"}
+{"type": "violin", "groups": [{"label": "control", "values": [1, 2, 2, 3]}], "strip": 0.15}
+```
 
 选 JSON 而不是 DuckDB 的 `STRUCT` 是刻意的：一张图的 series 是**异构**的，STRUCT 的 LIST 装不下一组
 不同的结构。
@@ -83,6 +94,17 @@ SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
   {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
   {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
 ]}}')) > 0;
+```
+
+**第二根 y 轴**靠 `secondary_series`：这些元素画在右侧那根轴上，轴本身由 `y2_axis` 描述。
+
+```sql
+SELECT length(kuva_render('{
+  "y_axis":  {"name": "price",  "min": 0, "max": 100},
+  "y2_axis": {"name": "volume", "min": 0, "max": 1000},
+  "series": [{"type":"line","data":[[0,20],[1,45]],"legend":"price"}],
+  "secondary_series": [{"type":"bar","categories":["d1","d2"],"values":[300,700],"legend":"volume"}]
+}')) > 0;
 ```
 
 `theme` 选 light / dark / minimal / solarized（或覆盖个别颜色），`palette` 选十来个具名调色板之一或

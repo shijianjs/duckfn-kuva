@@ -54,20 +54,32 @@ Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 ca
 ## The JSON spec
 
 The spec is written in snake_case and describes the *drawing* rather than one particular chart. Its
-top-level keys are `title`, `x_axis`, `y_axis`, `grid`, `legend`, `theme`, `palette`, `font`,
-`annotations`, `width`, `height` and `series`; every one of them except `series` is optional.
+top-level keys are `title`, `x_axis`, `y_axis`, `x2_axis`, `y2_axis`, `x_datetime`, `y_datetime`, `grid`,
+`legend`, `stats_box`, `theme`, `palette`, `font`, `annotations`, `width`, `height`, `series` and
+`secondary_series`; every one of them except `series` is optional.
 
-Each `series` entry carries a `type` and declares only the fields that type needs. Six types are
-implemented so far:
+Each `series` entry carries a `type` and declares only the fields that type needs. **All 64 plot types of
+kuva are implemented**, grouped below by what they draw; the exact fields of each are listed in the
+[documentation site](docs/README.md).
 
-| `type` | Takes | Notes |
-| --- | --- | --- |
-| `scatter` | `data` as `[x, y]` pairs or `{"x":…,"y":…}` objects | per-point errors, bubble sizes, per-point colours, six marker shapes, a linear `trend` (with equation / correlation), a confidence `band` |
-| `line` | `data` as above | stroke width, line style (incl. a custom dash array), `step`, `fill` with opacity, `band` |
-| `bar` | `categories` + `values`, or several named `series` | grouped and `stacked`, `horizontal`, per-bar colours, error bars |
-| `histogram` | `values` (with `bins` / `range`) or precomputed `edges` + `counts` | `normalize`, and a `kde` overlay |
-| `box` | `groups` of raw values | `strip` jitter or a `swarm` overlay, notched boxes, horizontal |
-| `pie` | `slices` | `inner_radius` for a donut, `label_position`, percentages |
+| Group | `type` values |
+| --- | --- |
+| Basic | `scatter` `line` `bar` `histogram` `box` `pie` |
+| Distributions | `violin` `ridgeline` `raincloud` `strip` `dot_plot` `lollipop` `density` `ecdf` `qq` |
+| Test & model diagnostics | `forest` `pr` `roc` `survival` `volcano` `manhattan` `qq` |
+| Matrices & grids | `heatmap` `histogram2d` `hexbin` `clustermap` `contour` `dice_plot` `ternary` `polar` |
+| 3D | `scatter3d` `surface3d` |
+| Relationships & hierarchies | `sankey` `chord` `network` `treemap` `sunburst` `venn` `upset` `waffle` `mosaic` `phylo` `synteny` |
+| Time, finance, ranking | `candlestick` `calendar` `gantt` `horizon` `waterfall` `bump` `pareto` `funnel` `slope` `pyramid` `brick` |
+| Series, fields, text | `series` `radar` `parallel` `stacked_area` `streamgraph` `band` `quiver` `jointplot` `text` `legend_plot` `rose` |
+
+Two examples of what a `type` brings:
+
+```json
+{"type": "scatter", "data": [[1, 2], {"x": 3, "y": 4, "y_err": [0.1, 0.3]}],
+ "trend": {"type": "linear", "equation": true}, "legend": "samples"}
+{"type": "violin", "groups": [{"label": "control", "values": [1, 2, 2, 3]}], "strip": 0.15}
+```
 
 JSON rather than a DuckDB `STRUCT` is deliberate: the series of one figure are heterogeneous, and a
 `STRUCT` list cannot hold a mix of them.
@@ -89,7 +101,19 @@ shared axes and an optional shared legend:
 SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
   {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
   {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
-]}}')) > 0;
+:]}}')) > 0;
+```
+
+A **second y axis** is what `secondary_series` is for: those entries are drawn against the right-hand
+axis, which `y2_axis` then describes.
+
+```sql
+SELECT length(kuva_render('{
+  "y_axis":  {"name": "price",  "min": 0, "max": 100},
+  "y2_axis": {"name": "volume", "min": 0, "max": 1000},
+  "series": [{"type":"line","data":[[0,20],[1,45]],"legend":"price"}],
+  "secondary_series": [{"type":"bar","categories":["d1","d2"],"values":[300,700],"legend":"volume"}]
+}')) > 0;
 ```
 
 `theme` picks light, dark, minimal or solarized (or overrides individual colours), `palette` picks one

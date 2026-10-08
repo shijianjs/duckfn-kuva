@@ -1,8 +1,0 @@
-{
-  "label": "图表",
-  "position": 4,
-  "link": {
-    "type": "generated-index",
-    "description": "扩展注册的每一种图型，按 kuva 官方文档的分组方式归类。每页都有一个能就地跑的例子，以及它的 series 接受的全部字段；跨图型共用的参数放在「参考」里。"
-  }
-}

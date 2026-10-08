@@ -41,18 +41,18 @@
   },
   "link.item.label.GitHub": {
     "message": "GitHub",
-    "description": "The label of footer link with label=GitHub linking to the repository"
+    "description": "The label of footer link with label=GitHub linking to https://github.com/shijianjs/duckfn-kuva"
   },
   "link.item.label.duckfn": {
     "message": "duckfn",
-    "description": "The label of footer link with label=duckfn linking to the duckfn documentation"
+    "description": "The label of footer link with label=duckfn linking to https://shijianjs.github.io/duckfn/"
   },
   "link.item.label.DuckDB extensions": {
     "message": "DuckDB 扩展",
-    "description": "The label of footer link with label=DuckDB extensions"
+    "description": "The label of footer link with label=DuckDB extensions linking to https://duckdb.org/docs/stable/extensions/overview"
   },
   "copyright": {
     "message": "Copyright © 2026 duckfn_kuva contributors. Built with Docusaurus.",
-    "description": "The footer copyright; keep it free of angle brackets (it is rendered as HTML)"
+    "description": "The footer copyright"
   }
 }

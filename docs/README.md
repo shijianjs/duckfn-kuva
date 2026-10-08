@@ -226,9 +226,16 @@ A translated page is a full copy of its English source, placed under
   A hard-coded `/docs/...` link would send a Chinese page to the English one.
 - Runnable blocks are copied verbatim except for the SQL comments: the `{"type":"duckfn",…}` info
   string and the query itself are code, and `npm test` runs the Chinese page's blocks too.
+- **Category labels do not live in the i18n folder.** Docusaurus globs category metadata only from the
+  default content directory, so an `_category_.json` under `i18n/…` is ignored (the Chinese sidebar,
+  breadcrumbs and `category/*` index pages would stay English). Translate them through
+  `i18n/zh-Hans/docusaurus-plugin-content-docs/current.json` instead, keyed by the sidebar and the
+  English label: `sidebar.<sidebar>.category.<label>`, plus
+  `sidebar.<sidebar>.category.<label>.link.generated-index.{title,description}` for a generated-index
+  category. `npx docusaurus write-translations --locale zh-Hans` adds the missing keys.
 
 UI strings live in `i18n/zh-Hans/*.json`. After changing text in `docusaurus.config.ts`, in `src/`, or
-a `_category_.json`, regenerate the stubs and fill in the new entries:
+a category's label / generated-index copy, regenerate the stubs and fill in the new entries:
 
 ```shell
 npx docusaurus write-translations --locale zh-Hans

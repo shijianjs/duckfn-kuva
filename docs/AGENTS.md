@@ -95,3 +95,32 @@ CLI 的 `--base-url` / `--asset`）。
 `docs/i18n/zh-Hans/docusaurus-plugin-content-docs/current/` 下各有一份，**改了一边就
 按同样的相对路径改另一边**：`id` / `slug` / `sidebar_position` 保持一致，页内链接用相对
 文件路径，可运行块里的 SQL 是代码、照抄，只翻注释。
+
+### 分类标题（`_category_.json`）不走 i18n 目录
+
+**别在 `i18n/…/current/` 下放 `_category_.json`** —— Docusaurus 只从默认语言的内容目录
+（`docs/docs/`）glob 分类元数据（`@docusaurus/plugin-content-docs` 的
+`index.js` 里 glob 的是 `version.contentPath/**/_category_.json`），放那份是**无效的**，
+中文站会照旧显示英文分类名（侧边栏、面包屑、`category/*` 索引页的标题与卡片全是英文）。
+
+分类标题走 docs 插件的翻译文件 `i18n/zh-Hans/docusaurus-plugin-content-docs/current.json`，
+键由「侧边栏名 + 分类标签」组成：
+
+```json
+"sidebar.userGuide.category.Plots": { "message": "图表", "description": "…" }
+"sidebar.userGuide.category.Plots.link.generated-index.description": { "message": "…" }
+```
+
+侧边栏名就是 `sidebars.ts` 里的键（`userGuide` / `development`），`category.<X>` 里的
+`<X>` 默认就是 `_category_.json` 的 `label` 原文（只有给分类加了 `key` 才会换成 `key`）。
+`link: {"type":"generated-index"}` 的 `title` / `description` 各有一条 `.link.generated-index.title`
+/ `.link.generated-index.description` —— 注意 **`title` 那条只有在 `_category_.json` 里显式写了
+`link.title` 时才会生成**；没写时索引页的 h1 会跟着分类 label 走，所以翻译了 label 就够了。
+
+新增/改名分类后，用官方命令补齐缺失的键，再把 `message` 填成中文（它只加缺的，不动已有的）：
+
+```shell
+npx docusaurus write-translations --locale zh-Hans
+```
+
+页面自己的 h1（`# …`）不在这里：它来自译文那一份 `.md` 的正文/`title`，照常翻译即可。

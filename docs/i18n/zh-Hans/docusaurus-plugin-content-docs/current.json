@@ -2,5 +2,53 @@
   "version.label": {
     "message": "下一版",
     "description": "The label for version current"
+  },
+  "sidebar.userGuide.category.Plots": {
+    "message": "图表",
+    "description": "The label for category 'Plots' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Plots.link.generated-index.description": {
+    "message": "扩展注册的每一种图型，按 kuva 官方文档的分组方式归类。每页都有一个能就地跑的例子，以及它的 series 接受的全部字段；跨图型共用的参数放在「参考」里。",
+    "description": "The generated-index page description for category 'Plots' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Distributions": {
+    "message": "分布",
+    "description": "The label for category 'Distributions' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Relationships & correlation": {
+    "message": "关系与相关",
+    "description": "The label for category 'Relationships & correlation' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Categorical & comparison": {
+    "message": "分类与对比",
+    "description": "The label for category 'Categorical & comparison' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Time series": {
+    "message": "时间序列",
+    "description": "The label for category 'Time series' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Statistical & model evaluation": {
+    "message": "统计与模型评估",
+    "description": "The label for category 'Statistical & model evaluation' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Hierarchical & network": {
+    "message": "层级与网络",
+    "description": "The label for category 'Hierarchical & network' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.3D": {
+    "message": "3D",
+    "description": "The label for category '3D' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Composite & utility": {
+    "message": "组合与工具",
+    "description": "The label for category 'Composite & utility' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Reference": {
+    "message": "参考",
+    "description": "The label for category 'Reference' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Reference.link.generated-index.description": {
+    "message": "JSON 图表规格接受的每一项参数，按它控制的东西分组。各图型页面遇到这些参数时链接到这里，而不是重复一遍。",
+    "description": "The generated-index page description for category 'Reference' in sidebar 'userGuide'"
   }
 }

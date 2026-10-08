@@ -1,7 +1,7 @@
 ---
 title: 函数
 sidebar_position: 3
-description: duckfn_kuva 注册的 SQL 函数与它接受的 JSON 图表规格，都配了能在浏览器里直接跑的例子。
+description: duckfn_kuva 注册的 SQL 函数，以及 JSON 图表规格的分层方式 —— 配一张通往各图表页与参考页的地图。
 ---
 
 # 函数
@@ -26,7 +26,7 @@ matplotlib / ggplot2。
 
 最小可用的一次调用 —— 读一对列，然后把它画出来：
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- 点一下 Run：结果是一整份 SVG 文档，直接画在这里
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
@@ -34,205 +34,47 @@ SELECT kuva_render(to_json({
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
-下面每个块都写了 `"show":"svg"`，点 **Run** 就会把图画在结果区里；缩放与平移在全屏里。
+本站每个块都写了 `"show":"svg"`，点 **Run** 就会把图画在结果区里；缩放与平移在全屏里。
 
 为什么是 JSON 而不是 DuckDB 的 `STRUCT`：一张图里的 `series` 是异构的（`scatter` 与 `bar` 的字段各不
 相同），而 `STRUCT` 的 LIST 要求元素同型，表达不了 `[StructA, StructB]`。键名一律 snake_case。
 
-### 顶层字段
+## 规格是怎么分层的
 
-除 `series` 外都可选：
+一份规格分三层，每层都有自己的页面：
 
-| 字段 | 设置什么 |
-| --- | --- |
-| `series` | **必填。** 要画的 series 列表。 |
-| `title` | 图的标题。 |
-| `x_axis` / `y_axis` | 坐标轴配置（见下）。 |
-| `grid` | 网格线、坐标轴线与刻度。 |
-| `legend` | 图例的开关、位置、标题与排布。 |
-| `theme` | `"light"` / `"dark"` / `"minimal"` / `"solarized"`，或用对象逐个覆盖颜色。 |
-| `palette` | 具名调色板，或一组颜色字符串。 |
-| `font` | 字体族与字号（`title_size`、`label_size`、`tick_size`、`body_size`）。 |
-| `annotations` | 参考线、阴影区域与文字标注。 |
-| `width` / `height` | 画布尺寸。 |
-| `figure` | 切换成多面板网格（见[组合多种图](#组合多种图)）。 |
+| 层级 | 装什么 | 在哪 |
+| --- | --- | --- |
+| **整张图** | `series`，以及共享的装饰：标题、坐标轴、网格、图例、主题、调色板、字体、标注、`figure`。 | [画布、标题与坐标轴](./reference/layout.md)、[图例](./reference/legends.md)、[主题](./reference/themes.md)，以及**参考**里的其它页 |
+| **一个 series** | 一张图，用 `type` 标明，外加每个 series 都能用的字段（`color`、`legend`、`tooltips`、`tooltip_labels`）。 | [series 与通用字段](./reference/series.md)，以及该 `type` 在**图表**里的那一页 |
+| **共用的值** | 点、误差棒、置信带、趋势线、分组值。 | [series 与通用字段](./reference/series.md) |
 
-### series
+**图表**记录了扩展注册的全部 64 种图型，按 kuva 的分组方式归类 —— 每种都配一个能跑的例子和它的 series
+接受的全部字段。**参考**记录跨图型共用的参数，所以图表页链接过去，而不是重复一遍。
 
-`series` 是一串对象，每个用 `type` 区分。目前实现了六种：
+## 组合
 
-| `type` | 主要字段 |
-| --- | --- |
-| `scatter` | `data`、`size` / `sizes` / `colors`、`marker`（circle/square/triangle/diamond/cross/plus）、`marker_opacity`、`marker_stroke_width`、`trend`、`band`、`group_name`。 |
-| `line` | `data`、`stroke_width`、`line_style`（solid/dashed/dotted/dash_dot 或自定义 dasharray 字符串）、`step`、`fill`、`fill_opacity`、`band`。 |
-| `bar` | `categories` + `values`（简单模式），或 `series` + `stacked` / `horizontal`（分组 / 堆叠）；`width`、`gap`、`colors`、`errors`、`error_color`、`error_cap_width`。 |
-| `histogram` | `values` + `bins` / `range` / `normalize`，或预分箱的 `edges` + `counts`；另有 `kde`、`kde_color`、`kde_bandwidth`、`kde_samples`。 |
-| `box` | `groups`（`[{"label":…,"values":[…]}]`）、`colors`、`width`、`gap`、`horizontal`、`strip`、`swarm`、`overlay_color`、`overlay_size`、`notch`、`notch_depth`、`notch_width`。 |
-| `pie` | `slices`（`[{"label":…,"value":…}]`）、`inner_radius`（> 0 即环形图）、`label_position`（auto/inside/outside/none）、`percent`、`min_label_fraction`。 |
+支持两种组合方式：
 
-每个 series 还都接受 `color`、`legend`、`tooltips` 与 `tooltip_labels`。
-
-`scatter` 与 `line` 的 `data` 是一串点，可以写成 `[x, y]`，也可以写成对象
-（`{"x":…,"y":…,"x_err":…,"y_err":…}`）；误差是单个数字表示对称，`[下, 上]` 表示不对称。
-
-这六个块跑在绘图库自带的[示例数据集](https://github.com/Psy-Fer/kuva/tree/master/examples/data)上，
-数据由本站直接供出 —— 真实查询也正是这样拼 spec 的：先把行聚合成 series 要的
-`data` / `categories` / `values` / `slices`，再把整个对象交给 `to_json`。
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': list({'type': 'scatter', 'data': pts, 'legend': g} ORDER BY g)
-})) AS chart
-FROM (
-  SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv')
-  GROUP BY "group"
-);
-```
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
-})) AS chart
-FROM (
-  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
-  GROUP BY "group"
-);
-```
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': [{
-    'type': 'bar',
-    'categories': list(category ORDER BY count DESC),
-    'values': list(count ORDER BY count DESC)
-  }]
-})) AS chart
-FROM read_csv_auto('{{DFK_BASE_URL}}data/bar.tsv');
-```
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': [{'type': 'histogram', 'values': list(value), 'bins': 20}]
-})) AS chart
-FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
-```
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': [{'type': 'box', 'groups': list({'label': g, 'values': vals} ORDER BY g)}]
-})) AS chart
-FROM (
-  SELECT "group" AS g, list(expression) AS vals
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
-  GROUP BY "group"
-);
-```
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': [{
-    'type': 'pie',
-    'slices': list({'label': feature, 'value': percentage} ORDER BY percentage DESC)
-  }]
-})) AS chart
-FROM read_csv_auto('{{DFK_BASE_URL}}data/pie.tsv');
-```
-
-### 坐标轴
-
-`x_axis` 与 `y_axis` 接受：
-
-| 字段 | 设置什么 |
-| --- | --- |
-| `name` | 轴标题。 |
-| `categories` | 类别轴的刻度标签。 |
-| `min` / `max` | 固定上下界。 |
-| `log` | 对数轴。 |
-| `tick_format` | `auto` / `integer` / `sci` / `percent` / `degree`，或一个整数表示定点小数位。 |
-| `tick_rotate`、`label_overlap`（allow/thin/stagger）、`wrap` | 刻度标签的排布。 |
-
-### 网格、图例、主题与调色板
-
-`grid` 包含 `show_grid`、`ticks`、`axis_line`（open/box）、`tick_align`、`tick_pos`、
-`grid_line_width`、`axis_line_width`、`tick_width`、`tick_length`、`minor_ticks`、`show_minor_grid`、
-`clamp_axis`、`clamp_y_axis`、`bw_mode`、`interactive`、`equal_aspect`、`scale` 与 `label_background`。
-
-`legend` 包含 `show`、`position`（例如 `outside_right_top`、`inside_top_left`、`outside_bottom_columns`）、
-`title`、`show_box`、`width`、`height`、`col_limit`、`entry_limit`、`wrap`、`at` 与 `at_data`。
-
-`theme` 是四种具名主题之一，或一个对象，覆盖 `background`、`axis_color`、`grid_color`、`tick_color`、
-`text_color`、`legend_bg`、`legend_border`、`pie_leader`、`box_median`、`violin_border`、
-`colorbar_border`、`font_family` 与 `show_grid`。
-
-`palette` 是具名调色板 —— `wong`、`okabe_ito`、`tol_bright`、`tol_muted`、`tol_light`、`ibm`、
-`deuteranopia`、`protanopia`、`tritanopia`、`category10`、`pastel`、`bold` —— 或一组颜色字符串。
-
-### 标注
-
-`annotations` 里有三组列表：
-
-- `reference_lines`：`{"orientation":"horizontal"|"vertical","value":…,"color":…,"stroke_width":…,"dasharray":…,"label":…}`。
-- `shaded_regions`：`{"orientation":…,"min":…,"max":…,"color":…,"opacity":…}`。
-- `texts`：`{"text":…,"x":…,"y":…,"target_x":…,"target_y":…,"color":…,"font_size":…,"arrow_padding":…}`。
-
-### 组合多种图
-
-支持两种组合方式。
-
-**叠加。** 在一个 `series` 里放多个 series，它们共用一套坐标轴。比如一条折线加它的散点（两者都由同一
-批行生成，因此不会各走各的）：
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
-SELECT kuva_render(to_json({
-  'series': [
-    {'type': 'line', 'data': pts, 'legend': 'trend'},
-    {'type': 'scatter', 'data': pts, 'legend': 'points'}
-  ]
-})) AS chart
-FROM (
-  SELECT array_agg([time, value] ORDER BY time) AS pts
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
-  WHERE "group" = 'Condition_A'
-);
-```
-
-**多面板。** 用顶层的 `figure` 对象代替单张画布。它带 `rows`、`cols`、`title`、`title_size`、
-`labels`（`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"` 或自定义数组）、`shared_x_all`、
-`shared_y_all`、`shared_legend`（位置字符串，如 `"right_top"`）、`spacing`、`padding`、`cell_width`、
-`cell_height`、`figure_width`、`figure_height`，以及 `panels` —— 每个格子一个对象，各自带布局字段与
-`series`。`panels` 的个数必须正好等于 `rows * cols`，按行优先排列。
-
-```sql {"type":"duckfn","show":"svg","option":{"height":"360px"}}
-SELECT kuva_render(to_json({
-  'figure': {
-    'rows': 1, 'cols': 2,
-    'panels': [
-      {'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv'))}]},
-      {'series': [{'type': 'histogram', 'values': (SELECT list(value) FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv')), 'bins': 20}]}
-    ]
-  }
-})) AS chart;
-```
-
-不要设 `figure_width` / `figure_height`，让 kuva 用它默认的单元格尺寸（每个 `500x380`）来排布面板，
-这样单个面板的比例与单张图一致。把整张 figure 钉成又宽又扁的框，会把里面每个面板都压扁。
+- **叠加。** 把若干 series 放进同一个 `series` 列表；它们共用一套坐标轴。见
+  [series 与通用字段](./reference/series.md)。
+- **多面板。** 在顶层加一个 `figure` 对象，把若干面板排成网格。见[多面板（figure）](./reference/figure.md)。
+- **第二坐标轴。** 把某个量放进 `secondary_series`，用 `y2_axis` 或 `x2_axis` 描述它的轴。见
+  [第二坐标轴](./reference/secondary-axes.md)。
 
 ## 错误
 
-任何失败 —— JSON 不合法、字段类型不对、`series` 为空、长度不一致，等等 —— 都会让整条查询失败，而不是
-返回 `NULL`。错误信息是英文，且一律以 `kuva_render: ` 开头：
+任何失败 —— JSON 格式错误、字段类型不对、`series` 列表为空、长度对不上等等 —— 都会让**整个查询**失败，
+而不是返回 `NULL`。错误信息是英文，且始终以 `kuva_render: ` 开头：
 
 ```sql {"type":"duckfn","expect":"error"}
-SELECT kuva_render('{"series":[]}');   -- 报错：`series` 不能为空
+SELECT kuva_render('{"series":[]}');   -- error: `series` must not be empty
 ```
 
-## 几点说明
+## 说明
 
-- **渲染失败会让整条语句失败。** 报错信息里带函数名，查询剩下的部分不会再执行。不会有任何东西被悄悄
-  变成 `NULL`。
-- **结果是一个字符串，不是文件。** `kuva_render` 返回 SVG 文本；把它落盘或对外提供，由调用方决定
-  （例如 `COPY (SELECT kuva_render(…)) TO 'chart.svg'`）。
-- **JSON 是回退 API。** 它之所以用 JSON，是因为 `series` 异构；以后可以在同一个渲染器之上再包一层
-  SQL 友好的 API（每个图型一个函数、`STRUCT` 参数）。
+- **渲染失败就会让整条语句失败。** 错误里带着函数名，查询其余部分不会再求值。不会有东西被静默变成 `NULL`。
+- **结果是字符串，不是文件。** `kuva_render` 返回 SVG 文本；写进文件或对外提供由调用方决定（例如
+  `COPY (SELECT kuva_render(…)) TO 'chart.svg'`）。
+- **JSON 是兜底 API。** 它存在是因为 `series` 是异构的；将来可以在同一个渲染器之上再包一层 SQL 友好的
+  API（每个图型一个函数、`STRUCT` 参数）。

@@ -15,13 +15,11 @@ info string 是 JSON 的 `sql` 围栏会变成能就地跑的示例（详见 `RE
 - kuva 单图默认画布 **675×511**（约 1.32:1），这是协调比例。
 - **不要**用规格里的 `"width"` / `"height"` 去钉画布。把整张图压成又宽又扁的形状
   （例如 600×320）会明显变形、非常难看。
-- 需要更大的展示区域时，改的是**预览框**的高度，不是图的比例：用围栏的
-  `"option":{"height":"…"}`。框矮了图会被裁、框够高时图按宽度等比缩放 —— 从来不会拉伸。
-- 单图块用 `520px`（kuva 的 511 高 + 上下各 `0.5rem` padding ≈ 527，520 已足够；
-  再高只是留白）。
+- 也**不要**用围栏的 `"option":{"height":"…"}` 去钉预览框。`"show":"svg"` 的块会按 SVG 自身
+  的高度**自动撑开**，写死的数字只会在宽高比不同的图上留下多余留白、或在窄屏下把图裁掉。
+  信息串就写 `{"type":"duckfn","show":"svg"}`，再到此为止 —— 不要加 `option`。
 - 多面板 `figure` 块同样**不要**钉 `figure_width` / `figure_height`：让 kuva 用它默认的
-  单元格尺寸（每格 `500×380`）排布，单个面板的比例才和单张图一致。figure 示例的
-  `option.height` 用 `360px`，宽图缩到框宽后高度约 270，不会被裁。
+  单元格尺寸（每格 `500×380`）排布，单个面板的比例才和单张图一致。
 
 ### 示例数据用 kuva 官方的示例数据
 
@@ -30,8 +28,8 @@ info string 是 JSON 的 `sql` 围栏会变成能就地跑的示例（详见 `RE
   `S:\workspace\github\Psy-Fer\kuva\examples\data`）。
 - **整个 `examples/data/` 都已经拷进 [`docs/static/data/`](./static/data)**（59 个 `.tsv` /
   `.parquet`，约 950 KB，MIT License），并附了一份说明来源与规矩的
-  [`README.md`](./static/data/README.md)。当前文档只用到其中 6 个（`scatter.tsv`、
-  `measurements.tsv`、`samples.tsv`、`histogram.tsv`、`bar.tsv`、`pie.tsv`），其余留作备用。
+  [`README.md`](./static/data/README.md)。随着图表页补齐，其中绝大多数文件都会被某个示例用到；
+  新示例优先复用已经在用的那几个，需要新数据集时再从这里挑。
 - **不要手工编辑那些文件**，也不要用自造的玩具数据（如 `[[1,2],[3,4]]`）——画出来很难看。
   需要新数据集就从 kuva 的 `examples/data/` 再拷一份过来（拷完统一 LF）。
 - 每个文件有哪些列、适合画什么图，看上游那份

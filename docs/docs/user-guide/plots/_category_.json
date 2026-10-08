@@ -1,0 +1,8 @@
+{
+  "label": "Plots",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Every chart type the extension registers, grouped the way kuva's own documentation groups them. Each page has a runnable example and a table of every field its `series` accepts; options shared across charts live under Reference."
+  }
+}

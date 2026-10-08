@@ -18,9 +18,9 @@ description: duckfn_kuva 给 DuckDB 加了什么，以及怎么开始用。
 | [`kuva_render(json)`](./functions.md#kuva_render) | 标量 | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
 
 `kuva_render` 包装了 [kuva](https://crates.io/crates/kuva) —— 一个纯 Rust 的统计绘图库：你用 JSON 描述
-一张图（散点、折线、柱状、直方、箱线或饼图，也可以把几种叠在一起），函数返回一份完整的 SVG。绘图发生在
-扩展内部，所以同一张图在 DuckDB 能跑的任何地方都长一样 —— CLI、Python / R 会话、JVM 宿主，或浏览器里的
-DuckDB-Wasm —— 宿主机上不需要 matplotlib / ggplot2。
+一张图（**64 种图型**任选 —— 散点、直方图，到小提琴图、桑基图、K 线图、热力图，也可以把几种叠在一起），
+函数返回一份完整的 SVG。绘图发生在扩展内部，所以同一张图在 DuckDB 能跑的任何地方都长一样 —— CLI、
+Python / R 会话、JVM 宿主，或浏览器里的 DuckDB-Wasm —— 宿主机上不需要 matplotlib / ggplot2。
 
 ## 装上它
 
@@ -31,7 +31,7 @@ LOAD duckfn_kuva;
 
 然后在任意查询里调用：
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- 点一下 Run：图就地画出来
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
@@ -45,6 +45,10 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ## 接下来去哪
 
 - [安装](./installation.md) —— 社区仓、Release 文件，或者本地自己构建的产物。
-- [函数](./functions.md) —— 这个函数与它接受的 JSON 图表规格，配着能就地跑的例子。
+- [函数](./functions.md) —— 这个函数，以及 JSON 图表规格是怎么分层的。
+- **图表** —— 每一种图型都配一个能跑的例子和完整的字段表；先从[直方图](./plots/distributions/histogram.md)
+  看起。
+- **参考** —— 跨图型共用的参数：[坐标轴](./reference/layout.md)、[图例](./reference/legends.md)、
+  [主题](./reference/themes.md)、[调色板](./reference/palettes.md)等等。
 - [开发指南](../development/quick-start.md) —— 从源码构建这个扩展。那是给改这个仓库的人看的；用扩展
   本身不需要它。

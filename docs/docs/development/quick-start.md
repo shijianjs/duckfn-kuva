@@ -68,7 +68,7 @@ so no local `LOAD` is needed here (a hand-built extension still needs `-unsigned
 Click **Run** on any block and the chart is drawn in the result area — fullscreen is where zoom and pan
 live, and the `Table` tab always holds the raw SVG.
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- a scatter plot
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
@@ -76,7 +76,7 @@ SELECT kuva_render(to_json({
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- one line per condition, overlaid on one layout
 SELECT kuva_render(to_json({
   'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)

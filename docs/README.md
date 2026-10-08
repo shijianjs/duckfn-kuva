@@ -71,7 +71,7 @@ A fenced `sql` block whose info string is a JSON config turns into a live exampl
 editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 
 ````md
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
 })) AS chart
@@ -87,9 +87,8 @@ chart is drawn in the result area (fullscreen zooms and pans), and the trailing 
 raw markup one click away.
 
 **Do not pin the canvas** with `"width"` / `"height"`: kuva's natural size is what keeps a chart in
-proportion. `option.height` is the preview *box*, not the chart — set it tall enough (about
-`520px`) for the box to clear kuva's ~675×511 and the SVG is scaled down to the box's width, never
-stretched.
+proportion. Do not pin the preview box either: in `"show":"svg"` mode the block grows to the SVG's own
+height, so the info string is just `{"type":"duckfn","show":"svg"}` — no `option` needed or wanted.
 
 The examples read their data from the site's own files under `static/data/` (kuva's sample
 datasets), served through an asset mount declared in `tests/docs.spec.mts`. Their URLs are

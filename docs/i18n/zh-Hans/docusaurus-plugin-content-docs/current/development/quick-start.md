@@ -65,7 +65,7 @@ duckdb -unsigned -c "LOAD './build/debug/duckfn_kuva.duckdb_extension';"
 构建的产物仍然要加 `-unsigned`，见下面的几个坑）。点任意块上的 **执行**，图就画在结果区里 —— 缩放与
 平移在全屏里，`Table` 那个页签里始终是原始的 SVG。
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- 一张散点图
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
@@ -73,7 +73,7 @@ SELECT kuva_render(to_json({
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- 每个 condition 一条折线，叠在同一套布局上
 SELECT kuva_render(to_json({
   'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)

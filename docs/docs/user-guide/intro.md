@@ -19,10 +19,11 @@ It adds one function:
 | [`kuva_render(json)`](./functions.md#kuva_render) | scalar | Renders a chart described by a JSON string and returns it as an SVG document. |
 
 `kuva_render` wraps [kuva](https://crates.io/crates/kuva), a pure-Rust statistical plotting library: you
-describe one figure — a scatter, line, bar, histogram, box or pie chart, or several of them combined — as
-JSON, and the function returns a complete SVG. The drawing happens inside the extension, so a chart comes
-out the same wherever DuckDB runs — the CLI, a Python or R session, a JVM host, or DuckDB-Wasm in the
-browser — with no matplotlib or ggplot2 on the host.
+describe one figure — any of **64 chart types**, from a scatter or histogram to a violin, sankey,
+candlestick or heatmap, or several of them combined — as JSON, and the function returns a complete SVG.
+The drawing happens inside the extension, so a chart comes out the same wherever DuckDB runs — the CLI, a
+Python or R session, a JVM host, or DuckDB-Wasm in the browser — with no matplotlib or ggplot2 on the
+host.
 
 ## Install it
 
@@ -33,7 +34,7 @@ LOAD duckfn_kuva;
 
 Then call the function in any query:
 
-```sql {"type":"duckfn","show":"svg","option":{"height":"520px"}}
+```sql {"type":"duckfn","show":"svg"}
 -- press Run: the chart is drawn right here
 SELECT kuva_render(to_json({
   'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
@@ -48,7 +49,11 @@ the file.
 ## Where to go next
 
 - [Installation](./installation.md) — the community repository, a release file, or a local build.
-- [Functions](./functions.md) — the function and the JSON chart spec it accepts, with examples you can
-  run.
+- [Functions](./functions.md) — the function and how the JSON chart spec is laid out.
+- **Plots** — every chart type, each with a runnable example and its full field list; start with
+  [Histogram](./plots/distributions/histogram.md).
+- **Reference** — the options shared across charts: [axes](./reference/layout.md),
+  [legends](./reference/legends.md), [themes](./reference/themes.md), [palettes](./reference/palettes.md)
+  and more.
 - [Development guide](../development/quick-start.md) — building the extension from source. That part is
   for people working on this repository; it is not needed to use the extension.

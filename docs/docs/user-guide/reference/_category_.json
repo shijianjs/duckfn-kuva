@@ -1,0 +1,8 @@
+{
+  "label": "Reference",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Every option the JSON chart spec accepts, grouped by what it controls. The chart pages link back here instead of repeating these tables."
+  }
+}

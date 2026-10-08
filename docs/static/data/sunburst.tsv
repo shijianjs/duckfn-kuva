@@ -1,0 +1,15 @@
+label	value	parent
+Mammals	0	
+Birds	0	
+Reptiles	0	
+Dog	42	Mammals
+Cat	38	Mammals
+Horse	15	Mammals
+Cow	28	Mammals
+Eagle	12	Birds
+Parrot	22	Birds
+Penguin	8	Birds
+Hawk	10	Birds
+Snake	18	Reptiles
+Lizard	14	Reptiles
+Turtle	9	Reptiles

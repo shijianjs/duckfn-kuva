@@ -1,0 +1,17 @@
+source	target	weight	group
+TP53	MDM2	0.95	DNA damage
+TP53	BAX	0.82	DNA damage
+TP53	CDKN1A	0.78	DNA damage
+MDM2	TP53	0.88	DNA damage
+BRCA1	TP53	0.65	DNA damage
+BRCA1	RAD51	0.72	DNA repair
+RAD51	BRCA2	0.68	DNA repair
+BRCA2	BRCA1	0.55	DNA repair
+MYC	CCND1	0.91	Cell cycle
+MYC	CDK4	0.74	Cell cycle
+CCND1	CDK4	0.83	Cell cycle
+CDK4	RB1	0.79	Cell cycle
+RB1	E2F1	0.86	Cell cycle
+E2F1	MYC	0.62	Cell cycle
+TP53	RB1	0.45	Cross-talk
+MYC	TP53	0.38	Cross-talk

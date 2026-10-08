@@ -28,10 +28,14 @@ info string 是 JSON 的 `sql` 围栏会变成能就地跑的示例（详见 `RE
 - 官方样例数据随 kuva crate 发布，也在其仓库里：
   <https://github.com/Psy-Fer/kuva/tree/master/examples/data>（本机克隆在
   `S:\workspace\github\Psy-Fer\kuva\examples\data`）。
-- 已把用到的那几份拷进 [`docs/static/data/`](./static/data)：
-  `scatter.tsv`、`histogram.tsv`、`samples.tsv`、`bar.tsv`、`pie.tsv`、`measurements.tsv`。
-  自造的玩具数据（如 `[[1,2],[3,4]]`）画出来很难看，不要用；需要新数据集就从 kuva
-  的 `examples/data/` 再拷一份过来。
+- **整个 `examples/data/` 都已经拷进 [`docs/static/data/`](./static/data)**（59 个 `.tsv` /
+  `.parquet`，约 950 KB，MIT License），并附了一份说明来源与规矩的
+  [`README.md`](./static/data/README.md)。当前文档只用到其中 6 个（`scatter.tsv`、
+  `measurements.tsv`、`samples.tsv`、`histogram.tsv`、`bar.tsv`、`pie.tsv`），其余留作备用。
+- **不要手工编辑那些文件**，也不要用自造的玩具数据（如 `[[1,2],[3,4]]`）——画出来很难看。
+  需要新数据集就从 kuva 的 `examples/data/` 再拷一份过来（拷完统一 LF）。
+- 每个文件有哪些列、适合画什么图，看上游那份
+  [examples/data/README](https://github.com/Psy-Fer/kuva/blob/master/examples/data/README.md)。
 - 块里用 `read_csv_auto('{{DFK_BASE_URL}}data/<name>.tsv')` 读它们（见下）。
 
 ### `{{DFK_BASE_URL}}`：数据 URL 必须是绝对 URL，且带当前语言的 baseUrl

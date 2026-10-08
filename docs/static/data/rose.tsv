@@ -1,0 +1,9 @@
+direction	low_speed	high_speed
+N	15	8
+NE	22	12
+E	18	7
+SE	12	5
+S	10	4
+SW	14	6
+W	20	9
+NW	25	11

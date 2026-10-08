@@ -1,0 +1,17 @@
+label	value	parent
+Europe	0	
+Americas	0	
+Asia	0	
+Germany	82	Europe
+France	67	Europe
+UK	66	Europe
+Spain	47	Europe
+Italy	60	Europe
+USA	331	Americas
+Canada	38	Americas
+Brazil	212	Americas
+Mexico	128	Americas
+China	1400	Asia
+India	1380	Asia
+Japan	126	Asia
+South Korea	52	Asia

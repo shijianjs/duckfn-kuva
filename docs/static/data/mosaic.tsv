@@ -1,0 +1,13 @@
+region	outcome	count
+North	Success	120
+North	Failure	30
+North	Pending	15
+South	Success	85
+South	Failure	45
+South	Pending	20
+East	Success	100
+East	Failure	25
+East	Pending	10
+West	Success	70
+West	Failure	55
+West	Pending	25

@@ -1,0 +1,4 @@
+tool	Sensitivity	Specificity	Precision	F1	AUC
+ToolA	0.940	0.820	0.880	0.910	0.950
+ToolB	0.870	0.910	0.920	0.890	0.920
+ToolC	0.780	0.960	0.950	0.860	0.900

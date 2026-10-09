@@ -13,6 +13,24 @@ pub(crate) struct RenderSpec {
     pub panel: PanelSpec,
     /// 多面板网格（Figure）。给了它，顶层 `panel.series` 被忽略。
     pub figure: Option<FigureSpec>,
+    /// 终端渲染的选项（只有 `kuva_render_terminal` 看它）。
+    ///
+    /// 放在 JSON 里而不是函数签名上：这样再往里加东西 —— 是否打印、要不要上色 —— 都不用动签名。
+    pub terminal: Option<TerminalSpec>,
+}
+
+/// 终端渲染的选项，见 [`RenderSpec::terminal`]。
+#[derive(Debug, Default, Deserialize)]
+pub(crate) struct TerminalSpec {
+    /// 字符网格的列数（默认 100，和 kuva CLI 探测不到终端尺寸时的回退值一样）。
+    pub cols: Option<usize>,
+    /// 字符网格的行数（默认 30）。
+    pub rows: Option<usize>,
+    /// 直接把结果 `print!` 到 stdout，函数返回 NULL。默认 `false`，也就是作为字符串返回。
+    ///
+    /// DuckDB 的 CLI 里，把一个字符串字段原样打到控制台并不顺手（`SELECT` 出来的是带引号、
+    /// 转义过的一行），而 `print!` 是随手的 —— 这个开关就是给那种场合的。
+    pub print: Option<bool>,
 }
 
 /// 一块画布：一组叠加的 series + 对布局的覆盖。

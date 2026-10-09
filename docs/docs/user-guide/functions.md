@@ -13,7 +13,7 @@ behave like DuckDB's own: use them in a projection, a
 | Function | Kind | Signature | Summary |
 | --- | --- | --- | --- |
 | `kuva_render` | scalar | `VARCHAR -> VARCHAR` | Renders a chart described by a JSON string and returns it as an SVG document. |
-| `kuva_render_terminal` | scalar | `VARCHAR, BIGINT, BIGINT -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour — sized by a character grid. |
+| `kuva_render_terminal` | scalar | `VARCHAR -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour. The grid and the `print` switch ride along in the JSON. |
 
 ## kuva_render
 
@@ -47,24 +47,37 @@ Key names are snake_case throughout.
 ## kuva_render_terminal
 
 ```text
-kuva_render_terminal(spec_json VARCHAR, cols BIGINT, rows BIGINT) -> VARCHAR
+kuva_render_terminal(spec_json VARCHAR) -> VARCHAR
 ```
 
 The same JSON, a different backend: instead of SVG you get **terminal text** — braille dots for dots,
-box-drawing characters for lines, ANSI colour for both. `cols` and `rows` are the character grid (one braille
-character carries 2 × 4 dots, so `100, 26` samples at 200 × 104); either may be `NULL`, which falls back to
-110 × 34.
+box-drawing characters for lines, ANSI colour for both.
+
+The terminal's own settings live in the JSON, in a top-level `terminal` object, so this function stays at one
+argument no matter what gets added later:
 
 ```sql {"type":"duckfn","show":"terminal"}
 SELECT kuva_render_terminal(to_json({
+  'terminal': {'cols': 90, 'rows': 22},
   'series': [{'type': 'bar', 'categories': ['a', 'b', 'c', 'd'], 'values': [4, 7, 5, 9]}]
-}), 90, 22) AS frame;
+})) AS frame;
 ```
+
+| Field | Default | What it sets |
+| --- | --- | --- |
+| `terminal.cols` | `100` | Terminal width in character columns. |
+| `terminal.rows` | `30` | Terminal height in character rows. |
+| `terminal.print` | `false` | Write the frame to stdout and return `NULL` instead of returning it as a string. |
 
 What comes back is a plain string carrying its escape sequences, so `COPY (SELECT …) TO 'chart.ans'` or a
 pipe back into a shell both work — that is exactly what kuva's CLI prints for `--terminal`, and the two go
 through the same `TerminalBackend::new(cols, rows).render_scene(&scene)`. Errors behave as they do for
 `kuva_render`: they fail the statement rather than returning `NULL`.
+
+Two things worth knowing before you reach for it: a terminal is a dark surface, so this entry point renders
+with the `dark` theme unless the spec asks for another (the default theme's near-black text disappears on a
+near-black frame); and `print` exists because getting a *string column* onto a console in the DuckDB CLI is
+awkward, while printing is trivial. See [Terminal output](./reference/terminal.md).
 
 ## How the spec is laid out
 

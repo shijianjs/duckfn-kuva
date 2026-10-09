@@ -343,12 +343,12 @@ SELECT kuva_render(to_json({
 
 ## 终端渲染
 
-同一段 JSON 也能渲染成**终端文本**：点用盲文点阵、线用制表符、颜色用 ANSI。`kuva_render_terminal` 收同一份 spec，
-外加一个字符网格 —— `cols` × `rows`，一个盲文字符横 2 竖 4 个点，所以 100 × 26 就是 200 × 104 的采样 —— 返回
-的字符串里带着完整的转义序列；两处都给 `NULL` 就退回 110 × 34。
+同一段 JSON 也能渲染成**终端文本**：点用盲文点阵、线用制表符、颜色用 ANSI。只用
+`kuva_render_terminal` 一个函数、收同一份 spec —— 终端自己的设置跟着 JSON 走，写在顶层的 `terminal` 对象里：
 
 ```sql {"type":"duckfn","show":"terminal"}
 SELECT kuva_render_terminal(to_json({
+  'terminal': {'cols': 100, 'rows': 26},
   'series': [{'type': 'phylo',
               'edges': [
                 {'parent': 'root', 'child': 'Bacteria', 'length': 1.5},
@@ -356,7 +356,7 @@ SELECT kuva_render_terminal(to_json({
                 {'parent': 'Bacteria', 'child': 'E. coli', 'length': 0.5},
                 {'parent': 'Eukarya', 'child': 'Human', 'length': 0.8}
               ]}]
-}), 100, 26) AS frame;
+})) AS frame;
 ```
 
 上面那一帧是真的：由页面画出来的、终端会印出的样子。把它交给任何吃文本的终端 ——

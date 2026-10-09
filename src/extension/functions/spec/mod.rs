@@ -15,11 +15,18 @@
 mod convert;
 mod schema;
 
+use std::io::Write;
+
 use kuva::backend::terminal::TerminalBackend;
 use kuva::prelude::SvgBackend;
 use kuva::render::render::Scene;
 
 pub(crate) use schema::RenderSpec;
+use schema::{ThemeKind, ThemeSpec};
+
+/// 终端网格的默认尺寸：与 kuva CLI 探测不到终端大小时的回退值一致。
+const DEFAULT_TERM_COLS: usize = 100;
+const DEFAULT_TERM_ROWS: usize = 30;
 
 /// 解析 JSON 并渲染成 SVG。所有失败都以 `Err(String)` 返回（由调用方转成 DuckDB 错误）。
 ///
@@ -33,26 +40,54 @@ pub(crate) fn render_json(json: &str) -> Result<String, String> {
     Ok(SvgBackend.render_scene(&scene))
 }
 
-/// 同一段 JSON，用**终端**后端渲染：盲文点阵 + ANSI 色，返回的字符串可以直接 `print` 出去。
-/// `cols` / `rows` 是字符网格的宽与高 —— 一个盲文字符横 2 竖 4 个点，所以实际分辨率是
-/// `cols × 2` × `rows × 4`。
-pub(crate) fn render_terminal_json(
-    json: &str,
-    cols: usize,
-    rows: usize,
-) -> Result<String, String> {
-    let scene = render_scene(json)?;
-    Ok(TerminalBackend::new(cols, rows).render_scene(&scene))
+/// 终端渲染的结果：要么把文本交回 SQL，要么已经 `print` 出去了（那就是 NULL）。
+pub(crate) enum TerminalRender {
+    /// 渲染好的文本，带转义序列。
+    Text(String),
+    /// 已经打到 stdout，函数返回 NULL。
+    Printed,
+}
+
+/// 同一段 JSON，用**终端**后端渲染：盲文点阵 + ANSI 色。
+///
+/// 网格大小与「是否直接打印」都从 JSON 里的 `terminal` 字段取（`cols` / `rows` / `print`），
+/// 所以这个入口只有一个参数 —— 以后再往终端这一路上加选项也不用动签名。
+pub(crate) fn render_terminal_json(json: &str) -> Result<TerminalRender, String> {
+    let mut spec = parse_spec(json)?;
+    let opts = spec.terminal.take().unwrap_or_default();
+
+    // 终端是**暗底**：默认的亮色主题会把文字和线画成黑色，在暗底上根本看不见，所以这里
+    // 没显式给 `theme` 时按 `dark` 渲染（浅灰字、浅灰轴）。显式给了就听用户的。
+    if spec.panel.theme.is_none() {
+        spec.panel.theme = Some(ThemeSpec::Named(ThemeKind::Dark));
+    }
+
+    let cols = opts.cols.unwrap_or(DEFAULT_TERM_COLS).max(1);
+    let rows = opts.rows.unwrap_or(DEFAULT_TERM_ROWS).max(1);
+    let scene = convert::render(spec)?;
+    let text = TerminalBackend::new(cols, rows).render_scene(&scene);
+
+    if opts.print == Some(true) {
+        // 直接打到 stdout。DuckDB 的 CLI 里「把一个字符串字段原样打出来」并不顺手，
+        // 而 print! 是随手的 —— 这就是这个开关存在的理由。
+        print!("{text}");
+        let _ = std::io::stdout().flush();
+        return Ok(TerminalRender::Printed);
+    }
+    Ok(TerminalRender::Text(text))
 }
 
 /// 解析 + 转换：得到与后端无关的 `Scene`，两个渲染入口共用这一段。
 fn render_scene(json: &str) -> Result<Scene, String> {
+    let spec = parse_spec(json)?;
+    convert::render(spec)
+}
+
+fn parse_spec(json: &str) -> Result<RenderSpec, String> {
     let mut value: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
     drop_null_object_keys(&mut value);
-    let spec: RenderSpec =
-        serde_json::from_value(value).map_err(|e| format!("invalid JSON: {e}"))?;
-    convert::render(spec)
+    serde_json::from_value(value).map_err(|e| format!("invalid JSON: {e}"))
 }
 
 /// 递归删掉**对象**里值为 `null` 的键；数组元素原样保留。
@@ -99,10 +134,11 @@ pub(crate) mod test_support {
         }
     }
 
-    /// 同一段 JSON 走终端后端，失败同样 panic。网格给小一点，断言才好写。
+    /// 同一段 JSON 走终端后端（网格给小一点，断言才好写），失败同样 panic。
     pub(crate) fn render_terminal(json: &str) -> String {
-        match super::render_terminal_json(json, 60, 20) {
-            Ok(text) => text,
+        match super::render_terminal_json(json) {
+            Ok(super::TerminalRender::Text(text)) => text,
+            Ok(super::TerminalRender::Printed) => panic!("`print` was on, so there is no text"),
             Err(e) => panic!("expected the spec to render, but got: {e}"),
         }
     }

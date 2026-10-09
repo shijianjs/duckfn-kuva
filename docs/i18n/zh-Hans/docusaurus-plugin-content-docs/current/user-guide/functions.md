@@ -12,7 +12,7 @@ description: duckfn_kuva 注册的 SQL 函数，以及 JSON 图表规格的分�
 | 函数 | 类别 | 签名 | 说明 |
 | --- | --- | --- | --- |
 | `kuva_render` | 标量 | `VARCHAR -> VARCHAR` | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
-| `kuva_render_terminal` | 标量 | `VARCHAR, BIGINT, BIGINT -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色 —— 尺寸由字符网格给出。 |
+| `kuva_render_terminal` | 标量 | `VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色；网格与 `print` 开关都在 JSON 里带着。 |
 
 ## kuva_render
 
@@ -43,23 +43,35 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ## kuva_render_terminal
 
 ```text
-kuva_render_terminal(spec_json VARCHAR, cols BIGINT, rows BIGINT) -> VARCHAR
+kuva_render_terminal(spec_json VARCHAR) -> VARCHAR
 ```
 
 同一段 JSON、另一个后端：出来的不是 SVG，而是**终端文本** —— 点用盲文点阵、线用制表符、颜色用 ANSI。
-`cols` 与 `rows` 是字符网格（一个盲文字符横 2 竖 4 个点，所以 `100, 26` 等于 200 × 104 的采样）；两处都可以给
-`NULL`，退回 110 × 34。
+
+终端自己的设置写在 JSON 里、放在顶层的 `terminal` 对象里，所以不管以后再往这条路上加什么，这个函数都只有一个
+参数：
 
 ```sql {"type":"duckfn","show":"terminal"}
 SELECT kuva_render_terminal(to_json({
+  'terminal': {'cols': 90, 'rows': 22},
   'series': [{'type': 'bar', 'categories': ['a', 'b', 'c', 'd'], 'values': [4, 7, 5, 9]}]
-}), 90, 22) AS frame;
+})) AS frame;
 ```
+
+| 字段 | 默认 | 设置什么 |
+| --- | --- | --- |
+| `terminal.cols` | `100` | 终端宽度（字符列数）。 |
+| `terminal.rows` | `30` | 终端高度（字符行数）。 |
+| `terminal.print` | `false` | 把这一帧写到 stdout 并返回 `NULL`，而不是作为字符串返回。 |
 
 返回的是一个带着转义序列的普通字符串，所以 `COPY (SELECT …) TO 'chart.ans'` 或者直接回灌给 shell 都行 ——
 那正是 kuva 的 CLI 在 `--terminal` 下会打印的东西，两者走的是同一个
 `TerminalBackend::new(cols, rows).render_scene(&scene)`。错误的表现与 `kuva_render` 一致：让整条语句失败，
 而不是返回 `NULL`。
+
+伸手去用之前有两件事值得知道：终端是暗的，所以这个入口在没有指定主题时用 `dark` 主题渲染（默认主题的近黑文字
+在近黑背景上等于没有）；以及 `print` 之所以存在，是因为在 DuckDB CLI 里把一个**字符串列**弄到控制台上很别扭，
+而打印是随手的。见[终端输出](./reference/terminal.md)。
 
 ## 规格是怎么分层的
 

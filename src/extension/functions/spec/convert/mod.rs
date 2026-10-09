@@ -24,7 +24,7 @@ use layout::build_layout;
 /// 返回的是 **Scene**（与后端无关的一棵绘制指令树），由调用方决定用什么后端落成字符串：
 /// SVG 走 `SvgBackend`，终端走 `TerminalBackend`。
 pub(crate) fn render(spec: RenderSpec) -> Result<Scene, String> {
-    let RenderSpec { panel, figure } = spec;
+    let RenderSpec { panel, figure, .. } = spec;
     match figure {
         Some(fig) => render_figure(fig),
         None => render_single(panel),
@@ -426,11 +426,17 @@ mod tests {
     fn renders_terminal_from_the_same_json() {
         let text = render_terminal(r#"{"series":[{"type":"line","data":[[1,2],[2,3],[3,1]]}]}"#);
         assert!(!text.is_empty(), "the terminal backend should produce text");
-        // 网格 20 行，标题/坐标轴标签可能再多一两行。
+        // 默认网格 30 行，标题/坐标轴标签可能再多一两行。
         assert!(
-            text.lines().count() <= 22,
+            text.lines().count() <= 32,
             "one line per grid row, got {}",
             text.lines().count()
+        );
+        // 终端是暗底，所以文字不能是近黑的 —— 默认的亮色主题会把字画成黑色，在黑框里看不见。
+        assert!(
+            !text.contains("38;2;0;0;0") && !text.contains("38;2;26;26;26"),
+            "text must not be drawn near-black on a dark terminal, got: {:?}",
+            text.chars().take(120).collect::<String>()
         );
         // 图上有点或线，所以要么带 ANSI 色序列、要么有盲文字符 —— 不能是一片空格。
         assert!(
@@ -438,6 +444,22 @@ mod tests {
                 || text.chars().any(|c| ('\u{2800}'..='\u{28ff}').contains(&c)),
             "expected colour escapes or braille dots, got: {:?}",
             text.chars().take(80).collect::<String>()
+        );
+    }
+
+    /// `terminal.print` 为真时结果直接打到 stdout，函数返回 NULL —— SQL 这一侧就没有值了。
+    #[test]
+    fn terminal_print_mode_gives_no_value_back() {
+        let out = crate::extension::functions::spec::render_terminal_json(
+            r#"{"terminal":{"print":true},"series":[{"type":"line","data":[[1,2],[2,3]]}]}"#,
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                out,
+                crate::extension::functions::spec::TerminalRender::Printed
+            ),
+            "`print` writes to stdout, so there is nothing to return"
         );
     }
 

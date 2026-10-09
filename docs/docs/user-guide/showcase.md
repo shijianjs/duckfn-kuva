@@ -360,12 +360,12 @@ SELECT kuva_render(to_json({
 ## Terminal rendering
 
 The same JSON renders as **terminal text** too: braille dots for dots, box-drawing characters for lines,
-ANSI colour for both. `kuva_render_terminal` takes the same spec plus a character grid — `cols` × `rows`,
-where one braille character carries 2 × 4 dots, so 100 × 26 samples at 200 × 104 — and returns the string
-with its escape sequences intact. `NULL` in either place falls back to 110 × 34.
+ANSI colour for both. One function, `kuva_render_terminal`, takes the same spec — the terminal's own
+settings ride along in the JSON, as a top-level `terminal` object:
 
 ```sql {"type":"duckfn","show":"terminal"}
 SELECT kuva_render_terminal(to_json({
+  'terminal': {'cols': 100, 'rows': 26},
   'series': [{'type': 'phylo',
               'edges': [
                 {'parent': 'root', 'child': 'Bacteria', 'length': 1.5},
@@ -373,7 +373,7 @@ SELECT kuva_render_terminal(to_json({
                 {'parent': 'Bacteria', 'child': 'E. coli', 'length': 0.5},
                 {'parent': 'Eukarya', 'child': 'Human', 'length': 0.8}
               ]}]
-}), 100, 26) AS frame;
+})) AS frame;
 ```
 
 The frame above is the real thing: what a terminal would print, drawn by the page. Send it anywhere a

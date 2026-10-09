@@ -35,6 +35,10 @@ accepted but produces a plain single-axis chart.
 
 :::
 
+**Give `y2_axis` both a `min` and a `max`.** The right-hand axis is drawn from the range you state — it
+is not inferred from the `secondary_series` data — so a `y2_axis` that carries only a `name` leaves the
+axis itself undrawn (the series is still plotted). The example below sets both.
+
 ## Example
 
 Price on the left axis and volume on the right, from the same rows:

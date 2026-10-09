@@ -87,12 +87,16 @@ CLI 的 `--base-url` / `--asset`）。
 `dir` 相对 `siteDir`）。静态资源映射是 `duckfn-docs-kit` 0.6.0 起提供的，`{{DFK_BASE_URL}}` 与
 `baseUrl` 选项是 0.7.0 起提供的。
 
-**验证时记住三条坑**：
+**验证时记住四条坑**：
 
 - **改了 Rust 代码之后必须先重建 wasm，否则块里跑的还是旧扩展**：`just build_wasm_eh`，再
   `cp build/wasm_eh/extension/duckfn_kuva/duckfn_kuva.duckdb_extension.wasm docs/static/duckdb-extensions/`
   （`just test_wasm` 会自动做这两步再跑一遍所有块，最省事）。症状是「新加的字段在 cargo 单测里过、
   在文档块里报 unknown key / 必填项为空」—— 单测只覆盖 lib，文档块跑的是 wasm 产物，两者不是同一份代码。
+- **只改文档里的 SQL 时，别每次都等整站构建**：kit 带了一个本地校验器，
+  `npx duckfn-sql-verify --content <临时目录> --asset /duckfn-kuva/data=static/data --base-url /duckfn-kuva/ --quiet`
+  只跑那个目录下的块（把要迭代的页面复制进一个临时目录即可），几秒出结果，比 `npm test` 快一个数量级。
+  它跑的同样是 wasm 产物，所以上面的重建规则照样适用。
 - 本地调试用的是 `docs/node_modules/duckfn-docs-kit` 里那一份 kit。若手工替换过它，`npm run build`
   仍可能复用旧的 webpack 缓存（页面报 `unknown key baseUrl` 之类），先 `npm run clear`
   或删掉 `node_modules/.cache` 再构建。

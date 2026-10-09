@@ -22,9 +22,43 @@ pub(crate) use schema::RenderSpec;
 /// ```ignore
 /// let svg = render_json(r#"{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}"#)?;
 /// ```
+///
+/// **解析前先把值为 `null` 的键剔掉**（见 [`drop_null_object_keys`]）。
 pub(crate) fn render_json(json: &str) -> Result<String, String> {
-    let spec: RenderSpec = serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
+    let mut value: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
+    drop_null_object_keys(&mut value);
+    let spec: RenderSpec =
+        serde_json::from_value(value).map_err(|e| format!("invalid JSON: {e}"))?;
     convert::render(spec)
+}
+
+/// 递归删掉**对象**里值为 `null` 的键；数组元素原样保留。
+///
+/// 这一步是为 SQL 侧的写法让路：DuckDB 的 `to_json` 会把同一个 JSON 表达式里所有结构体的
+/// 键**取并集**，缺的那些补成 `null` —— 一个 `figure` 里两个面板，没给
+/// `secondary_series` 的那个就会拿到 `"secondary_series": null`。而 `#[serde(default)]`
+/// 只在**键缺失**时生效，显式 `null` 会撞在「某个数组字段收到 null」上
+/// （`invalid type: null, expected a sequence`）。删掉这些键，语义上正好是「这一项没给」，
+/// 也就是 SQL 里 `NULL` 的意思。
+///
+/// 数组**元素**里的 `null` 保留：那是真的数据（`x_offsets: [1.0, null]` 表示这一行回退到
+/// 全局 `x_offset`）。
+fn drop_null_object_keys(value: &mut serde_json::Value) {
+    match value {
+        serde_json::Value::Object(map) => {
+            map.retain(|_, v| !v.is_null());
+            for v in map.values_mut() {
+                drop_null_object_keys(v);
+            }
+        }
+        serde_json::Value::Array(items) => {
+            for item in items {
+                drop_null_object_keys(item);
+            }
+        }
+        _ => {}
+    }
 }
 
 /// 测试用的两个小工具 —— 各图型的测试都从这里取。

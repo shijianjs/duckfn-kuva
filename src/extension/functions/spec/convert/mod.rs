@@ -75,15 +75,30 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
 
     let mut all_plots: Vec<Vec<Plot>> = Vec::with_capacity(expected);
     let mut all_layouts: Vec<Layout> = Vec::with_capacity(expected);
-    for mut panel in fig.panels {
+    // 带第二根轴的面板：`(槽位序号, 主轴 plots, 副轴 plots)`，稍后交给 `with_twin_y_plots`。
+    let mut twin_y: Vec<(usize, Vec<Plot>, Vec<Plot>)> = Vec::new();
+    for (slot, mut panel) in fig.panels.into_iter().enumerate() {
         let series = std::mem::take(&mut panel.series);
-        if series.is_empty() {
+        let secondary = std::mem::take(&mut panel.secondary_series);
+        if series.is_empty() && secondary.is_empty() {
             return Err("figure: every panel needs at least one series".into());
         }
-        let has_explicit_color = series.iter().any(SeriesSpec::has_explicit_color);
+        let has_explicit_color = series
+            .iter()
+            .chain(secondary.iter())
+            .any(SeriesSpec::has_explicit_color);
         let plots = build_series(series)?;
+        let secondary_plots = build_series(secondary)?;
         let layout = build_layout(&panel, &plots, has_explicit_color)?;
-        all_plots.push(plots);
+        if secondary_plots.is_empty() {
+            all_plots.push(plots);
+        } else {
+            // kuva 内部按**槽位序号**查这张表（`for (i, group) in structure.iter().enumerate()`），
+            // 没有合并单元格时它正好等于行优先的格子序号；有合并时两者不同，所以这里传槽位序号。
+            // 这一格的 plots 交给双轴那一支渲染，所以网格里留空（`Plot` 不可克隆）。
+            twin_y.push((slot, plots, secondary_plots));
+            all_plots.push(Vec::new());
+        }
         all_layouts.push(layout);
     }
 
@@ -93,6 +108,11 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
         figure = figure.with_structure(structure.clone());
     }
     figure = figure.with_plots(all_plots).with_layouts(all_layouts);
+    // 双轴面板：每个槽位都有自己的 layout（上面已全部给出），所以 kuva 不会走它自己的
+    // `auto_from_twin_y_plots` —— 轴的范围与标题由面板自己那份 layout 决定。
+    for (slot, primary, secondary) in twin_y {
+        figure = figure.with_twin_y_plots(slot, primary, secondary);
+    }
 
     if let Some(title) = &fig.title {
         figure = figure.with_title(title.clone());
@@ -397,6 +417,51 @@ mod tests {
     #[test]
     fn renders_twin_y() {
         assert_renders(&render_svg(TWIN_Y), "TWIN_Y");
+    }
+
+    /// DuckDB 的 `to_json` 会给同一个表达式里所有结构体取键的**并集**，缺的补 `null`：
+    /// 下面这段就是 `figure` 里一个面板有 `secondary_series`、另一个没有时 SQL 会产出的
+    /// 样子（`"secondary_series": null`、外加别的图型带过来的 `size` / `trend`）。
+    /// `Vec` 字段上的 `#[serde(default)]` 只管键缺失，所以解析前必须把 `null` 的键剔掉。
+    const FIGURE_WITH_NULL_KEYS: &str = r##"{
+      "figure": {
+        "rows": 1, "cols": 2,
+        "panels": [
+          {"y2_axis": {"name": "right", "min": 0, "max": 30},
+           "series": [{"type": "line", "data": [[0, 1], [1, 2]], "size": null, "trend": null}],
+           "secondary_series": [{"type": "line", "data": [[0, 10], [1, 20]]}]},
+          {"y2_axis": null,
+           "series": [{"type": "line", "data": [[0, 3], [1, 4]]}],
+           "secondary_series": null}
+        ]
+      }
+    }"##;
+
+    #[test]
+    fn renders_figure_with_null_keys() {
+        let svg = render_svg(FIGURE_WITH_NULL_KEYS);
+        assert_renders(&svg, "FIGURE_WITH_NULL_KEYS");
+        // 第一个面板带 `secondary_series`，所以右轴真的会画出来（它的 `y2_axis.name`）。
+        assert!(
+            svg.contains(">right<"),
+            "a panel with `secondary_series` should draw its second axis"
+        );
+        // 副轴那组数据也画了：两个面板各一条线，加副轴一共三条。
+        assert_eq!(
+            svg.matches("<path").count(),
+            3,
+            "expected one line per series plus the secondary axis series"
+        );
+    }
+
+    /// 数组元素里的 `null` 不动：`x_offsets: [1.0, null]` 是「这一行回退到全局偏移」，是真的数据。
+    #[test]
+    fn null_inside_an_array_is_kept() {
+        let svg = render_svg(
+            r##"{"series":[{"type":"brick","names":["a","b"],"sequences":["ACGT","ACGT"],
+                 "template":"dna","x_offsets":[1.0,null],"x_offset":3}]}"##,
+        );
+        assert_renders(&svg, "NULL_INSIDE_ARRAY");
     }
 
     /// 日期轴 + 统计框。

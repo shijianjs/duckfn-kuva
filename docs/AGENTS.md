@@ -82,8 +82,12 @@ CLI 的 `--base-url` / `--asset`）。
 `dir` 相对 `siteDir`）。静态资源映射是 `duckfn-docs-kit` 0.6.0 起提供的，`{{DFK_BASE_URL}}` 与
 `baseUrl` 选项是 0.7.0 起提供的。
 
-**验证时记住两条坑**：
+**验证时记住三条坑**：
 
+- **改了 Rust 代码之后必须先重建 wasm，否则块里跑的还是旧扩展**：`just build_wasm_eh`，再
+  `cp build/wasm_eh/extension/duckfn_kuva/duckfn_kuva.duckdb_extension.wasm docs/static/duckdb-extensions/`
+  （`just test_wasm` 会自动做这两步再跑一遍所有块，最省事）。症状是「新加的字段在 cargo 单测里过、
+  在文档块里报 unknown key / 必填项为空」—— 单测只覆盖 lib，文档块跑的是 wasm 产物，两者不是同一份代码。
 - 本地调试用的是 `docs/node_modules/duckfn-docs-kit` 里那一份 kit。若手工替换过它，`npm run build`
   仍可能复用旧的 webpack 缓存（页面报 `unknown key baseUrl` 之类），先 `npm run clear`
   或删掉 `node_modules/.cache` 再构建。
@@ -154,3 +158,37 @@ npx docusaurus write-translations --locale zh-Hans
 ```
 
 页面自己的 h1（`# …`）不在这里：它来自译文那一份 `.md` 的正文/`title`，照常翻译即可。
+
+## 页面之间怎么互链
+
+- 页内链接一律写**相对文件路径**，不要写 `/docs/…`（后者会把中文页送到英文页）。跨目录的路径按目标文件的
+  真实位置算：`synteny` 在 `utility/` 下，从 `hierarchical/` 过去是 `../utility/synteny.md`。
+- `onBrokenLinks` 是 `throw`（见 [`README.md`](./README.md)），**链接指向的页面不存在时整个站点构建会失败**。
+  所以推进新页面时，先把指向还没写的页面的引用写成纯文字，等目标页补齐后再改回链接，别提前留悬空链接。
+  全部图型页写完后恢复过的是这几处（中英各一处）：`qq → ../statistics/manhattan.md`、
+  `heatmap → ../hierarchical/clustermap.md`、`pie → ../hierarchical/sunburst.md`。
+- 新页面取代旧页面时**把旧页面删掉**（中英都删），不要留两份同 `title` 同 `sidebar_position` 的文件 ——
+  侧边栏里会排成两个同名条目。`categorical/diceplot.md` 与 `categorical/dotplot.md` 已被
+  `dice_plot.md` / `dot_plot.md` 取代并删除。
+- 首页与总览里数图型的说法（`src/pages/index.tsx`、`docs/user-guide/intro.md` 里的「64 种图型」）要与
+  `docs/user-guide/plots/` 下实际的页面数一致；增删图型页时顺手核对这两个数字。
+
+## 改正文时别做批量替换
+
+改已写好的页面（尤其涉及中英两份）用逐处编辑工具，**不要**用 PowerShell / sed 之类做整文件的批量
+`.Replace`：那里的数组展开、编码与正则很容易不是你以为的那一处，坏掉时不报错。
+
+本仓库踩过一次：为了把三处跨类引用改回链接，把「旧串 → 新串」的配对放进哈希表再遍历，PowerShell 把内层
+数组拆成了单个字符串，于是实际执行成 `.Replace('A', ' ')` —— 三个英文页里所有大写 A 变成空格
+（`AS` → ` S`、`{{DFK_BASE_URL}}` → `{{DFK_B SE_URL}}`、`GWAS` → `GW S`）；中文页那三处则把 `[` 换成了汉字
+（`'series': [{` → `'series': 旭{`）。只有 `npm test` 的 `Parser Error` 才暴露出来，随后按可逆规则逐处修复。
+
+## 收尾自检
+
+一批页面写完之后，一次跑完这几条：
+
+1. `npm test`（在 `docs/`）—— 全部可运行块过，中文页的块也在内。
+2. `just docs_build` —— en 与 zh-Hans 两个 locale 都是 `[SUCCESS]`，且没有 `couldn't be resolved` 的链接告警。
+3. `cargo test --lib` 与 `cargo clippy --lib` —— 文档里新增的字段若有对应的 Rust 改动，单测要跟上、
+   clippy 不留告警（仓库的 `just release_check` 用 `-D warnings`）。
+4. 新增或修改过的文本文件跑一遍 CRLF → LF（见根 [`AGENTS.md`](../AGENTS.md)）。

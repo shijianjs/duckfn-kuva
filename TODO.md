@@ -1,26 +1,10 @@
 # TODO
 
-## 文档站（docs/）
+> 这份文件是**给人看的**：待办、已知差异、以及"为什么先不做"的判断。
+> 改文档前 AI 该读的约定在 [`docs/AGENTS.md`](./docs/AGENTS.md)（页面形态、可运行块、互链、
+> 验证流程都在那里）；仓库级的构建/发版约定在根 [`AGENTS.md`](./AGENTS.md)。
 
-### 收尾必做
-
-- [x] 跨类链接已加回：`qq.md → statistics/manhattan.md`、`heatmap.md → hierarchical/clustermap.md`、
-      `pie.md → hierarchical/sunburst.md`（中英各一处）。
-- [x] 图型页数核对：中英各 **64** 页（`plots/` 下 8 个目录），与 `intro.md` 里「64 种图型」一致。
-      顺带清掉了被新版取代的旧页 `categorical/diceplot.md` 与 `categorical/dotplot.md`（中英各两份）——
-      它们与 `dice_plot.md` / `dot_plot.md` 同名同 `sidebar_position`，会在侧边栏里出现重复条目。
-- [x] `npm test`（全部可运行块）与 `npm run build`（en / zh-Hans）都过。
-
-### 跑文档里的 SQL 块要注意
-
-- [ ] **改了 Rust 代码之后必须先重建 wasm，否则块里跑的还是旧扩展**：
-      `just build_wasm_eh`，再
-      `cp build/wasm_eh/extension/duckfn_kuva/duckfn_kuva.duckdb_extension.wasm docs/static/duckdb-extensions/`。
-      （`just test_wasm` 会自动做这两步再跑 `npm test`，最省事。）
-      症状是「新加的字段在 cargo 单测里过、在文档块里报 unknown key / 必填项为空」。
-      注意单测只覆盖 lib，文档块跑的是 wasm 产物。
-
-### 记录在案、暂不处理
+## 记录在案、暂不处理
 
 - [ ] **`line` 的 tooltips 无法实现**：kuva 的 `LinePlot` 结构体本身没有 tooltip 字段，
       扩展侧没有地方可挂。文档里已写明「`tooltips` 接受但未实现」。
@@ -50,7 +34,7 @@
       能补：给某种输出函数（或 `kuva_render` 的伴随函数）返回叶子顺序，再交给 `heatmap` 的
       `y_axis.categories` —— 但配套还要有「按该顺序重排矩阵行」的手段，收益有限。
 
-### 可选增强
+## 可选增强
 
 - [ ] `legend.entries`（手工图例条目）目前只在 `reference/legends.md` 里讲了。
       等各图型页稳定后，可以在「颜色编码在数据里」的图表页（strip 逐点颜色、heatmap 色条…）

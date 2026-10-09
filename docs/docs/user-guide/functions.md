@@ -6,12 +6,14 @@ description: The SQL function duckfn_kuva registers, and how the JSON chart spec
 
 # Functions
 
-Loading the extension registers one function. It behaves like DuckDB's own: use it in a projection, a
+Loading the extension registers two functions — one that returns SVG, one that returns terminal text. Both
+behave like DuckDB's own: use them in a projection, a
 `WHERE` clause or a `GROUP BY`, and it combines with built-in functions freely.
 
 | Function | Kind | Signature | Summary |
 | --- | --- | --- | --- |
 | `kuva_render` | scalar | `VARCHAR -> VARCHAR` | Renders a chart described by a JSON string and returns it as an SVG document. |
+| `kuva_render_terminal` | scalar | `VARCHAR, BIGINT, BIGINT -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour — sized by a character grid. |
 
 ## kuva_render
 
@@ -41,6 +43,28 @@ area — fullscreen is where zoom and pan live.
 JSON rather than a DuckDB `STRUCT`: one figure's `series` are heterogeneous (a `scatter` and a `bar`
 carry different fields), and a `STRUCT` list is homogeneous, so it cannot express `[StructA, StructB]`.
 Key names are snake_case throughout.
+
+## kuva_render_terminal
+
+```text
+kuva_render_terminal(spec_json VARCHAR, cols BIGINT, rows BIGINT) -> VARCHAR
+```
+
+The same JSON, a different backend: instead of SVG you get **terminal text** — braille dots for dots,
+box-drawing characters for lines, ANSI colour for both. `cols` and `rows` are the character grid (one braille
+character carries 2 × 4 dots, so `100, 26` samples at 200 × 104); either may be `NULL`, which falls back to
+110 × 34.
+
+```sql {"type":"duckfn","show":"terminal"}
+SELECT kuva_render_terminal(to_json({
+  'series': [{'type': 'bar', 'categories': ['a', 'b', 'c', 'd'], 'values': [4, 7, 5, 9]}]
+}), 90, 22) AS frame;
+```
+
+What comes back is a plain string carrying its escape sequences, so `COPY (SELECT …) TO 'chart.ans'` or a
+pipe back into a shell both work — that is exactly what kuva's CLI prints for `--terminal`, and the two go
+through the same `TerminalBackend::new(cols, rows).render_scene(&scene)`. Errors behave as they do for
+`kuva_render`: they fail the statement rather than returning `NULL`.
 
 ## How the spec is laid out
 

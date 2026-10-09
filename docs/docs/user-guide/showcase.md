@@ -359,10 +359,27 @@ SELECT kuva_render(to_json({
 
 ## Terminal rendering
 
-kuva can also draw in a terminal — braille-grid graphics and ANSI colour, through `--terminal` on its CLI
-subcommands. That path belongs to the CLI rather than to this extension: charts here are rendered inside
-DuckDB-Wasm and handed back as SVG, so there is no terminal canvas to draw into. If you want a plot in the
-terminal, run the CLI over the same data.
+The same JSON renders as **terminal text** too: braille dots for dots, box-drawing characters for lines,
+ANSI colour for both. `kuva_render_terminal` takes the same spec plus a character grid — `cols` × `rows`,
+where one braille character carries 2 × 4 dots, so 100 × 26 samples at 200 × 104 — and returns the string
+with its escape sequences intact. `NULL` in either place falls back to 110 × 34.
+
+```sql {"type":"duckfn","show":"terminal"}
+SELECT kuva_render_terminal(to_json({
+  'series': [{'type': 'phylo',
+              'edges': [
+                {'parent': 'root', 'child': 'Bacteria', 'length': 1.5},
+                {'parent': 'root', 'child': 'Eukarya', 'length': 2.0},
+                {'parent': 'Bacteria', 'child': 'E. coli', 'length': 0.5},
+                {'parent': 'Eukarya', 'child': 'Human', 'length': 0.8}
+              ]}]
+}), 100, 26) AS frame;
+```
+
+The frame above is the real thing: what a terminal would print, drawn by the page. Send it anywhere a
+terminal reads text — `COPY (SELECT kuva_render_terminal(…)) TO 'chart.ans'`, or straight back into a shell —
+and this is what kuva's own CLI `--terminal` writes. Both go through the same backend
+(`TerminalBackend::new(cols, rows).render_scene(&scene)`); only the caller differs.
 
 ---
 

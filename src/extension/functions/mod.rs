@@ -6,4 +6,5 @@
 // into a subdirectory the way the duckfn example does (`functions/<feature>/mod.rs` plus one file per
 // concern).
 mod kuva_render;
+mod kuva_render_terminal;
 mod spec;

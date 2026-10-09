@@ -6,12 +6,13 @@ description: duckfn_kuva 注册的 SQL 函数，以及 JSON 图表规格的分�
 
 # 函数
 
-加载扩展会注册一个函数。它和 DuckDB 自带的函数一样用：可以放进投影、`WHERE` 条件或 `GROUP BY`，也能和
-内置函数随意组合。
+加载扩展会注册两个函数 —— 一个返回 SVG，一个返回终端文本。它们和 DuckDB 自带的函数一样用：可以放进投影、
+`WHERE` 条件或 `GROUP BY`，也能和内置函数随意组合。
 
 | 函数 | 类别 | 签名 | 说明 |
 | --- | --- | --- | --- |
 | `kuva_render` | 标量 | `VARCHAR -> VARCHAR` | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
+| `kuva_render_terminal` | 标量 | `VARCHAR, BIGINT, BIGINT -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色 —— 尺寸由字符网格给出。 |
 
 ## kuva_render
 
@@ -38,6 +39,27 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 
 为什么是 JSON 而不是 DuckDB 的 `STRUCT`：一张图里的 `series` 是异构的（`scatter` 与 `bar` 的字段各不
 相同），而 `STRUCT` 的 LIST 要求元素同型，表达不了 `[StructA, StructB]`。键名一律 snake_case。
+
+## kuva_render_terminal
+
+```text
+kuva_render_terminal(spec_json VARCHAR, cols BIGINT, rows BIGINT) -> VARCHAR
+```
+
+同一段 JSON、另一个后端：出来的不是 SVG，而是**终端文本** —— 点用盲文点阵、线用制表符、颜色用 ANSI。
+`cols` 与 `rows` 是字符网格（一个盲文字符横 2 竖 4 个点，所以 `100, 26` 等于 200 × 104 的采样）；两处都可以给
+`NULL`，退回 110 × 34。
+
+```sql {"type":"duckfn","show":"terminal"}
+SELECT kuva_render_terminal(to_json({
+  'series': [{'type': 'bar', 'categories': ['a', 'b', 'c', 'd'], 'values': [4, 7, 5, 9]}]
+}), 90, 22) AS frame;
+```
+
+返回的是一个带着转义序列的普通字符串，所以 `COPY (SELECT …) TO 'chart.ans'` 或者直接回灌给 shell 都行 ——
+那正是 kuva 的 CLI 在 `--terminal` 下会打印的东西，两者走的是同一个
+`TerminalBackend::new(cols, rows).render_scene(&scene)`。错误的表现与 `kuva_render` 一致：让整条语句失败，
+而不是返回 `NULL`。
 
 ## 规格是怎么分层的
 

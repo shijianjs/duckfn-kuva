@@ -19,12 +19,7 @@
       `y_axis.categories` —— 但配套还要有「按该顺序重排矩阵行」的手段，收益有限。
       另：这一条会打破「函数只画图、不打补丁」的交互逻辑（调用方得先拿顺序、再重排数据、再画第二张图），
       所以先不做。
-- [ ] **终端渲染做不了**：kuva 的 CLI 有 `--terminal`，把图打成盲文点阵 + ANSI 色；那是 CLI 的输出后端，扩展的
-      产物是 SVG（画在页面上），没有终端画布可画。`showcase.md` 的最后一节已写明「想要终端里的图就用它的 CLI」。
-      - 后面可以做，新增个函数
-      - 官方 src/bin/kuva/output.rs:48 也就是new了一个backend、然后print: 
-            print!("{}",kuva::TerminalBackend::new(cols, rows).render_scene(&scene));
-      - 返回字符串，可选是否立即打印
+
 
 
 ## 可选增强

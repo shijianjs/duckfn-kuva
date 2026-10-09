@@ -343,9 +343,26 @@ SELECT kuva_render(to_json({
 
 ## 终端渲染
 
-kuva 也能直接画在终端里 —— 盲文点阵图形加 ANSI 颜色，靠 CLI 各子命令的 `--terminal`。那条路属于 CLI 而不属于这个
-扩展：这里的图是在 DuckDB-Wasm 里渲染、以 SVG 交回来的，没有终端画布可画。想要终端里的图，就用 CLI 跑同一份
-数据。
+同一段 JSON 也能渲染成**终端文本**：点用盲文点阵、线用制表符、颜色用 ANSI。`kuva_render_terminal` 收同一份 spec，
+外加一个字符网格 —— `cols` × `rows`，一个盲文字符横 2 竖 4 个点，所以 100 × 26 就是 200 × 104 的采样 —— 返回
+的字符串里带着完整的转义序列；两处都给 `NULL` 就退回 110 × 34。
+
+```sql {"type":"duckfn","show":"terminal"}
+SELECT kuva_render_terminal(to_json({
+  'series': [{'type': 'phylo',
+              'edges': [
+                {'parent': 'root', 'child': 'Bacteria', 'length': 1.5},
+                {'parent': 'root', 'child': 'Eukarya', 'length': 2.0},
+                {'parent': 'Bacteria', 'child': 'E. coli', 'length': 0.5},
+                {'parent': 'Eukarya', 'child': 'Human', 'length': 0.8}
+              ]}]
+}), 100, 26) AS frame;
+```
+
+上面那一帧是真的：由页面画出来的、终端会印出的样子。把它交给任何吃文本的终端 ——
+`COPY (SELECT kuva_render_terminal(…)) TO 'chart.ans'`，或者直接回灌到 shell —— 就是 kuva 自己 CLI 的
+`--terminal` 会写出来的东西。两边走的是同一个后端（`TerminalBackend::new(cols, rows).render_scene(&scene)`），
+区别只在谁来调。
 
 ---
 

@@ -1,2 +1,3 @@
 function,description,comment,example
 kuva_render,Renders a complete chart described by a JSON string into an SVG document,"The full-featured, JSON-based entry point: one JSON object describes canvas, axes, legend, annotations and a heterogeneous list of series","SELECT kuva_render('{""series"":[{""type"":""scatter"",""data"":[[1,2],[3,4],[5,3]]}]}')"
+kuva_render_terminal,"Renders a chart described by a JSON string as terminal text (braille dots and ANSI colour), for piping into a terminal","Same JSON as kuva_render, different backend: cols/rows give the character grid (a braille cell is 2x4 dots); NULL means 110x34","SELECT kuva_render_terminal('{""series"":[{""type"":""line"",""data"":[[1,2],[2,3]]}]}', 100, 30)"

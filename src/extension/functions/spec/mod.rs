@@ -15,6 +15,10 @@
 mod convert;
 mod schema;
 
+use kuva::backend::terminal::TerminalBackend;
+use kuva::prelude::SvgBackend;
+use kuva::render::render::Scene;
+
 pub(crate) use schema::RenderSpec;
 
 /// 解析 JSON 并渲染成 SVG。所有失败都以 `Err(String)` 返回（由调用方转成 DuckDB 错误）。
@@ -25,6 +29,24 @@ pub(crate) use schema::RenderSpec;
 ///
 /// **解析前先把值为 `null` 的键剔掉**（见 [`drop_null_object_keys`]）。
 pub(crate) fn render_json(json: &str) -> Result<String, String> {
+    let scene = render_scene(json)?;
+    Ok(SvgBackend.render_scene(&scene))
+}
+
+/// 同一段 JSON，用**终端**后端渲染：盲文点阵 + ANSI 色，返回的字符串可以直接 `print` 出去。
+/// `cols` / `rows` 是字符网格的宽与高 —— 一个盲文字符横 2 竖 4 个点，所以实际分辨率是
+/// `cols × 2` × `rows × 4`。
+pub(crate) fn render_terminal_json(
+    json: &str,
+    cols: usize,
+    rows: usize,
+) -> Result<String, String> {
+    let scene = render_scene(json)?;
+    Ok(TerminalBackend::new(cols, rows).render_scene(&scene))
+}
+
+/// 解析 + 转换：得到与后端无关的 `Scene`，两个渲染入口共用这一段。
+fn render_scene(json: &str) -> Result<Scene, String> {
     let mut value: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
     drop_null_object_keys(&mut value);
@@ -73,6 +95,14 @@ pub(crate) mod test_support {
     pub(crate) fn render_svg(json: &str) -> String {
         match render_json(json) {
             Ok(svg) => svg,
+            Err(e) => panic!("expected the spec to render, but got: {e}"),
+        }
+    }
+
+    /// 同一段 JSON 走终端后端，失败同样 panic。网格给小一点，断言才好写。
+    pub(crate) fn render_terminal(json: &str) -> String {
+        match super::render_terminal_json(json, 60, 20) {
+            Ok(text) => text,
             Err(e) => panic!("expected the spec to render, but got: {e}"),
         }
     }

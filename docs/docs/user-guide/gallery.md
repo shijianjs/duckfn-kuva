@@ -21,7 +21,7 @@ the same charts.
 
 All 64 plot types in one 8 × 8 [figure](./reference/figure.md) — the same examples that follow, one cell each. There is no separate "overview mode": each cell is one ordinary chart spec, collected into `panels` by `string_agg`, so this is the multi-panel API used 64 times. The library's own versions of this are `all_plots_simple` / `all_plots_complex` (see the [official Gallery](https://psy-fer.github.io/kuva/gallery.html)); this one is drawn in your browser as you read it.
 
-```sql {"type":"duckfn","show":"svg"}
+```sql {"type":"duckfn","show":"svg","option":{"code_max_height":"16rem"}}
 CREATE OR REPLACE TEMP TABLE full_featured_panels (i INTEGER, j VARCHAR);
 INSERT INTO full_featured_panels SELECT 0, to_json({
   'title': '3D scatter',

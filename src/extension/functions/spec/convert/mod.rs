@@ -14,12 +14,16 @@ mod layout;
 use kuva::prelude::*;
 // `LabelStyle` 没有跟着 prelude 出来（`LabelConfig` 出来了），所以单独引一次。
 use kuva::render::figure::LabelStyle;
+use kuva::render::render::Scene;
 
 use super::schema::*;
 use layout::build_layout;
 
 /// 顶层入口：有 `figure` 就走多面板，否则单图。
-pub(crate) fn render(spec: RenderSpec) -> Result<String, String> {
+///
+/// 返回的是 **Scene**（与后端无关的一棵绘制指令树），由调用方决定用什么后端落成字符串：
+/// SVG 走 `SvgBackend`，终端走 `TerminalBackend`。
+pub(crate) fn render(spec: RenderSpec) -> Result<Scene, String> {
     let RenderSpec { panel, figure } = spec;
     match figure {
         Some(fig) => render_figure(fig),
@@ -28,7 +32,7 @@ pub(crate) fn render(spec: RenderSpec) -> Result<String, String> {
 }
 
 /// 单图：一组 series 叠加到同一套坐标轴上。
-fn render_single(panel: PanelSpec) -> Result<String, String> {
+fn render_single(panel: PanelSpec) -> Result<Scene, String> {
     let mut panel = panel;
     let series = std::mem::take(&mut panel.series);
     let secondary = std::mem::take(&mut panel.secondary_series);
@@ -41,18 +45,14 @@ fn render_single(panel: PanelSpec) -> Result<String, String> {
     let layout = build_layout(&panel, &plots, has_explicit_color)?;
 
     if secondary_plots.is_empty() {
-        return Ok(SvgBackend.render_scene(&render_multiple(plots, layout)));
+        return Ok(render_multiple(plots, layout));
     }
     // 右侧那根轴：kuva 用独立的入口渲染，它会自己把 layout 的 y 轴范围让给第二组。
-    Ok(SvgBackend.render_scene(&render_twin_y(
-        plots,
-        secondary_plots,
-        layout,
-    )))
+    Ok(render_twin_y(plots, secondary_plots, layout))
 }
 
 /// 多面板：每个 panel 各自构建 plots + layout，再交给 `Figure` 排版。
-fn render_figure(fig: FigureSpec) -> Result<String, String> {
+fn render_figure(fig: FigureSpec) -> Result<Scene, String> {
     if fig.rows == 0 || fig.cols == 0 {
         return Err("figure: `rows` and `cols` must both be greater than 0".into());
     }
@@ -196,7 +196,7 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
         figure = figure.with_figure_size(w, h);
     }
 
-    Ok(SvgBackend.render_scene(&figure.render()))
+    Ok(figure.render())
 }
 
 /// 逐个把 series 描述翻成 kuva 的 `Plot`。
@@ -243,7 +243,9 @@ fn check_structure(structure: &[Vec<usize>], rows: usize, cols: usize) -> Result
 
 #[cfg(test)]
 mod tests {
-    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+    use crate::extension::functions::spec::test_support::{
+        assert_renders, render_json, render_svg, render_terminal,
+    };
 
     const FIGURE: &str = r#"{
       "figure": {
@@ -417,6 +419,26 @@ mod tests {
     #[test]
     fn renders_twin_y() {
         assert_renders(&render_svg(TWIN_Y), "TWIN_Y");
+    }
+
+    /// 同一段 JSON 也能交给终端后端：输出不再是 SVG，而是盲文点阵 + ANSI 色的文本。
+    #[test]
+    fn renders_terminal_from_the_same_json() {
+        let text = render_terminal(r#"{"series":[{"type":"line","data":[[1,2],[2,3],[3,1]]}]}"#);
+        assert!(!text.is_empty(), "the terminal backend should produce text");
+        // 网格 20 行，标题/坐标轴标签可能再多一两行。
+        assert!(
+            text.lines().count() <= 22,
+            "one line per grid row, got {}",
+            text.lines().count()
+        );
+        // 图上有点或线，所以要么带 ANSI 色序列、要么有盲文字符 —— 不能是一片空格。
+        assert!(
+            text.contains("\u{1b}[")
+                || text.chars().any(|c| ('\u{2800}'..='\u{28ff}').contains(&c)),
+            "expected colour escapes or braille dots, got: {:?}",
+            text.chars().take(80).collect::<String>()
+        );
     }
 
     /// DuckDB 的 `to_json` 会给同一个表达式里所有结构体取键的**并集**，缺的补 `null`：

@@ -17,7 +17,7 @@ description: 一页看完所有图型 —— 每个一条可运行的 SQL。
 
 全部 64 种图型塞进一个 8 × 8 的 [figure](./reference/figure.md) —— 用的就是下面那些例子，一格一个。这里没有什么「总览模式」：每一格都是一段最普通的图型配置，由 `string_agg` 收集进 `panels`，也就是把多面板 API 用了 64 次。库里对应的版本是 `all_plots_simple` / `all_plots_complex`（见[官方 Gallery](https://psy-fer.github.io/kuva/gallery.html)）；这一张在你读到这里时由浏览器现画。
 
-```sql {"type":"duckfn","show":"svg"}
+```sql {"type":"duckfn","show":"svg","option":{"code_max_height":"16rem"}}
 CREATE OR REPLACE TEMP TABLE full_featured_panels (i INTEGER, j VARCHAR);
 INSERT INTO full_featured_panels SELECT 0, to_json({
   'title': '3D scatter',

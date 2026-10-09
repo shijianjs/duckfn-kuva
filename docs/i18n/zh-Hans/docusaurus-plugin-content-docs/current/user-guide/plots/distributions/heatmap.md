@@ -222,6 +222,6 @@ SELECT kuva_render(to_json({
 ## 另见
 
 - [kuva — 热力图](https://psy-fer.github.io/kuva/plots/heatmap.html) —— 绘图库自己的图型参考。
-- 聚类热图是同一张矩阵做层次聚类的结果。
+- [聚类热图](../hierarchical/clustermap.md)是同一张矩阵做层次聚类的结果。
 - [二维直方图](./histogram2d.md) · [六边形分箱图](./hexbin.md) —— 矩阵来自点云、而不是表格的时候。
 - [色图](../../reference/colormaps.md) —— 所有色图名字。

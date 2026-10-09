@@ -183,4 +183,4 @@ FROM (
 
 - [kuva — Q-Q 图](https://psy-fer.github.io/kuva/plots/qq.html) —— 绘图库自己的图型参考。
 - [ECDF 图](./ecdf.md) —— 累积分布本身。
-- 曼哈顿图是同一批 p 值的全基因组视图。
+- [曼哈顿图](../statistics/manhattan.md)是同一批 p 值的全基因组视图。

@@ -14,12 +14,19 @@ pub(crate) struct DicePlotSeries {
     pub position_legend_label: Option<String>,
     /// 每个格子最多几个点（1~6，默认 4）。
     pub ndots: Option<usize>,
-    /// 逐格数据。
+    /// 逐格数据（三种输入写法之一）。
     #[serde(default)]
     pub points: Vec<DicePointSpec>,
-    /// 列类别（x 轴）。
+    /// 分类写法（三种输入写法之一）：一条记录一个点，
+    /// 点位由 `category` 匹配 `category_labels` 得到，颜色直接用 CSS 字符串。
+    #[serde(default)]
+    pub records: Vec<DiceRecordSpec>,
+    /// 逐点连续写法（三种输入写法之一）：一条记录一个点，各自带填充值与大小值。
+    #[serde(default)]
+    pub dot_points: Vec<DiceDotSpec>,
+    /// 列类别（x 轴）。`points` 写法必填；另外两种不给我会自己收集。
     pub x_categories: Option<Vec<String>>,
-    /// 行类别（y 轴）。
+    /// 行类别（y 轴）。同上。
     pub y_categories: Option<Vec<String>>,
     /// 每一「点」代表什么（长度须等于 `ndots`），如 `["1","2","3","4"]`。
     pub category_labels: Option<Vec<String>>,
@@ -28,7 +35,7 @@ pub(crate) struct DicePlotSeries {
     pub fill_range: Option<(f64, f64)>,
     /// 点大小的取值区间。
     pub size_range: Option<(f64, f64)>,
-    /// 图例：`[["1", "one"], …]`，长度须等于 `ndots`。
+    /// 分类写法的颜色图例：每项 `[文字, CSS 颜色]`，长度须等于 `ndots`。
     pub dot_legend: Option<Vec<[String; 2]>>,
     /// 画格子的分隔线。
     pub grid_lines: Option<bool>,
@@ -39,6 +46,30 @@ pub(crate) struct DicePlotSeries {
     pub cell_height: Option<f64>,
     /// 格子之间的留白。
     pub pad: Option<f64>,
+}
+
+/// 分类写法的一条记录。
+#[derive(Debug, Deserialize)]
+pub(crate) struct DiceRecordSpec {
+    pub x: String,
+    pub y: String,
+    /// 这个点落在哪个位置上：与 `category_labels` 里的名字匹配。
+    pub category: String,
+    /// CSS 颜色字符串。
+    pub color: String,
+}
+
+/// 逐点连续写法的一条记录。
+#[derive(Debug, Deserialize)]
+pub(crate) struct DiceDotSpec {
+    pub x: String,
+    pub y: String,
+    /// 点位置下标（**从 0 开始**，取值须小于 `ndots`）。
+    pub dot: usize,
+    /// 填充色的编码值。
+    pub fill: Option<f64>,
+    /// 点大小的编码值。
+    pub size: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]

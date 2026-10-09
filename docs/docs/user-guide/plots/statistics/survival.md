@@ -1,60 +1,178 @@
 ---
-title: Kaplan-Meier survival curve
+title: Survival curve
 sidebar_position: 3
-description: Survival curves per group, with confidence bands, censoring marks and a p-value annotation.
+description: Kaplan–Meier curves for time-to-event data, with censoring, bands and a p-value.
 ---
 
-# Kaplan-Meier survival curve
+# Survival curve
 
-A survival curve estimates, for each group, the fraction still event-free over time (Kaplan-Meier). Give
-each group a follow-up time and an event flag per subject.
+A Kaplan–Meier plot shows the probability of remaining event-free over time. Each subject contributes one
+observation: either the time the event happened, or the time of last follow-up for a censored subject who
+did not have the event. It is the standard tool for time-to-event outcomes in trials and epidemiology.
 
 ```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
 SELECT kuva_render(to_json({
-  'x_axis': {'name': 'time'},
-  'y_axis': {'name': 'survival'},
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
   'series': [{
     'type': 'survival',
-    'groups': grps,
-    'ci': true,
-    'censoring': true,
-    'legend': 'cohort'
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group"))
   }]
-})) AS chart
-FROM (
-  SELECT list({'label': g, 'times': ts, 'events': ev} ORDER BY g) AS grps
-  FROM (
-    SELECT "group" AS g,
-           list(time ORDER BY time) AS ts,
-           list(event = 1 ORDER BY time) AS ev
-    FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv')
-    GROUP BY "group"
-  )
-);
+})) AS chart;
+```
+
+A group takes parallel `times` and `events` lists; `event = 1` becomes the `true` the field expects, so the
+long-format table is pivoted and typed in one pass. Tick marks on the curves are the censored
+observations — the subjects still event-free at their last follow-up.
+
+## Several arms, with a p-value
+
+One group per arm. The log-rank p-value is **not** computed here: kuva renders the string you give it, so
+the test has to be run in SQL (or elsewhere) and the result passed in. That is deliberate — a chart that
+invents a p-value is worse than one without.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'survival',
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group")),
+    'pvalue_text': 'log-rank p = 0.031',
+    'legend': 'arm'
+  }]
+})) AS chart;
+```
+
+## Confidence bands
+
+`ci` overlays the Greenwood 95 % band around each curve and `ci_alpha` sets its opacity. Bands that overlap
+heavily are the visual version of "this difference is not significant", which is worth looking at before
+quoting any p-value.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'survival',
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group")),
+    'ci': true,
+    'ci_alpha': 0.15,
+    'pvalue_text': 'p < 0.001',
+    'legend': 'arm'
+  }]
+})) AS chart;
+```
+
+## Colours
+
+`colors` assigns one colour per group, by position. Give the arms colours that carry meaning — treatment
+versus control, high versus low — rather than letting the palette decide, because the palette order depends
+on how the groups were sorted.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'survival',
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group")),
+    'colors': ['#2ca02c', '#d62728'],
+    'ci': true,
+    'legend': 'arm'
+  }]
+})) AS chart;
+```
+
+## Styling
+
+| Field | Default | What it sets |
+| --- | --- | --- |
+| `line_width` | `2` | Curve stroke width |
+| `censoring` | `true` | Draw the censoring tick marks |
+| `censoring_size` | `4` | Half-height of those ticks, in pixels |
+| `ci` / `ci_alpha` | `false` / `0.2` | The Greenwood band and its opacity |
+| `pvalue_text` | — | A string drawn in the upper-right corner |
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'survival',
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group")),
+    'censoring': false,
+    'line_width': 3,
+    'legend': 'arm'
+  }]
+})) AS chart;
 ```
 
 ## Fields
 
 | Field | Type | What it sets |
 | --- | --- | --- |
-| `groups` | group[] | **Required.** One curve per group: `{label, times, events, color?}`. |
-| `colors` | string[] | Per-group colours, matched to `groups` by position. |
-| `line_width` | number | Curve width. |
-| `ci` | boolean | Draw a confidence band. |
-| `ci_alpha` | number | Band opacity. |
-| `censoring` | boolean | Mark censored observations. |
-| `censoring_size` | number | Censoring mark size. |
-| `pvalue_text` | string | A text line on the plot (typically a log-rank p value — computed by you, not by the chart). |
-
-`color` and `legend` come from [series & shared fields](../../reference/series.md).
+| `groups` | group[] | **Required.** One entry per arm: `{label, times, events, color?}`. |
+| `times` | number[] | Each subject's follow-up time. |
+| `events` | boolean[] | `true` = the event occurred, `false` = censored. |
+| `colors` | string[] | Per-group colours, matched by position. |
+| `line_width` | number | Curve stroke width (default `2`). |
+| `ci` / `ci_alpha` | boolean / number | The Greenwood 95 % band and its opacity. |
+| `censoring` / `censoring_size` | boolean / number | The censoring ticks. |
+| `pvalue_text` | string | Free text drawn in the corner — kuva does not compute it. |
+| `legend` | string | Legend title; one entry per group. |
 
 ## Notes
 
-- **`groups` must not be empty**, and within a group `times` and `events` must be the same length and
-  non-empty — a mismatch is an error rather than a silent zip.
-- **`pvalue_text` is not computed**; run your own log-rank test and pass the string in.
+- **`groups` must not be empty**, and within each group `times` and `events` must be the same length.
+- Event times are numeric — months, days, cycles — whatever one x unit means.
+- `pvalue_text` is a **string**: the log-rank test is not run for you. Compute it in SQL and pass the
+  formatted result, so the number on the chart is traceable.
+- A censored subject contributes a tick, not a drop; if the ticks are hidden, say so in the caption.
+- `colors` is matched by position, so it has to line up with the order the groups come out of the query.
 
 ## See also
 
 - [kuva — Survival curve](https://psy-fer.github.io/kuva/plots/survival.html) — the plotting library's own reference for this chart.
-- [Stats box](../../reference/stats-box.md) — another place to put a computed statistic.
+- [Forest](./forest.md) — pooled effect estimates instead of time-to-event curves.
+- [ROC](./roc.md) — another step-function statistical curve.

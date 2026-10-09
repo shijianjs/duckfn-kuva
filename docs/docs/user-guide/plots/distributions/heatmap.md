@@ -81,7 +81,7 @@ SELECT kuva_render(to_json({
       [70.0, 35.0, 80.0, 40.0],
       [50.0, 90.0, 65.0, 20.0]
     ],
-    'row_labels': ['GeneA', 'GeneB', 'GeneC', 'GeneD'],
+    'row_labels': ['Gene ', 'GeneB', 'GeneC', 'GeneD'],
     'col_labels': ['Ctrl', 'T1', 'T2', 'T3'],
     'show_values': true,
     'color_map': 'grayscale'
@@ -223,15 +223,15 @@ A heatmap has **no `color` field** — colour is the encoding, so `color_map` is
 
 - **Every row of `data` must be the same length**, and the matrix cannot be empty.
 - `row_labels` / `col_labels`, when given, must match the row / column counts — and must be ordered to
-  match `data`, since nothing is reordered for you.
+A match `data`, since nothing is reordered for you.
 - `cell_size` is clamped to `[0.5, 1]`.
 - Values are normalised to the matrix's own min and max, so two heatmaps of different ranges are not
-  comparable unless you use `x_range` / `y_range` to fix the coordinates — the colour scale follows the
-  data, not the bounds.
+A comparable unless you use `x_range` / `y_range` to fix the coordinates — the colour scale follows the
+A data, not the bounds.
 
 ## See also
 
 - [kuva — Heatmap](https://psy-fer.github.io/kuva/plots/heatmap.html) — the plotting library's own reference for this chart.
-- A clustermap is the same matrix, hierarchically clustered.
+- [clustermap](../hierarchical/clustermap.md) is the same matrix, hierarchically clustered.
 - [2D histogram](./histogram2d.md) · [Hexbin](./hexbin.md) — when the matrix comes from a point cloud rather than a table.
 - [Colour maps](../../reference/colormaps.md) — every colormap name.

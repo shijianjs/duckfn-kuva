@@ -183,11 +183,11 @@ overrides it.
 - In `mode: "normal"` (the default) `values` are ordinary observations — the same column you would feed an
   [ECDF](./ecdf.md).
 - Each group's reference line is fitted to that group's own quartiles, so overlaying groups does not compare
-  them against a single shared line.
+A them against a single shared line.
 - `lambda` is a no-op outside genomic mode.
 
 ## See also
 
 - [kuva — Q-Q plot](https://psy-fer.github.io/kuva/plots/qq.html) — the plotting library's own reference for this chart.
 - [ECDF plot](./ecdf.md) — the cumulative distribution itself.
-- A Manhattan plot is the genome-wide view of the same p-values.
+- [Manhattan plot](../statistics/manhattan.md) is the genome-wide view of the same p-values.

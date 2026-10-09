@@ -60,9 +60,10 @@ pub(super) fn build_phylo(s: PhyloSeries) -> Result<Plot, String> {
     if tree.nodes.is_empty() {
         return Err("phylo: the input produced a tree with no nodes".into());
     }
-    for (node_id, _) in &s.clade_colors {
+    for spec in &s.clade_colors {
+        let (node_id, _) = spec.parts();
         // kuva 收集图例时会直接索引 `nodes[node_id]`，越界就是 panic。
-        if *node_id >= tree.nodes.len() {
+        if node_id >= tree.nodes.len() {
             return Err(format!(
                 "phylo: `clade_colors` refers to node {node_id} but the tree has {} nodes",
                 tree.nodes.len()
@@ -97,8 +98,9 @@ pub(super) fn build_phylo(s: PhyloSeries) -> Result<Plot, String> {
     if let Some(v) = s.support_threshold {
         tree = tree.with_support_threshold(v);
     }
-    for (node_id, color) in &s.clade_colors {
-        tree = tree.with_clade_color(*node_id, color.clone());
+    for spec in &s.clade_colors {
+        let (node_id, color) = spec.parts();
+        tree = tree.with_clade_color(node_id, color.to_string());
     }
     if let Some(v) = &s.legend {
         tree = tree.with_legend(v.clone());

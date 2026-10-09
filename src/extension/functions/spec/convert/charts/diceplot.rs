@@ -12,8 +12,16 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
     if !(1..=6).contains(&ndots) {
         return Err(format!("dice_plot: `ndots` is {ndots}; it must be between 1 and 6"));
     }
-    if s.points.is_empty() {
-        return Err("dice_plot: `points` must not be empty".into());
+    // 三种输入写法互斥：逐格、分类、逐点连续。
+    let given = [
+        !s.points.is_empty(),
+        !s.records.is_empty(),
+        !s.dot_points.is_empty(),
+    ];
+    if given.iter().filter(|b| **b).count() != 1 {
+        return Err(
+            "dice_plot: give exactly one of `points`, `records` or `dot_points`".into(),
+        );
     }
     for p in &s.points {
         for i in &p.present {
@@ -23,6 +31,14 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
                     p.x, p.y
                 ));
             }
+        }
+    }
+    for p in &s.dot_points {
+        if p.dot >= ndots {
+            return Err(format!(
+                "dice_plot: cell ({}, {}) lists pip {}, but `ndots` is {ndots} (pips are 0-based)",
+                p.x, p.y, p.dot
+            ));
         }
     }
     if let Some(labels) = &s.category_labels {
@@ -41,26 +57,56 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
             ));
         }
     }
-    let x_cats = s
-        .x_categories
-        .clone()
-        .ok_or("dice_plot: `x_categories` is required (the grid columns)")?;
-    let y_cats = s
-        .y_categories
-        .clone()
-        .ok_or("dice_plot: `y_categories` is required (the grid rows)")?;
 
-    // `with_points` 收的是这个五元组：x 类别、y 类别、点了哪几个 pip、填充编码值、大小编码值。
-    type DiceRow = (String, String, Vec<usize>, Option<f64>, Option<f64>);
-    let data: Vec<DiceRow> = s
-        .points
-        .iter()
-        .map(|p| (p.x.clone(), p.y.clone(), p.present.clone(), p.fill, p.size))
-        .collect();
-    let mut plot = DicePlot::new(ndots)
-        .with_points(data)
-        .with_x_categories(x_cats)
-        .with_y_categories(y_cats);
+    let mut plot = DicePlot::new(ndots);
+    if !s.points.is_empty() {
+        // 逐格写法：格子和类别都得自己给全。
+        let x_cats = s
+            .x_categories
+            .clone()
+            .ok_or("dice_plot: `x_categories` is required for the `points` input")?;
+        let y_cats = s
+            .y_categories
+            .clone()
+            .ok_or("dice_plot: `y_categories` is required for the `points` input")?;
+        // `with_points` 收的是这个五元组：x 类别、y 类别、点了哪几个 pip、填充值、大小值。
+        type DiceRow = (String, String, Vec<usize>, Option<f64>, Option<f64>);
+        let data: Vec<DiceRow> = s
+            .points
+            .iter()
+            .map(|p| (p.x.clone(), p.y.clone(), p.present.clone(), p.fill, p.size))
+            .collect();
+        plot = plot
+            .with_points(data)
+            .with_x_categories(x_cats)
+            .with_y_categories(y_cats);
+    } else if !s.records.is_empty() {
+        // 分类写法：点位由 `category` 匹配 `category_labels`，颜色逐点给。
+        let data: Vec<(String, String, String, String)> = s
+            .records
+            .iter()
+            .map(|r| (r.x.clone(), r.y.clone(), r.category.clone(), r.color.clone()))
+            .collect();
+        plot = plot.with_records(data);
+    } else {
+        // 逐点连续写法：每个点各自带填充值与大小值。
+        type DotRow = (String, String, usize, Option<f64>, Option<f64>);
+        let data: Vec<DotRow> = s
+            .dot_points
+            .iter()
+            .map(|p| (p.x.clone(), p.y.clone(), p.dot, p.fill, p.size))
+            .collect();
+        plot = plot.with_dot_data(data);
+    }
+    // 后两种写法里 kuva 会按首次出现自动收集类别；显式给了就以给的为准。
+    if s.points.is_empty() {
+        if let Some(v) = s.x_categories.clone() {
+            plot = plot.with_x_categories(v);
+        }
+        if let Some(v) = s.y_categories.clone() {
+            plot = plot.with_y_categories(v);
+        }
+    }
     if let Some(v) = s.category_labels {
         plot = plot.with_category_labels(v);
     }
@@ -129,6 +175,63 @@ mod tests {
     #[test]
     fn renders_dice_plot() {
         assert_renders(&render_svg(DICE_PLOT), "DICE_PLOT");
+    }
+
+    /// 分类写法：一条记录一个点，点位与颜色都写在记录里。
+    const DICE_PLOT_RECORDS: &str = r##"{
+      "series": [{
+        "type": "dice_plot",
+        "ndots": 4,
+        "category_labels": ["Lung", "Liver", "Brain", "Kidney"],
+        "records": [
+          {"x": "miR-1", "y": "Control", "category": "Lung",   "color": "#2166ac"},
+          {"x": "miR-1", "y": "Control", "category": "Liver",  "color": "#2166ac"},
+          {"x": "miR-1", "y": "Control", "category": "Brain",  "color": "#cccccc"},
+          {"x": "miR-1", "y": "Control", "category": "Kidney", "color": "#2166ac"},
+          {"x": "miR-1", "y": "Compound_1", "category": "Lung", "color": "#b2182b"}
+        ],
+        "position_legend_label": "Organ"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_dice_plot_from_records() {
+        assert_renders(&render_svg(DICE_PLOT_RECORDS), "DICE_PLOT_RECORDS");
+    }
+
+    /// 逐点连续写法：每个点各自带填充值与大小值。
+    const DICE_PLOT_DOTS: &str = r##"{
+      "series": [{
+        "type": "dice_plot",
+        "ndots": 4,
+        "category_labels": ["Caries", "Periodontitis", "Healthy", "Gingivitis"],
+        "dot_points": [
+          {"x": "C. showae", "y": "Saliva", "dot": 0, "fill": 2.55, "size": 4.82},
+          {"x": "C. showae", "y": "Saliva", "dot": 1, "fill": -0.67, "size": 1.30}
+        ],
+        "fill_legend_label": "Log2FC",
+        "size_legend_label": "q-value"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_dice_plot_from_dot_points() {
+        assert_renders(&render_svg(DICE_PLOT_DOTS), "DICE_PLOT_DOTS");
+    }
+
+    /// 三种输入写法互斥。
+    #[test]
+    fn dice_plot_rejects_mixed_input_modes() {
+        let err = render_json(
+            r#"{"series":[{"type":"dice_plot","ndots":2,
+                 "points":[{"x":"a","y":"b","present":[0]}],
+                 "dot_points":[{"x":"a","y":"b","dot":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("exactly one of"),
+            "unexpected message: {err}"
+        );
     }
 
     #[test]

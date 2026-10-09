@@ -11,42 +11,45 @@ use crate::extension::functions::spec::convert::enums::tick_format;
 use crate::extension::functions::spec::schema::*;
 
 pub(super) fn build_sankey(s: SankeySeries) -> Result<Plot, String> {
-    if s.nodes.is_empty() || s.links.is_empty() {
-        return Err("sankey: `nodes` and `links` must both be non-empty".into());
+    if s.links.is_empty() && s.alluvia.is_empty() {
+        return Err("sankey: give `links` or `alluvia` (or both)".into());
     }
-    let index: std::collections::HashMap<&str, usize> = s
-        .nodes
-        .iter()
-        .enumerate()
-        .map(|(i, n)| (n.label.as_str(), i))
-        .collect();
-    if index.len() != s.nodes.len() {
-        return Err("sankey: `nodes` has duplicate labels".into());
-    }
-    // kuva 的 `with_link` / `with_alluvium` 收的就是节点名，但认不出的名字会变成一个指向
-    // 不存在节点的下标（渲染时越界 panic），所以这里先查一遍。
-    let resolve = |name: &str, what: &str| -> Result<(), String> {
-        if index.contains_key(name) {
-            Ok(())
-        } else {
-            Err(format!("sankey: {what} refers to an unknown node `{name}`"))
+    // 先声明一遍所有会出现的节点，顺序确定：显式声明的在前，其余按连边 / 流里首次出现的顺序。
+    // kuva 会按名字把连边落到节点上，所以名字必须先存在 —— 否则就是一个越界下标。
+    let mut labels: Vec<String> = Vec::new();
+    for n in &s.nodes {
+        if labels.iter().any(|l| l == &n.label) {
+            return Err("sankey: `nodes` has duplicate labels".into());
         }
-    };
+        labels.push(n.label.clone());
+    }
+    for name in s
+        .links
+        .iter()
+        .flat_map(|l| [&l.source, &l.target])
+        .chain(s.alluvia.iter().flat_map(|a| a.nodes.iter()))
+    {
+        if !labels.iter().any(|l| l == name) {
+            labels.push(name.clone());
+        }
+    }
+    let declared: std::collections::HashMap<&str, &SankeyNodeSpec> =
+        s.nodes.iter().map(|n| (n.label.as_str(), n)).collect();
 
     let mut plot = SankeyPlot::new();
-    for n in &s.nodes {
-        plot = plot.with_node(n.label.clone());
+    for label in &labels {
+        plot = plot.with_node(label.clone());
         // `with_node` 只收标签，color / column 得回头补（builder 没暴露这两个的组合入口）。
         let last = plot
             .nodes
             .last_mut()
             .ok_or("sankey: a node was just pushed, so this cannot happen")?;
-        last.color = n.color.clone();
-        last.column = n.column;
+        if let Some(n) = declared.get(label.as_str()) {
+            last.color = n.color.clone();
+            last.column = n.column;
+        }
     }
     for l in &s.links {
-        resolve(&l.source, "a link's `source`")?;
-        resolve(&l.target, "a link's `target`")?;
         plot = plot.with_links([(l.source.clone(), l.target.clone(), l.value)]);
         if let Some(c) = &l.color {
             if let Some(last) = plot.links.last_mut() {
@@ -55,9 +58,6 @@ pub(super) fn build_sankey(s: SankeySeries) -> Result<Plot, String> {
         }
     }
     for a in &s.alluvia {
-        for name in &a.nodes {
-            resolve(name, "an alluvium's node")?;
-        }
         plot = plot.with_alluvium(a.nodes.clone(), a.value);
     }
     if let Some(v) = &s.axis_names {
@@ -164,13 +164,40 @@ mod tests {
         assert_renders(&render_svg(SANKEY), "SANKEY");
     }
 
+    /// `nodes` 是可选的（与官方一致）：节点从连边的标签自动建出来。
     #[test]
-    fn sankey_unknown_node_reference_is_reported() {
-        // 认不出的节点名会变成指向不存在节点的下标，渲染时越界 panic。
+    fn sankey_nodes_are_optional() {
+        assert_renders(
+            &render_svg(
+                r#"{"series":[{"type":"sankey","links":[
+                     {"source":"a","target":"b","value":3},
+                     {"source":"b","target":"c","value":2}]}]}"#,
+            ),
+            "SANKEY_LINKS_ONLY",
+        );
+    }
+
+    /// 只给 `alluvia`（不给 `nodes` / `links`）也要能画：轴上的每个分层成为节点。
+    #[test]
+    fn sankey_alluvia_alone_renders() {
+        assert_renders(
+            &render_svg(
+                r#"{"series":[{"type":"sankey",
+                     "axis_names":["tissue","cluster"],
+                     "alluvia":[{"nodes":["T CELL","4"],"value":9},
+                                {"nodes":["B CELL","4"],"value":4}]}]}"#,
+            ),
+            "SANKEY_ALLUVIA_ONLY",
+        );
+    }
+
+    /// 既没有连边也没有流，等于没数据 —— 这时才报错。
+    #[test]
+    fn sankey_without_links_or_alluvia_is_reported() {
         let err = render_json(
-            r#"{"series":[{"type":"sankey","nodes":[{"label":"a"}],"links":[{"source":"a","target":"ghost","value":1}]}]}"#,
+            r#"{"series":[{"type":"sankey","nodes":[{"label":"a"}]}]}"#,
         )
         .unwrap_err();
-        assert!(err.contains("unknown node `ghost`"), "unexpected message: {err}");
+        assert!(err.contains("`links` or `alluvia`"), "unexpected message: {err}");
     }
 }

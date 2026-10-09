@@ -42,9 +42,32 @@ pub(crate) struct PhyloSeries {
     pub leaf_color: Option<String>,
     /// 低于该值的支撑值当作噪声，不画。
     pub support_threshold: Option<f64>,
-    /// 给某个节点（及其子树）上色：`[节点下标, 颜色]`。
+    /// 给某个节点（及其子树）上色。
     #[serde(default)]
-    pub clade_colors: Vec<(usize, String)>,
+    pub clade_colors: Vec<CladeColorSpec>,
+}
+
+/// 一处子树着色：`[节点下标, 颜色]` 或 `{"node": …, "color": …}`。
+///
+/// 两种写法都收：数组写法更紧凑，对象写法在 SQL 里更好构造（`[[1, '#f00']]` 这种混合数组
+/// DuckDB 会把两个元素统一成同一种类型，`int` 与 `string` 是合不到一起的）。
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub(crate) enum CladeColorSpec {
+    Tuple((usize, String)),
+    Full {
+        node: usize,
+        color: String,
+    },
+}
+
+impl CladeColorSpec {
+    pub(crate) fn parts(&self) -> (usize, &str) {
+        match self {
+            CladeColorSpec::Tuple((n, c)) => (*n, c.as_str()),
+            CladeColorSpec::Full { node, color } => (*node, color.as_str()),
+        }
+    }
 }
 
 /// 一条枝：父节点名、子节点名、从父到子的枝长。

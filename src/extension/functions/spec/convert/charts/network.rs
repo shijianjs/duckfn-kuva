@@ -9,20 +9,29 @@ use kuva::prelude::*;
 use crate::extension::functions::spec::schema::*;
 
 pub(super) fn build_network(s: NetworkSeries) -> Result<Plot, String> {
-    if s.nodes.is_empty() {
-        return Err("network: `nodes` must not be empty".into());
+    if s.nodes.is_empty() && s.edges.is_empty() {
+        return Err("network: give `edges` or `nodes` (or both)".into());
     }
-    let index: std::collections::HashMap<&str, usize> = s
-        .nodes
-        .iter()
-        .enumerate()
-        .map(|(i, n)| (n.label.as_str(), i))
-        .collect();
-    if index.len() != s.nodes.len() {
-        return Err("network: `nodes` has duplicate labels".into());
+    // `nodes` 是可选的（与官方一致）：节点由连边端点自动建出来。但 kuva 认不出的名字会变成指向
+    // 不存在节点的下标、力导向布局直接索引就是越界 panic，所以先把「声明的 ∪ 连边端点的」收成一张
+    // 确定顺序的节点表。
+    let mut labels: Vec<String> = Vec::new();
+    for n in &s.nodes {
+        if labels.iter().any(|l| l == &n.label) {
+            return Err("network: `nodes` has duplicate labels".into());
+        }
+        labels.push(n.label.clone());
+    }
+    for name in s.edges.iter().flat_map(|e| [&e.source, &e.target]) {
+        if !labels.iter().any(|l| l == name) {
+            labels.push(name.clone());
+        }
     }
 
     let mut plot = NetworkPlot::new();
+    for label in &labels {
+        plot = plot.with_node(label.clone());
+    }
     for n in &s.nodes {
         plot = match &n.color {
             Some(c) => plot.with_node_color(n.label.clone(), c.clone()),
@@ -42,20 +51,6 @@ pub(super) fn build_network(s: NetworkSeries) -> Result<Plot, String> {
         }
     }
     for e in &s.edges {
-        // 先确认两端都认识：kuva 的 `with_edge` 收的是节点名，但认不出的名字会变成指向不存在
-        // 节点的下标，力导向布局直接索引节点数组，就是越界 panic。
-        if !index.contains_key(e.source.as_str()) {
-            return Err(format!(
-                "network: an edge's `source` refers to an unknown node `{}`",
-                e.source
-            ));
-        }
-        if !index.contains_key(e.target.as_str()) {
-            return Err(format!(
-                "network: an edge's `target` refers to an unknown node `{}`",
-                e.target
-            ));
-        }
         plot = plot.with_edges([(e.source.clone(), e.target.clone(), e.weight)]);
         let last = plot
             .edges
@@ -149,12 +144,23 @@ mod tests {
         assert_renders(&render_svg(NETWORK), "NETWORK");
     }
 
+    /// `nodes` 是可选的（与官方一致）：节点由连边端点自动建出来。
     #[test]
-    fn network_unknown_node_reference_is_reported() {
-        let err = render_json(
-            r#"{"series":[{"type":"network","nodes":[{"label":"a"}],"edges":[{"source":"a","target":"ghost","weight":1}]}]}"#,
-        )
-        .unwrap_err();
-        assert!(err.contains("unknown node `ghost`"), "unexpected message: {err}");
+    fn network_nodes_are_optional() {
+        assert_renders(
+            &render_svg(
+                r#"{"series":[{"type":"network","edges":[
+                     {"source":"a","target":"b","weight":1},
+                     {"source":"b","target":"c","weight":0.5}]}]}"#,
+            ),
+            "NETWORK_EDGES_ONLY",
+        );
+    }
+
+    /// 既没有连边也没有节点，等于没数据 —— 这时才报错。
+    #[test]
+    fn network_without_nodes_or_edges_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"network"}]}"#).unwrap_err();
+        assert!(err.contains("`edges` or `nodes`"), "unexpected message: {err}");
     }
 }

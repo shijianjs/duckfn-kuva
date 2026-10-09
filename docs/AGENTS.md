@@ -18,6 +18,11 @@ info string 是 JSON 的 `sql` 围栏会变成能就地跑的示例（详见 `RE
 - 也**不要**用围栏的 `"option":{"height":"…"}` 去钉预览框。`"show":"svg"` 的块会按 SVG 自身
   的高度**自动撑开**，写死的数字只会在宽高比不同的图上留下多余留白、或在窄屏下把图裁掉。
   信息串就写 `{"type":"duckfn","show":"svg"}`，再到此为止 —— 不要加 `option`。
+  **唯一的例外是可交互的示例**：`"grid":{"interactive":true}` 的图必须用
+  `{"type":"duckfn","show":"iframe","option":{"height":"610px"}}` 展示。注入的 `<script>` 要与宿主
+  页面共用 document 时，它的快捷键会跟页面打架、按图定位的控件（搜索框）会改成按页面定位 ——
+  只有放进 iframe 才有自己的坐标系；而 iframe 没有内容撑高的能力，所以高度必须手调。
+  见 [`docs/user-guide/reference/interactive.md`](./docs/user-guide/reference/interactive.md)。
 - 多面板 `figure` 块同样**不要**钉 `figure_width` / `figure_height`：让 kuva 用它默认的
   单元格尺寸（每格 `500×380`）排布，单个面板的比例才和单张图一致。
 

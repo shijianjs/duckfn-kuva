@@ -90,6 +90,18 @@ raw markup one click away.
 proportion. Do not pin the preview box either: in `"show":"svg"` mode the block grows to the SVG's own
 height, so the info string is just `{"type":"duckfn","show":"svg"}` — no `option` needed or wanted.
 
+The one exception is an **interactive** chart (`"grid":{"interactive":true}`), which has to be shown through
+the `iframe` renderer:
+
+````markdown
+```sql {"type":"duckfn","show":"iframe","option":{"height":"610px"}}
+````
+
+Inlining it would run the plot's script in the docs' own document — its keyboard shortcuts fight the page's,
+and the controls it positions against the plot's box get laid out against the page, so the search box lands in
+the wrong place. Sandboxed in an iframe (`allow-scripts`, no `allow-same-origin`) it has its own coordinate
+space. An iframe has no intrinsic height, so there the height must be hand-tuned to the chart.
+
 The examples read their data from the site's own files under `static/data/` (kuva's sample
 datasets), served through an asset mount declared in `tests/docs.spec.mts`. Their URLs are
 absolute — DuckDB-Wasm resolves nothing relative to the page, so a block writes

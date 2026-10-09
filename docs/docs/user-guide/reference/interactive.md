@@ -10,7 +10,7 @@ kuva can embed browser interactivity directly into the SVG it produces — no se
 dependencies, no JavaScript from a CDN. Everything travels inside the `.svg` file, so it works from a
 `file://` path, an email attachment, or a docs page.
 
-```sql {"type":"duckfn","show":"svg"}
+```sql {"type":"duckfn","show":"iframe","option":{"height":"610px"}}
 WITH d AS (SELECT x, y FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv'))
 SELECT kuva_render(to_json({
   'title': 'Interactive scatter',
@@ -23,6 +23,22 @@ SELECT kuva_render(to_json({
 
 Click inside the chart above and try the search box in its top-left corner, or click a legend entry to
 toggle that series.
+
+::::note[Why this block is an iframe]
+
+The injected `<script>` runs in whatever document it lands in. Inlined into the page, the plot's JavaScript
+would share the docs' own document: its keyboard shortcuts would fight the page's, and the controls it places
+against the plot's box would be laid out against the page instead — the search box ends up in the wrong place
+and stops tracking the plot. The `iframe` renderer puts the SVG in a sandboxed document of its own
+(`allow-scripts`, and deliberately **no** `allow-same-origin`), so coordinates and shortcuts stay inside the
+frame.
+
+The `height` is pinned on purpose and is the one exception to "never pin the preview box" on this site: an
+iframe has no intrinsic height, so it cannot grow to its content the way the inline SVG blocks do. It is
+hand-tuned to the chart's own height (a default chart is about `675 × 511` plus the page's chrome).
+
+::::
+
 
 ## Enabling it
 

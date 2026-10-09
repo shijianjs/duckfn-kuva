@@ -10,24 +10,29 @@ description: 每个值一根杆加一个点，可选在杆后画区间带。
 让相邻高度更好比较。
 
 ```sql {"type":"duckfn","show":"svg"}
-WITH d AS (
-  SELECT gene, expression,
-         row_number() OVER (ORDER BY expression DESC) AS pos
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/lollipop.tsv')
-)
 SELECT kuva_render(to_json({
   'title': 'Expression by gene',
   'x_axis': {'name': 'rank', 'tick_format': 'integer'},
   'y_axis': {'name': 'expression'},
   'series': [{
     'type': 'lollipop',
-    'points': (SELECT list({'x': pos, 'y': expression, 'label': gene} ORDER BY pos) FROM d),
+    'points': (SELECT list({'x': gene, 'y': expression} ORDER BY expression DESC)
+               FROM read_csv_auto('{{DFK_BASE_URL}}data/lollipop.tsv')),
     'color': 'steelblue'
   }]
 })) AS chart;
 ```
 
-这里的 `x` 是数值，所以用 `row_number()` 把行排成等间距的杆，基因名则作为每个点的标签跟着走。
+基因名原样传进去就行：`x` 收字符串，杆落在这个点在列表里的位置，字符串本身成为它的标签。
+
+## 分类 x
+
+`x` 既收数值也收字符串。字符串的意思是「这个观测属于这个分类」：点落在它在列表里的位置（`0`、`1`、`2`…），
+字符串成为该点的标签 —— 上面那个例子因此可以直接把基因名传进来，不必先给行排名。点自己带的 `label` 优先于
+分类名。
+
+kuva 自己的 CLI 在 x 列是字符串时也是这么做的：轴保持数值，分类名跟着点走。位置来自**列表顺序**而不是名字，
+所以两个点可以叫同一个分类名、却仍然画在不同的位置上。
 
 ## 标签与逐点颜色
 
@@ -129,7 +134,7 @@ SELECT kuva_render(to_json({
 
 | 字段 | 类型 | 设置什么 |
 | --- | --- | --- |
-| `points` | point[] | **必填。** 每根杆一项：`{x, y, label?, color?}`。 |
+| `points` | point[] | **必填。** 每根杆一项：`{x, y, label?, color?}`；`x` 是数值或分类名。 |
 | `domains` | domain[] | 背景带：`{start, end, label?, color, opacity?}`。 |
 | `baseline` | number | 杆的起点（默认 `0`）。 |
 | `stem_width` | number | 杆的线宽（默认 `1.5`）。 |
@@ -146,7 +151,8 @@ SELECT kuva_render(to_json({
 ## 说明
 
 - **`points` 不能为空。**
-- `x` 是数值 —— 想要分类轴，就把行排个名次、用名次当 x，分类名作为点的 `label` 带上。
+- `x` 是数值或**字符串**：字符串就是分类，点落在它在列表里的位置，字符串成为它的标签。只有当你想要的顺序不是
+  列表顺序时，才需要自己给行排名。
 - `domain_height` 的单位是数据单位、不是像素，所以区间带会随 y 轴一起缩放。
 - 低于基线的点，杆朝下画、标签放到点下方。
 

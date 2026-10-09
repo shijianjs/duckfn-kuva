@@ -61,6 +61,7 @@ mod survival;
 mod synteny;
 mod ternary;
 mod text;
+mod tree;
 mod treemap;
 mod upset;
 mod venn;
@@ -186,7 +187,9 @@ impl SeriesSpec {
             SeriesSpec::Quiver(s) => s.color.is_some() || s.color_map.is_some(),
             SeriesSpec::Joint(s) => s.groups.iter().any(|g| g.color.is_some()),
             SeriesSpec::Rose(s) => {
-                s.series.iter().any(|x| x.color.is_some()) || s.slices.iter().any(|x| x.color.is_some())
+                s.color.is_some()
+                    || s.series.iter().any(|x| x.color.is_some())
+                    || s.slices.iter().any(|x| x.color.is_some())
             }
         }
     }

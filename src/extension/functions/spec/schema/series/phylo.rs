@@ -21,10 +21,12 @@ pub(crate) enum TreeBranchStyleKind {
     Circular,
 }
 
+/// 一棵树的输入：四种写法**四选一**。
+///
+/// 单独抽出来是为了复用 —— `phylo` 直接 flatten 它，`clustermap` 的 `row_tree` / `col_tree`
+/// 也是同一个东西：描述一棵树的小语言只有这一份。
 #[derive(Debug, Deserialize)]
-pub(crate) struct PhyloSeries {
-    /// 图例标题。
-    pub legend: Option<String>,
+pub(crate) struct TreeInputSpec {
     /// Newick 字符串，如 `"((A:0.1,B:0.2):0.3,C:0.4);"`。
     pub newick: Option<String>,
     /// 边表：`(父, 子, 枝长)`；根是「从没当过子」的那个节点。
@@ -34,6 +36,14 @@ pub(crate) struct PhyloSeries {
     pub distance_matrix: Option<DistanceMatrixSpec>,
     /// linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
     pub linkage: Option<LinkageSpec>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct PhyloSeries {
+    /// 图例标题。
+    pub legend: Option<String>,
+    #[serde(flatten)]
+    pub tree: TreeInputSpec,
     pub orientation: Option<TreeOrientationKind>,
     pub branch_style: Option<TreeBranchStyleKind>,
     /// 按累积枝长画（否则各叶子等距，即 cladogram）。

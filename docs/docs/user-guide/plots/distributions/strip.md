@@ -244,3 +244,5 @@ FROM (
 - [Box plot](./box.md) — the summary you would overlay it on.
 - [Violin plot](./violin.md) — the density shape.
 - [Raincloud](./raincloud.md) — all three at once.
+- [Legends → Hand-written entries](../../reference/legends.md) — a key for colours that live in the data
+  rather than in a series.

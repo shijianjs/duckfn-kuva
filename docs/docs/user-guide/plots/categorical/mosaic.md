@@ -130,3 +130,5 @@ SELECT kuva_render(to_json({
 - [kuva — Mosaic plot](https://psy-fer.github.io/kuva/plots/mosaic.html) — the plotting library's own reference for this chart.
 - [Venn](./venn.md) · [UpSet](./upset.md) — set-overlap views instead of a contingency table.
 - [Dice plot](./dice_plot.md) — a per-cell multivariate grid.
+- [Legends → Hand-written entries](../../reference/legends.md) — for the group colours, which the mosaic takes
+  from `group_colors` rather than from series labels.

@@ -235,3 +235,4 @@ A data, not the bounds.
 - [clustermap](../hierarchical/clustermap.md) is the same matrix, hierarchically clustered.
 - [2D histogram](./histogram2d.md) · [Hexbin](./hexbin.md) — when the matrix comes from a point cloud rather than a table.
 - [Colour maps](../../reference/colormaps.md) — every colormap name.
+- [Layout → Colour bar](../../reference/layout.md) — the colour-bar title and its `colorbar_tick_format`.

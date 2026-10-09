@@ -27,6 +27,27 @@ FROM (
 
 Sectors start at twelve o'clock and run clockwise by default, in list order.
 
+## Bearing data
+
+Wind roses usually start as raw measurements — one compass bearing per observation — and counting them into
+sectors is the tedious part. Hand over the bearings and how many sectors you want, and kuva does the binning:
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Wind rose from raw bearings',
+  'series': [{
+    'type': 'rose',
+    'bearings': [10, 45, 90, 135, 180, 225, 270, 315, 355],
+    'bearings_bins': 8,
+    'compass_labels': true,
+    'color': '#4c72b0'
+  }]
+})) AS chart;
+```
+
+Every bearing is folded into `0`–`360°`, dropped into one of `bearings_bins` equal sectors, and the sector
+values become the counts — "how many observations came from each direction", with no `GROUP BY` in sight.
+
 ## Stacked mode
 
 Several series stacked inside each sector — the natural layout for a wind rose, where each sector is a
@@ -98,6 +119,25 @@ FROM (
 );
 ```
 
+## Compass labels
+
+`compass_labels` renames the sectors with the cardinal and intercardinal directions implied by how many
+there are — `N, NE, E, …` for 8 sectors, `N, E, S, W` for 4. A count that is not a divisor of 16 falls back
+to degree labels, so nothing breaks; it just reads less like a compass.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Four sectors, four names',
+  'series': [{
+    'type': 'rose',
+    'bearings': [10, 45, 90, 135, 180, 225, 270, 315, 355],
+    'bearings_bins': 4,
+    'compass_labels': true,
+    'show_values': true
+  }]
+})) AS chart;
+```
+
 ## Inner radius
 
 `inner_radius` is a fraction of the outer radius (clamped to `0`–`0.95`), which turns the rose into a
@@ -139,6 +179,10 @@ FROM (
 | `slices` | slice[] | Single-series form: `{label, value, color?}` per sector. |
 | `labels` | string[] | Sector names around the circumference. |
 | `series` | series[] | Multi-series form: `{name, values, color?}`; replaces `slices`. |
+| `bearings` | number[] | Raw compass bearings (`0`–`360°`) to bin; replaces `slices` / `series`. |
+| `bearings_bins` | integer | How many sectors to bin the bearings into (with `bearings`). |
+| `compass_labels` | boolean | Rename the sectors `N`, `NE`, `E`, … . |
+| `color` | string | Colour for the sectors or series that do not set their own. |
 | `encoding` | string | `"area"` (default) or `"radius"`. |
 | `mode` | string | `"stacked"` (default) or `"grouped"`. |
 | `inner_radius` | number | Donut hole as a fraction of the outer radius. |
@@ -152,12 +196,13 @@ FROM (
 
 ## Notes
 
-- Give **either** `slices` (one series, labels from the slices) **or** `series` (several series, labels
-  from `labels`) — `series` replaces `slices` entirely.
+- **`slices`, `series` and `bearings` are three ways to give the same data** — give exactly one.
 - In multi-series mode every series needs one value per label, in the same order.
+- `bearings` needs `bearings_bins`; `bearings_bins` on its own is rejected, and `0` bins is rejected too
+  (binning into nothing produces an empty chart rather than an error, so it is caught here).
+- `compass_labels` works in all three forms and **overwrites** the names: it derives them from the sector
+  count, so there is no point passing `labels` and `compass_labels` together.
 - `encoding: "radius"` exaggerates large sectors by design; it is a deliberate choice, not a neutral one.
-- There is no compass-label mode here — the sector names come from `labels`, so name them `N, NE, E, …`
-  yourself if that is what you need.
 
 ## See also
 

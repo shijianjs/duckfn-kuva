@@ -53,6 +53,31 @@ SELECT kuva_render(to_json({
 })) AS chart;
 ```
 
+## Start positions
+
+`start_positions` says the same thing as `x_offsets`, from the other end: give each read's **reference start
+coordinate** and kuva shifts the row so that coordinate lands on the shared axis. It is literally the same
+offsets with negated values, but it reads the way the data does — and it pairs with `x_origin` to anchor a
+biologically meaningful position (the repeat start) at x = 0.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Aligned by reference start',
+  'x_axis': {'name': 'reference position', 'tick_format': 'integer'},
+  'series': [{
+    'type': 'brick',
+    'names': ['read_1', 'read_2', 'read_3'],
+    'strigars': [
+      ['CAG:A', '8A'],
+      ['CAG:A', '12A'],
+      ['CAG:A', '10A']
+    ],
+    'start_positions': [0, 19, 40],
+    'row_height': 20
+  }]
+})) AS chart;
+```
+
 ## Custom templates
 
 `template` also takes a character-to-colour map, so any single-character alphabet works: secondary
@@ -101,6 +126,31 @@ SELECT kuva_render(to_json({
 `consensus_row` locks the canonical rotation to a particular row, which is what you want when row 0 is the
 reference: the legend then shows the reference's spelling of the repeat, not whichever rotation happened to
 be most common.
+
+## Flanked strigars
+
+Real reads carry flanking DNA on both sides of the repeat, and encoding that as `@` gap segments is fiddly.
+`flanked_strigars` takes `[left flank, motif, strigar, right flank]` instead: the flanks are raw DNA
+strings — one character per brick, drawn with the standard A/C/G/T colours — and the middle is exactly the
+same `(motif, strigar)` pair as above.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Flanked STR locus',
+  'series': [{
+    'type': 'brick',
+    'names': ['consensus', 'read_1', 'read_2'],
+    'flanked_strigars': [
+      ['ACGTACGT', 'CAG:A,CAA:B', '6A1B8A',  'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A',       '16A',     'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A',       '20A',     'TGCA']
+    ],
+    'consensus_row': 0,
+    'mark_primary': true,
+    'row_height': 20
+  }]
+})) AS chart;
+```
 
 ## Per-block notation labels
 
@@ -160,9 +210,11 @@ SELECT kuva_render(to_json({
 | `sequences` | string[] | One string per row; one character per brick. |
 | `names` | string[] | Row labels; **row 0 is drawn at the top**. |
 | `strigars` | `[string, string][]` | `[motif, strigar]` pairs — replaces `sequences` when given. |
+| `flanked_strigars` | `[string, string, string, string][]` | `[left flank, motif, strigar, right flank]` — replaces `strigars`. |
 | `template` | string \| object | `"dna"` · `"rna"` · a `{character: css colour}` map. |
 | `x_offset` | number | A global x shift for every row. |
 | `x_offsets` | (number \| null)[] | Per-row shifts; `null` falls back to `x_offset`. |
+| `start_positions` | number[] | Per-row reference start coordinate; cannot be combined with `x_offsets`. |
 | `x_origin` | number | The coordinate that maps to x = 0, applied on top of the offsets. |
 | `show_values` | boolean | Print each character inside its brick. |
 | `strigar_palette` | string[] | Colours used for the strigar letters, in order. |
@@ -174,20 +226,20 @@ SELECT kuva_render(to_json({
 
 ## Notes
 
-- **Give `sequences` or `strigars`** — they are mutually exclusive, and `strigars` wins if both are given.
+- **`sequences`, `strigars` and `flanked_strigars` are three ways to give the rows** — give exactly one.
 - `template` has no sensible default: give `"dna"`, `"rna"`, or a map. A character with no entry in the map
-  has no colour.
-- `names` must have one entry per row — that is per `strigars` in strigar mode, per `sequences` otherwise.
+  has no colour. (In strigar mode the strigar colours are generated from the motifs; `template` only
+  applies to `sequences`.)
+- `names` must have one entry per row — per `strigars` / `flanked_strigars` in those modes, per `sequences`
+  otherwise.
 - Row **0 is the top** of the plot, which is what makes a consensus row read naturally as a header.
 - In strigar mode every run must carry its count: `"10A"`, not `"A"`. The library parses the number
-  directly, so a missing one is an error rather than a default of 1.
-- `consensus_row` only matters in strigar mode; without it the most frequent rotation across all reads wins.
-- There is no `start_positions` field: it is `x_offsets` with negated values, so pass the negated start
-  coordinate directly.
-- **Flanking DNA around a repeat is not exposed.** The library has a `flanked_strigars` builder for
-  `(left flank, motifs, strigar, right flank)` rows; here the flanks would have to be spelled as extra `@`
-  segments in the motif string, which the renderer does not colour, so a flanked locus has to be drawn as
-  two plots or with the flanks left out.
+  directly, so a missing one is an error rather than a default of 1. Segments are split on `|` and trimmed
+  at the ends, so `"10A | 2B"` is fine but `"10 A"` is not.
+- `consensus_row` locks the canonical rotation to that row, so it has to be set **before** the strigars are
+  parsed — the extension does that for you, and without it the most frequent rotation across all reads wins.
+- `x_offsets` and `start_positions` both set the per-row offset, so they cannot be combined (the latter is
+  the former with negated values, expressed as a reference coordinate).
 
 ## See also
 

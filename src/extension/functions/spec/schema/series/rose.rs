@@ -34,6 +34,16 @@ pub(crate) struct RoseSpec {
     /// 多系列写法：一个系列一条。给了它就**代替** `slices`。
     #[serde(default)]
     pub series: Vec<RoseSeriesSpec>,
+    /// 方位角写法：原始罗盘方位（0–360°）逐个给，由 kuva 分成 `bearings_bins` 个扇区并计数。
+    /// 给了它就**代替** `slices` / `series`。
+    #[serde(default)]
+    pub bearings: Vec<f64>,
+    /// 方位角分成几个扇区（与 `bearings` 成对出现）。
+    pub bearings_bins: Option<usize>,
+    /// 把扇区标签换成方位名（`N` / `NE` / `E` …）。三种写法下都能用。
+    pub compass_labels: Option<bool>,
+    /// 没有单独指定颜色的扇区/系列用这个颜色。
+    pub color: Option<String>,
     /// 半径的编码方式，默认 `area`。
     pub encoding: Option<RoseEncodingKind>,
     /// 多系列的摆法，默认 `stacked`。

@@ -26,6 +26,27 @@ FROM (
 
 扇形默认从十二点方向开始、顺时针排布，顺序就是列表顺序。
 
+## 方位角数据
+
+风玫瑰图通常从原始观测起步 —— 一次观测一个罗盘方位角 —— 把它们数进各个扇区才是最枯燥的那步。把方位角和
+想要的扇区数交出去，分箱交给 kuva：
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Wind rose from raw bearings',
+  'series': [{
+    'type': 'rose',
+    'bearings': [10, 45, 90, 135, 180, 225, 270, 315, 355],
+    'bearings_bins': 8,
+    'compass_labels': true,
+    'color': '#4c72b0'
+  }]
+})) AS chart;
+```
+
+每个方位角先折进 `0`–`360°`，再落进 `bearings_bins` 个等宽扇区之一，扇区的取值就是计数 —— 「每个方向来了多少次
+观测」，全程不用写 `GROUP BY`。
+
 ## 堆叠模式
 
 几个系列堆在同一个扇形里 —— 风玫瑰图天然就是这么画的：每个扇形是一个风向，每一段是一个风速档：
@@ -95,6 +116,24 @@ FROM (
 );
 ```
 
+## 罗盘标签
+
+`compass_labels` 按扇区数把扇形名换成基本方位与中间方位 —— 8 个扇区是 `N, NE, E, …`，4 个是 `N, E, S, W`。
+扇区数不是 16 的约数时就退回度数标签，所以它不会失败，只是读起来没那么像罗盘。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Four sectors, four names',
+  'series': [{
+    'type': 'rose',
+    'bearings': [10, 45, 90, 135, 180, 225, 270, 315, 355],
+    'bearings_bins': 4,
+    'compass_labels': true,
+    'show_values': true
+  }]
+})) AS chart;
+```
+
 ## 内半径
 
 `inner_radius` 是占外半径的比例（内部夹到 `0`–`0.95`），给了它就变成环形玫瑰图，中间那块留白可以放标题或者
@@ -136,6 +175,10 @@ FROM (
 | `slices` | slice[] | 单系列写法：每个扇形 `{label, value, color?}`。 |
 | `labels` | string[] | 圆周上的扇形名。 |
 | `series` | series[] | 多系列写法：`{name, values, color?}`；会取代 `slices`。 |
+| `bearings` | number[] | 原始罗盘方位角（`0`–`360°`），交给它分箱；会取代 `slices` / `series`。 |
+| `bearings_bins` | integer | 方位角分成几个扇区（与 `bearings` 成对）。 |
+| `compass_labels` | boolean | 把扇形名换成 `N`、`NE`、`E`…。 |
+| `color` | string | 没有单独指定颜色的扇形/系列用这个颜色。 |
 | `encoding` | string | `"area"`（默认）或 `"radius"`。 |
 | `mode` | string | `"stacked"`（默认）或 `"grouped"`。 |
 | `inner_radius` | number | 环形空心占外半径的比例。 |
@@ -149,11 +192,13 @@ FROM (
 
 ## 说明
 
-- `slices`（单系列、标签取自扇区）与 `series`（多系列、标签取自 `labels`）**二选一** —— `series` 会完全取代
-  `slices`。
+- **`slices`、`series`、`bearings` 是同一份数据的三种写法** —— 只能给一种。
 - 多系列模式下，每个系列都要按同样的顺序、每个标签一个值。
+- `bearings` 必须配上 `bearings_bins`；单独给 `bearings_bins` 会被拒，`0` 个扇区也会被拒（分成 0 份画出来
+  是一张空图而不是报错，所以在这一层挡住）。
+- `compass_labels` 三种写法下都能用，并且会**覆盖**扇形名：它是由扇区数推出来的，所以 `labels` 与
+  `compass_labels` 同时给没有意义。
 - `encoding: "radius"` 会**放大**大扇形，这是它的设计，不是中立的。
-- 这里没有罗盘标签模式 —— 扇形名来自 `labels`，想要 `N, NE, E, …` 就自己写进去。
 
 ## 另见
 

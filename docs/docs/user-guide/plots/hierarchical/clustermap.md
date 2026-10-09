@@ -64,6 +64,32 @@ SELECT kuva_render(to_json({
 })) AS chart;
 ```
 
+## Pre-supplied trees
+
+`row_tree` and `col_tree` replace the automatic clustering on that axis with a topology you already have —
+a reference phylogeny, a clustering run from R or Python, or a tree you want to keep stable across figures.
+They take exactly the same four forms as the [phylogenetic tree](./phylo.md) plot: `newick`, `edges`,
+`distance_matrix` or `linkage`.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'A known topology on the rows',
+  'series': [{
+    'type': 'clustermap',
+    'data': [[1, 2, 3, 4], [2, 1, 4, 3], [5, 6, 1, 2], [6, 5, 2, 1]],
+    'row_labels': ['a', 'b', 'c', 'd'],
+    'col_labels': ['w', 'x', 'y', 'z'],
+    'row_tree': {'newick': '((a:0.1,b:0.1):0.2,(c:0.1,d:0.1):0.2);'},
+    'legend': 'value'
+  }]
+})) AS chart;
+```
+
+Leaves are matched **by name** and have to line up with the labels one for one: a leaf that is not in
+`row_labels`, or a label with no leaf, is rejected instead of quietly dropped — a missing row is very hard to
+notice in a clustermap. The other axis is still clustered by default, which is the usual arrangement: impose
+a known phylogeny on the rows and let the samples cluster.
+
 ## Normalisation
 
 | `normalization` | Effect |
@@ -170,6 +196,7 @@ SELECT kuva_render(to_json({
 | `data` | number[][] | **Required.** The matrix, row-major; every row the same length. |
 | `row_labels` / `col_labels` | string[] | Labels in **original data order**. |
 | `cluster_rows` / `cluster_cols` | boolean | Cluster that axis and draw its dendrogram (both default on). |
+| `row_tree` / `col_tree` | tree | A pre-built tree for that axis (`newick` · `edges` · `distance_matrix` · `linkage`); replaces its auto-clustering. |
 | `normalization` | string | `"none"` (default) · `"row_zscore"` · `"col_zscore"`. |
 | `color_map` | string | The [colormap](../../reference/colormaps.md). |
 | `show_values` | boolean | Print each cell's value. |
@@ -187,12 +214,13 @@ SELECT kuva_render(to_json({
 - `normalization` happens **before** colour mapping, and the colour bar reflects the normalised range, so
   two clustermaps of the same data with different normalisations are not on the same scale.
 - UPGMA with Euclidean distance is fixed; there is no way to choose another linkage or metric.
-- Supplying a **pre-built tree** for an axis (scipy/R linkage, a known phylogeny) is not available here —
-  the axes are always clustered by UPGMA. Use a [phylo](./phylo.md) chart in a figure if the topology has
-  to be imposed.
+- `row_tree` / `col_tree` need the matching labels — without them there is nothing to match the leaves
+  against, and that is an error rather than a guess. When a tree is given, `cluster_rows` / `cluster_cols`
+  no longer apply to that axis (the tree decides the order).
 
 ## See also
 
 - [kuva — Clustermap](https://psy-fer.github.io/kuva/plots/clustermap.html) — the plotting library's own reference for this chart.
 - [Heatmap](../distributions/heatmap.md) — the un-clustered matrix.
 - [Phylogenetic tree](./phylo.md) — an explicit tree rather than similarity clustering.
+- [Layout → Colour bar](../../reference/layout.md) — the colour-bar title and its `colorbar_tick_format`.

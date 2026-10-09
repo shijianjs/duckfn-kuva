@@ -3,6 +3,7 @@
 use serde::Deserialize;
 
 use super::super::style::ColorMapSpec;
+use super::TreeInputSpec;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ClustermapSeries {
@@ -20,6 +21,11 @@ pub(crate) struct ClustermapSeries {
     pub cluster_rows: Option<bool>,
     /// 对列做层次聚类（默认开）。
     pub cluster_cols: Option<bool>,
+    /// 行树：给了就用它代替对行的自动聚类（这时 `cluster_rows` 不再起作用）。
+    /// 写法与 `phylo` 的四种树输入完全一样；叶子名必须与 `row_labels` 对得上。
+    pub row_tree: Option<TreeInputSpec>,
+    /// 列树：同 `row_tree`，叶子名与 `col_labels` 对应。
+    pub col_tree: Option<TreeInputSpec>,
     pub color_map: Option<ColorMapSpec>,
     /// 在格子里写数值。
     pub show_values: Option<bool>,

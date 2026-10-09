@@ -6,14 +6,36 @@ use kuva::prelude::*;
 use crate::extension::functions::spec::schema::*;
 
 pub(super) fn build_rose(s: RoseSpec) -> Result<Plot, String> {
-    if s.slices.is_empty() && s.series.is_empty() {
-        return Err("rose: needs `slices` or `series`".into());
+    // 三种写法互斥：逐扇区 / 多系列 / 原始方位角。
+    let entries = [
+        !s.slices.is_empty(),
+        !s.series.is_empty(),
+        !s.bearings.is_empty(),
+    ];
+    let chosen = entries.iter().filter(|b| **b).count();
+    if chosen == 0 {
+        return Err("rose: needs one of `slices`, `series` or `bearings`".into());
+    }
+    if chosen > 1 {
+        return Err(
+            "rose: `slices`, `series` and `bearings` are three ways to give the same data — give one"
+                .into(),
+        );
     }
     let multi = !s.series.is_empty();
-    if !s.slices.is_empty() && multi {
-        return Err("rose: `slices` and `series` are two ways to give the same data — give one".into());
+    let bearing_mode = !s.bearings.is_empty();
+    if bearing_mode && s.bearings_bins.is_none() {
+        return Err("rose: `bearings` needs `bearings_bins` (how many sectors to bin into)".into());
     }
-    let n = if multi {
+    if !bearing_mode && s.bearings_bins.is_some() {
+        return Err("rose: `bearings_bins` is only used together with `bearings`".into());
+    }
+    if s.bearings_bins == Some(0) {
+        return Err("rose: `bearings_bins` must be at least 1".into());
+    }
+    let n = if bearing_mode {
+        s.bearings_bins.expect("checked just above")
+    } else if multi {
         let n = s.labels.as_ref().map_or(0, Vec::len);
         for spec in &s.series {
             if spec.values.len() != n {
@@ -41,24 +63,33 @@ pub(super) fn build_rose(s: RoseSpec) -> Result<Plot, String> {
     }
 
     let mut plot = RosePlot::new();
-    if multi {
+    if bearing_mode {
+        // 分箱与计数交给 kuva：它先按 `n` 建好扇区，再 push 一个名为 "Count" 的系列，
+        // 所以颜色只能在它之后补。
+        plot = plot.with_bearing_data(s.bearings.iter().copied(), n);
+        if let Some(c) = &s.color {
+            if let Some(first) = plot.series.first_mut() {
+                first.color = Some(c.clone());
+            }
+        }
+    } else if multi {
         if let Some(labels) = s.labels {
             plot = plot.with_x_labels(labels);
         }
         for spec in &s.series {
             plot = plot.with_stack(spec.name.clone(), spec.values.clone());
-            if let Some(c) = &spec.color {
+            if let Some(c) = spec.color.clone().or_else(|| s.color.clone()) {
                 if let Some(last) = plot.series.last_mut() {
-                    last.color = Some(c.clone());
+                    last.color = Some(c);
                 }
             }
         }
     } else {
         for slice in &s.slices {
             plot = plot.with_slice(slice.label.clone(), slice.value);
-            if let Some(c) = &slice.color {
+            if let Some(c) = slice.color.clone().or_else(|| s.color.clone()) {
                 if let Some(last) = plot.series.last_mut() {
-                    last.color = Some(c.clone());
+                    last.color = Some(c);
                 }
             }
         }
@@ -106,12 +137,16 @@ pub(super) fn build_rose(s: RoseSpec) -> Result<Plot, String> {
     if let Some(v) = &s.legend {
         plot = plot.with_legend(v.clone());
     }
+    // 方位名要等扇区数定下来之后换 —— `with_compass_labels` 是用当前扇区数推出来的。
+    if s.compass_labels == Some(true) {
+        plot = plot.with_compass_labels();
+    }
     Ok(plot.into())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::extension::functions::spec::test_support::{assert_renders, render_svg};
+    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
 
     /// 玫瑰图：单系列的逐扇区写法。
     const ROSE: &str = r##"{
@@ -159,5 +194,47 @@ mod tests {
     #[test]
     fn renders_rose_stacked() {
         assert_renders(&render_svg(ROSE_STACKED), "ROSE_STACKED");
+    }
+
+    /// 方位角写法：原始 bearing 交给 kuva 分箱计数，`compass_labels` 把扇区名换成方位名。
+    const ROSE_BEARINGS: &str = r##"{
+      "series": [{
+        "type": "rose",
+        "bearings": [10, 45, 90, 135, 180, 225, 270, 315, 355],
+        "bearings_bins": 8,
+        "compass_labels": true,
+        "color": "#4c72b0"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_rose_bearings() {
+        let svg = render_svg(ROSE_BEARINGS);
+        assert_renders(&svg, "ROSE_BEARINGS");
+        // 8 个扇区 → N / NE / E …，而不是自动的度数标签。
+        assert!(svg.contains(">N<"), "expected the compass label N in the SVG");
+        assert!(svg.contains(">NE<"), "expected the compass label NE in the SVG");
+    }
+
+    #[test]
+    fn rose_bearings_without_bins_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"rose","bearings":[10,20]}]}"#).unwrap_err();
+        assert!(
+            err.contains("`bearings` needs `bearings_bins`"),
+            "unexpected message: {err}"
+        );
+    }
+
+    #[test]
+    fn rose_bearing_and_slices_are_reported() {
+        let err = render_json(
+            r#"{"series":[{"type":"rose","bearings":[10],"bearings_bins":4,
+                 "slices":[{"label":"a","value":1}]}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("three ways to give the same data"),
+            "unexpected message: {err}"
+        );
     }
 }

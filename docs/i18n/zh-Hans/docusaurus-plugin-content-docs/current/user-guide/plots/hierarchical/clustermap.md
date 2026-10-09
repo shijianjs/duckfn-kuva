@@ -60,6 +60,30 @@ SELECT kuva_render(to_json({
 })) AS chart;
 ```
 
+## 预建的树
+
+`row_tree` 与 `col_tree` 用你手上已有的拓扑取代该侧的自动聚类 —— 参考系统发育树、R 或 Python 里跑出来的聚类结果，
+或者一张希望在多张图之间保持稳定的树。它们收的就是[系统发育树](./phylo.md)那四种写法：`newick`、`edges`、
+`distance_matrix` 或 `linkage`。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'A known topology on the rows',
+  'series': [{
+    'type': 'clustermap',
+    'data': [[1, 2, 3, 4], [2, 1, 4, 3], [5, 6, 1, 2], [6, 5, 2, 1]],
+    'row_labels': ['a', 'b', 'c', 'd'],
+    'col_labels': ['w', 'x', 'y', 'z'],
+    'row_tree': {'newick': '((a:0.1,b:0.1):0.2,(c:0.1,d:0.1):0.2);'},
+    'legend': 'value'
+  }]
+})) AS chart;
+```
+
+叶子是**按名字**配上去的，因此必须与标签一一对上：树里多出一个不在 `row_labels` 里的叶子、或者有标签在树里找不到
+叶子，都会被拒 —— 聚类热图里少一行，比报错难发现得多。另一侧默认仍会自动聚类，这也是最常见的用法：给行指定已知
+的系统发育，让列自己聚。
+
 ## 归一化
 
 | `normalization` | 效果 |
@@ -163,6 +187,7 @@ SELECT kuva_render(to_json({
 | `data` | number[][] | **必填。** 行优先矩阵；每行必须等长。 |
 | `row_labels` / `col_labels` | string[] | **原始数据顺序**下的标签。 |
 | `cluster_rows` / `cluster_cols` | boolean | 对该轴聚类并画树（默认都开）。 |
+| `row_tree` / `col_tree` | tree | 该侧预建的树（`newick` · `edges` · `distance_matrix` · `linkage`）；取代该侧的自动聚类。 |
 | `normalization` | string | `"none"`（默认）· `"row_zscore"` · `"col_zscore"`。 |
 | `color_map` | string | [色图](../../reference/colormaps.md)。 |
 | `show_values` | boolean | 把每个格子的数值写出来。 |
@@ -178,11 +203,12 @@ SELECT kuva_render(to_json({
 - 标签按**原始**顺序给，不是聚类之后的顺序 —— 重排由渲染器做。
 - `normalization` 发生在颜色映射**之前**，色条也反映归一化后的范围，所以同一份数据换一种归一化就不是同一个刻度了。
 - UPGMA + 欧氏距离是写死的；没有换 linkage 或距离度量的入口。
-- 这里**不能**给某一侧**指定预建的树**（scipy/R 的 linkage、已知的系统发育）—— 两侧永远由 UPGMA 聚类。拓扑必须
-  被强加时，就在多面板图里用[系统发育树](./phylo.md)。
+- `row_tree` / `col_tree` 需要配套的标签 —— 没有标签就没有东西可以跟叶子对上，这时是报错而不是猜。给了树之后，
+  该侧的 `cluster_rows` / `cluster_cols` 不再起作用（顺序由树决定）。
 
 ## 另见
 
 - [kuva — 聚类热图](https://psy-fer.github.io/kuva/plots/clustermap.html) —— 绘图库自己的图型参考。
 - [热力图](../distributions/heatmap.md) —— 不聚类的矩阵。
 - [系统发育树](./phylo.md) —— 明确的树，而不是按相似度聚类。
+- [版面 → 色条](../../reference/layout.md) —— 色条的标题与 `colorbar_tick_format`。

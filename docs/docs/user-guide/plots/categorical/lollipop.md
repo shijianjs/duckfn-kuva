@@ -11,25 +11,32 @@ A lollipop chart draws each value as a stem topped with a dot. It carries the sa
 heights easier to compare.
 
 ```sql {"type":"duckfn","show":"svg"}
-WITH d AS (
-  SELECT gene, expression,
-         row_number() OVER (ORDER BY expression DESC) AS pos
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/lollipop.tsv')
-)
 SELECT kuva_render(to_json({
   'title': 'Expression by gene',
   'x_axis': {'name': 'rank', 'tick_format': 'integer'},
   'y_axis': {'name': 'expression'},
   'series': [{
     'type': 'lollipop',
-    'points': (SELECT list({'x': pos, 'y': expression, 'label': gene} ORDER BY pos) FROM d),
+    'points': (SELECT list({'x': gene, 'y': expression} ORDER BY expression DESC)
+               FROM read_csv_auto('{{DFK_BASE_URL}}data/lollipop.tsv')),
     'color': 'steelblue'
   }]
 })) AS chart;
 ```
 
-`x` is numeric here, so ranking the rows with `row_number()` gives the stems evenly spaced while the gene
-name rides along as each point's label.
+The gene names go in as they are: `x` takes a string, the stem is placed at that point's position in the
+list, and the name becomes the point's label.
+
+## Categorical x
+
+`x` accepts a string as well as a number. A string means "this observation belongs to that category": the
+point is placed at its position in the list (`0`, `1`, `2`, …) and the string becomes the point's label —
+which is why the example above can pass gene names straight through instead of ranking the rows first. An
+explicit `label` on a point wins over its category name.
+
+This mirrors what kuva's own CLI does when the x column holds strings: the axis stays numeric and the
+category rides along as the point's label. The position comes from the list order, not from the name, so two
+points may share a category name and still be drawn apart.
 
 ## Labels and per-point colours
 
@@ -136,7 +143,7 @@ SELECT kuva_render(to_json({
 
 | Field | Type | What it sets |
 | --- | --- | --- |
-| `points` | point[] | **Required.** One entry per stem: `{x, y, label?, color?}`. |
+| `points` | point[] | **Required.** One entry per stem: `{x, y, label?, color?}`; `x` is a number or a category name. |
 | `domains` | domain[] | Background bands: `{start, end, label?, color, opacity?}`. |
 | `baseline` | number | Where the stems originate (default `0`). |
 | `stem_width` | number | Stem line width (default `1.5`). |
@@ -153,8 +160,8 @@ overrides the series colour; `tooltips` is accepted but not implemented for `lol
 ## Notes
 
 - **`points` must not be empty.**
-- `x` is numeric — for a categorical axis, rank the rows and use the rank, carrying the category as the
-  point's `label`.
+- `x` is a number or a **string**: a string is a category, the point goes at its position in the list and
+  the string becomes its label. Rank the rows yourself only when the order you want is not the list order.
 - `domain_height` is in data units, not pixels, so domains scale with the y axis.
 - A point below the baseline has its stem drawn downward and its label placed below the dot.
 

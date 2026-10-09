@@ -225,3 +225,4 @@ SELECT kuva_render(to_json({
 - [聚类热图](../hierarchical/clustermap.md)是同一张矩阵做层次聚类的结果。
 - [二维直方图](./histogram2d.md) · [六边形分箱图](./hexbin.md) —— 矩阵来自点云、而不是表格的时候。
 - [色图](../../reference/colormaps.md) —— 所有色图名字。
+- [版面 → 色条](../../reference/layout.md) —— 色条的标题与 `colorbar_tick_format`。

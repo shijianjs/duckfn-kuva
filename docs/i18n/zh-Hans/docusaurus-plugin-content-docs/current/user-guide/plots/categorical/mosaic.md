@@ -123,3 +123,4 @@ SELECT kuva_render(to_json({
 - [kuva — 马赛克图](https://psy-fer.github.io/kuva/plots/mosaic.html) —— 绘图库自己的图型参考。
 - [韦恩图](./venn.md) · [UpSet 图](./upset.md) —— 换成集合交叠的视角，而不是列联表。
 - [骰子图](./dice_plot.md) —— 逐格的多变量网格。
+- [图例 → 手工条目](../../reference/legends.md) —— 分组颜色来自 `group_colors` 而不是系列名时，用这个配键。

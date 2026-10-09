@@ -50,6 +50,30 @@ SELECT kuva_render(to_json({
 })) AS chart;
 ```
 
+## 起始坐标
+
+`start_positions` 说的是同一件事的另一面：直接给每行的**参考起始坐标**，kuva 会把这一行平移，让那个坐标落在共享
+的轴上。它实际上就是取负值的 `x_offsets`，但写起来更像数据本身 —— 还能与 `x_origin` 配合，把某个有生物学意义的
+位置（重复区的起点）钉到 x = 0。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Aligned by reference start',
+  'x_axis': {'name': 'reference position', 'tick_format': 'integer'},
+  'series': [{
+    'type': 'brick',
+    'names': ['read_1', 'read_2', 'read_3'],
+    'strigars': [
+      ['CAG:A', '8A'],
+      ['CAG:A', '12A'],
+      ['CAG:A', '10A']
+    ],
+    'start_positions': [0, 19, 40],
+    'row_height': 20
+  }]
+})) AS chart;
+```
+
 ## 自定义配色表
 
 `template` 也可以收一张「字符 → 颜色」的表，于是任何单字符字母表都能用：二级结构、重复单元类别、染色质状态。
@@ -95,6 +119,30 @@ SELECT kuva_render(to_json({
 
 `consensus_row` 把规范旋转锁定到某一行 —— 第 0 行是参考序列时正是你想要的：图例随后显示的是**参考**的重复单元
 拼法，而不是恰好最常见的那个旋转。
+
+## 带侧翼的 STRIGAR
+
+真实的 read 在重复区两侧都带着侧翼 DNA，用 `@` 空位段把它编码进去很别扭。`flanked_strigars` 直接收
+`[左侧翼, motif, strigar, 右侧翼]`：两侧给原始 DNA 字符串（一个字符一块砖，用标准 A/C/G/T 配色），中间那一对
+`(motif, strigar)` 与上面完全一样。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Flanked STR locus',
+  'series': [{
+    'type': 'brick',
+    'names': ['consensus', 'read_1', 'read_2'],
+    'flanked_strigars': [
+      ['ACGTACGT', 'CAG:A,CAA:B', '6A1B8A',  'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A',       '16A',     'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A',       '20A',     'TGCA']
+    ],
+    'consensus_row': 0,
+    'mark_primary': true,
+    'row_height': 20
+  }]
+})) AS chart;
+```
 
 ## 逐段注记
 
@@ -152,9 +200,11 @@ SELECT kuva_render(to_json({
 | `sequences` | string[] | 每行一个字符串；一个字符一块砖。 |
 | `names` | string[] | 行名；**第 0 行画在最上面**。 |
 | `strigars` | `[string, string][]` | `[motif, strigar]` 对 —— 给了它就取代 `sequences`。 |
+| `flanked_strigars` | `[string, string, string, string][]` | `[左侧翼, motif, strigar, 右侧翼]` —— 取代 `strigars`。 |
 | `template` | string \| object | `"dna"` · `"rna"` · 一张 `{字符: CSS 颜色}` 表。 |
 | `x_offset` | number | 所有行共用的 x 平移量。 |
 | `x_offsets` | (number \| null)[] | 逐行平移；`null` 回退到 `x_offset`。 |
+| `start_positions` | number[] | 逐行的参考起始坐标；不能与 `x_offsets` 同时给。 |
 | `x_origin` | number | 映射到 x = 0 的那个坐标，叠加在各行偏移之上。 |
 | `show_values` | boolean | 把每个字符印在它的砖里。 |
 | `strigar_palette` | string[] | strigar 字母的配色，按顺序。 |
@@ -166,17 +216,16 @@ SELECT kuva_render(to_json({
 
 ## 说明
 
-- **`sequences` 与 `strigars` 二选一** —— 两者互斥，同时给时以 `strigars` 为准。
-- `template` 没有一个「合理」的默认值：请给 `"dna"`、`"rna"`，或者一张表。**表里没有的字符没有颜色**，而且
-  strigar 模式下的全局字母（A、B、C…）也是从这张表里取色的，所以要么给足字符，要么给 `strigar_palette`。
-- `names` 必须与生效的那一份数据行数一致 —— strigar 模式下按 `strigars` 算，否则按 `sequences` 算。
+- **`sequences`、`strigars` 与 `flanked_strigars` 是同一份数据的三种写法** —— 只能给一种。
+- `template` 没有一个「合理」的默认值：请给 `"dna"`、`"rna"`，或者一张表，**表里没有的字符没有颜色**。
+  （strigar / flanked-strigar 模式下 strigar 那部分的配色由 motif 自动生成，`template` 只对 `sequences` 生效。）
+- `names` 必须与生效的那一份数据行数一致 —— 按 `strigars` / `flanked_strigars` 或 `sequences` 算。
 - **第 0 行在最上面**，共识序列因此天然读起来像一行表头。
 - strigar 模式下每一段都必须带次数：写 `"10A"`，不能写 `"A"`。库会直接解析那个数字，缺了就报错，而不是默认成 1。
-- `consensus_row` 只在 strigar 模式有意义；不给时以「所有 read 里最常见的那个旋转」为准。
-- 没有 `start_positions` 字段：它等价于取负值的 `x_offsets`，直接把起始坐标取负传进来即可。
-- **重复序列两侧的侧翼 DNA 没有开放。** 库里有 `flanked_strigars` 那个构造器用于
-  `(左侧翼, motifs, strigar, 右侧翼)` 行；在这里侧翼只能用额外的 `@` 段写进 motif 串，而渲染器不会给它们上色，
-  所以一个带侧翼的位点只能拆成两张图，或者干脆不画侧翼。
+  段与段之间用 `|` 分隔、两端会被 trim，所以 `"10A | 2B"` 可以，`"10 A"` 不行。
+- `consensus_row` 锁的是这一行的规范旋转，所以它必须在 strigar 被解析**之前**设好 —— 扩展侧已经替你处理好顺序；
+  不给时以「所有 read 里最常见的那个旋转」为准。
+- `x_offsets` 与 `start_positions` 都在设逐行偏移，所以不能同时给（后者是前者取负值之后的说法，以参考坐标表达）。
 
 ## 另见
 

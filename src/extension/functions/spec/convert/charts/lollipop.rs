@@ -12,11 +12,17 @@ pub(super) fn build_lollipop(s: LollipopSeries) -> Result<Plot, String> {
     }
 
     let mut plot = LollipopPlot::new();
-    for p in &s.points {
+    for (i, p) in s.points.iter().enumerate() {
+        // 分类 x：取该点在 `points` 里的次序当坐标，字符串本身成为点的标签（kuva 的 CLI
+        // 对字符串列就是这么做的）。显式给了 `label` 就以 `label` 为准。
+        let (x, category) = match &p.x {
+            LollipopXSpec::Number(v) => (*v, None),
+            LollipopXSpec::Category(name) => (i as f64, Some(name.clone())),
+        };
         plot.points.push(LollipopPoint {
-            x: p.x,
+            x,
             y: p.y,
-            label: p.label.clone(),
+            label: p.label.clone().or(category),
             color: p.color.clone(),
         });
     }
@@ -94,5 +100,48 @@ mod tests {
     #[test]
     fn renders_lollipop() {
         assert_renders(&render_svg(LOLLIPOP), "LOLLIPOP");
+    }
+
+    /// 分类 x：字符串 x 取该点在数组里的次序，字符串本身成为点的标签
+    /// （与 kuva 自己的 CLI 对字符串列的处理一致）。
+    const LOLLIPOP_CATEGORICAL: &str = r##"{
+      "series": [{
+        "type": "lollipop",
+        "points": [
+          {"x": "alpha", "y": 12.0},
+          {"x": "beta",  "y": 19.0},
+          {"x": "gamma", "y": 7.0, "label": "third"}
+        ],
+        "baseline": 0
+      }]
+    }"##;
+
+    #[test]
+    fn renders_lollipop_categorical() {
+        let svg = render_svg(LOLLIPOP_CATEGORICAL);
+        assert_renders(&svg, "LOLLIPOP_CATEGORICAL");
+        let texts: Vec<&str> = svg
+            .split("<text")
+            .skip(1)
+            .take(12)
+            .map(|s| &s[..s.len().min(60)])
+            .collect();
+        assert!(
+            svg.contains("alpha"),
+            "the category name should label its point; texts: {texts:?}"
+        );
+        assert!(
+            svg.contains("beta"),
+            "the category name should label its point; texts: {texts:?}"
+        );
+        // 显式给的 `label` 优先于分类名：第三个点的分类名 `gamma` 不再出现。
+        assert!(
+            svg.contains("third"),
+            "an explicit label wins over the category name; texts: {texts:?}"
+        );
+        assert!(
+            !svg.contains("gamma"),
+            "the explicit label replaces the category name; texts: {texts:?}"
+        );
     }
 }

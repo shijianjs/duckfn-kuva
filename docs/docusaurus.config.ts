@@ -7,6 +7,7 @@ import {remarkMermaid} from 'duckfn-docs-kit/mermaid/remark';
 import {dfkExtensions} from 'duckfn-docs-kit/sql/extensions';
 import {dfkTocToggle} from 'duckfn-docs-kit/toc-toggle/plugin';
 import {EXTENSION_VERSION} from './extension-version';
+import {rehypeColorSwatch} from 'duckfn-docs-kit/color-swatch/rehype';
 import type {UrlPreloadEntry} from 'duckfn-docs-kit/sql/runtimeConfig';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
@@ -150,6 +151,14 @@ const config: Config = {
             remarkRunnableSql,
             remarkMermaid,
           ],
+          // `rehypeColorSwatch` 给行内代码里的色值补上它自己的背景色：`` `#E69F00` `` 画成橙色块，
+          // 而不是一个灰底 tag。它来自 `duckfn-docs-kit`，不写任何 CSS，描边与圆角沿用 Infima 的
+          // —— 见 docs/AGENTS.md。
+          //
+          // `rehypeColorSwatch` paints inline code that *is* a colour value with that colour, so a
+          // swatch table reads as colour rather than as a list of hex codes. It comes from
+          // `duckfn-docs-kit` and adds no CSS; see docs/AGENTS.md.
+          rehypePlugins: [rehypeColorSwatch],
           // Remove this to remove the "edit this page" links.
           editUrl: `${REPO_URL}/tree/main/docs/`,
           // Without this, translated pages link back to the English source in docs/docs/;

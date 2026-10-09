@@ -26,17 +26,17 @@
     "@easyops-cn/docusaurus-search-local": "^0.55.3",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
-    "duckfn-docs-kit": "^0.7.0",
+    "duckfn-docs-kit": "^0.7.2",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "ts-dedent": "^2.3.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
+    "@playwright/test": "^1.63.0",
     "@types/react": "^19.0.0",
     "typescript": "~6.0.2"
   },

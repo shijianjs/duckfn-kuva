@@ -188,6 +188,21 @@ npx docusaurus write-translations --locale zh-Hans
 （`AS` → ` S`、`{{DFK_BASE_URL}}` → `{{DFK_B SE_URL}}`、`GWAS` → `GW S`）；中文页那三处则把 `[` 换成了汉字
 （`'series': [{` → `'series': 旭{`）。只有 `npm test` 的 `Parser Error` 才暴露出来，随后按可逆规则逐处修复。
 
+## 行内色值会自动上色
+
+行内代码**整段**就是一个色值（`` `#E69F00` ``、`` `#fff` ``、`` `#0072B280` ``）时，rehype 插件会给它刷上那个
+颜色：字色按对比度在黑/白之间挑，所以两种主题下一致。写色值就写普通行内代码，**不要手写 style**。
+
+这个能力来自 `duckfn-docs-kit` 的 `rehypeColorSwatch`（`duckfn-docs-kit/color-swatch/rehype`：rehype 阶段、
+`colord` 解析 hex / rgb() / hsl()、另有一个显式标记 `<code data-color-swatch="#E69F00">任意文本</code>` 与
+`{scan: false}` 开关），在 `docusaurus.config.ts` 的 `rehypePlugins` 里注册 —— 本站没有自己的插件副本。
+
+- 代码块里的色值一概不动（那是源码）；不正好是一个色值的行内代码也不动（`` `x_axis.wrap` ``、`` `#positions` ``）。
+- 想给**不是**色值的东西上色，或者想让某个色值保持灰底，才用 MDX：
+  `<code style={{backgroundColor: '#E69F00'}}>#E69F00</code>`。
+- 插件**不写任何 CSS**：描边、圆角、内边距一律沿用站点自己的 `code` 样式（Infima 的 tag 样式），
+  所以 `src/css/custom.css` 里没有 `code.dfk-color-swatch` 的规则；要改外观就在那里新加。
+
 ## front matter 的写法
 
 `description` 别以反引号开头，值里也别留裸冒号 —— YAML 解析失败时 Docusaurus 只吐一句

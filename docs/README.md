@@ -102,6 +102,18 @@ and the controls it positions against the plot's box get laid out against the pa
 the wrong place. Sandboxed in an iframe (`allow-scripts`, no `allow-same-origin`) it has its own coordinate
 space. An iframe has no intrinsic height, so there the height must be hand-tuned to the chart.
 
+**Colour swatches.** Inline code that *is* a colour value — `` `#E69F00` `` — is painted with that colour, so a
+palette table reads as colour instead of as a list of hex codes. The text colour is chosen between black and
+white by contrast, so a swatch looks the same in both colour modes; code blocks and anything that is not
+exactly one colour value are left alone. Write the value as ordinary inline code and the swatch is free; for a
+colour on something else, or to opt out, use MDX: `<code style={{backgroundColor: '#E69F00'}}>…</code>`.
+
+The feature lives in `duckfn-docs-kit` as `rehypeColorSwatch`
+(`duckfn-docs-kit/color-swatch/rehype`) — rehype phase, `colord` for parsing, plus an explicit
+`<code data-color-swatch="…">` marker and a `{scan: false}` switch — and is registered in this site's
+`rehypePlugins`; there is no local copy of it. It paints with two inline styles and adds no CSS, so the
+border, radius and padding stay Infima's — restyle in `src/css/custom.css` if that is not what you want.
+
 The examples read their data from the site's own files under `static/data/` (kuva's sample
 datasets), served through an asset mount declared in `tests/docs.spec.mts`. Their URLs are
 absolute — DuckDB-Wasm resolves nothing relative to the page, so a block writes

@@ -54,7 +54,7 @@ SELECT kuva_render(to_json({
   'x_axis': {'name': 'length (bp)', 'tick_format': 'integer'},
   'y_axis': {'name': 'reads'},
   'series': [{'type': 'histogram', 'values': list(value), 'bins': 20,
-              'range': [150, 400], 'color': 'steelblue'}]
+              'range': [20, 60], 'color': 'steelblue'}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
 ```

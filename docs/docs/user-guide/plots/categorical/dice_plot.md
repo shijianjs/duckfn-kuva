@@ -101,14 +101,14 @@ WITH d AS (
 )
 SELECT kuva_render(to_json({
   'title': 'Continuous tiles',
-  'x_axis': {'name': 'sample'},
-  'y_axis': {'name': 'gene'},
+  'x_axis': {'name': 'gene'},
+  'y_axis': {'name': 'sample'},
   'series': [{
     'type': 'dice_plot',
     'ndots': 4,
     'category_labels': ['1', '2', '3', '4'],
-    'x_categories': ['Sample_1', 'Sample_2'],
-    'y_categories': ['Gene_A', 'Gene_B'],
+    'x_categories': ['Gene_A', 'Gene_B'],
+    'y_categories': ['Sample_1', 'Sample_2'],
     'points': (SELECT list({'x': x, 'y': y, 'present': present, 'fill': fill, 'size': size}) FROM d),
     'color_map': 'inferno',
     'fill_legend_label': 'expression',
@@ -160,14 +160,14 @@ WITH d AS (
 )
 SELECT kuva_render(to_json({
   'title': 'Fixed dot radius',
-  'x_axis': {'name': 'sample'},
-  'y_axis': {'name': 'gene'},
+  'x_axis': {'name': 'gene'},
+  'y_axis': {'name': 'sample'},
   'series': [{
     'type': 'dice_plot',
     'ndots': 4,
     'category_labels': ['1', '2', '3', '4'],
-    'x_categories': ['Sample_1', 'Sample_2'],
-    'y_categories': ['Gene_A', 'Gene_B'],
+    'x_categories': ['Gene_A', 'Gene_B'],
+    'y_categories': ['Sample_1', 'Sample_2'],
     'points': (SELECT list({'x': x, 'y': y, 'present': present, 'fill': fill, 'size': size}) FROM d),
     'dot_radius': 6,
     'cell_width': 0.9,
@@ -208,6 +208,8 @@ they control how much of each cell the die occupies.
 - `ndots` must be between 1 and 6; a position index at or above it is an error, not a clamped pip.
 - `category_labels` and `dot_legend`, when given, must each have exactly `ndots` entries.
 - In tile mode `x_categories` and `y_categories` are required — the other two modes collect them.
+- In tile mode a cell's `x` / `y` must **name** an entry of `x_categories` / `y_categories`. A cell that
+  matches nothing is dropped without an error, which is how a tile plot ends up looking blank.
 
 ## See also
 

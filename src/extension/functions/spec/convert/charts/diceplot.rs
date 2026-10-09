@@ -58,7 +58,13 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
         }
     }
 
+    // `category_labels` 必须在 `with_records` **之前**设好：kuva 是用它把记录里的类别名换算成
+    // 点位下标的，默认那套标签（`Cat 1`…）匹配不上任何真实类别，于是**一条记录都不会画**，
+    // 图是空的。`dot_legend` 也一样按点位对齐，所以同样放在前面没有坏处。
     let mut plot = DicePlot::new(ndots);
+    if let Some(v) = s.category_labels.clone() {
+        plot = plot.with_category_labels(v);
+    }
     if !s.points.is_empty() {
         // 逐格写法：格子和类别都得自己给全。
         let x_cats = s
@@ -69,7 +75,12 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
             .y_categories
             .clone()
             .ok_or("dice_plot: `y_categories` is required for the `points` input")?;
-        // `with_points` 收的是这个五元组：x 类别、y 类别、点了哪几个 pip、填充值、大小值。
+        // `with_points` 收的是这个五元组：x 类别、y 类别、点了哪几个 pip、整格的填充值、大小值。
+        // 瓦片模式下 `fill` 决定格底颜色、`size` 决定 pip 半径，两者都作用在**整格**上 —— 与
+        // `dot_points` 那种「每个 pip 各自带值」的写法是两回事，别混。
+        //
+        // 坐标与 `x_categories` / `y_categories` 是对齐关系：`p.x` 必须是 `x_categories` 里的名字，
+        // 配不上这一格就整格不画（外面不报错，图里直接少一块）。
         type DiceRow = (String, String, Vec<usize>, Option<f64>, Option<f64>);
         let data: Vec<DiceRow> = s
             .points
@@ -177,6 +188,50 @@ mod tests {
         assert_renders(&render_svg(DICE_PLOT), "DICE_PLOT");
     }
 
+    /// 瓦片写法（`present` + 整格一对 fill/size）：`present` 里的每个 pip 画成实心圆，格子本身
+    /// 按 `fill` 铺色。这段**不带任何图例字段** —— 图例里也有圆，会让「有圆」这种断言失去意义。
+    const DICE_PLOT_TILES: &str = r##"{
+      "series": [{
+        "type": "dice_plot",
+        "ndots": 4,
+        "x_categories": ["Gene_A", "Gene_B"],
+        "y_categories": ["Sample_1", "Sample_2"],
+        "points": [
+          {"x": "Gene_A", "y": "Sample_1", "present": [0, 1, 2, 3], "fill": 0.8, "size": 5.0},
+          {"x": "Gene_B", "y": "Sample_2", "present": [0, 1, 2], "fill": 0.6, "size": 3.0}
+        ],
+        "color_map": "inferno"
+      }]
+    }"##;
+
+    #[test]
+    fn renders_dice_plot_tiles() {
+        let svg = render_svg(DICE_PLOT_TILES);
+        assert_renders(&svg, "DICE_PLOT_TILES");
+        assert!(
+            svg.matches("<circle").count() >= 7,
+            "every pip in `present` should be drawn, got {} circles",
+            svg.matches("<circle").count()
+        );
+    }
+
+    /// x/y 与 `x_categories` / `y_categories` 配不上时，那一格**静默消失** —— 这是最容易把
+    /// dice plot 画成空图的写法（文档里的两个 `points` 例子就曾经把两者写反）。
+    #[test]
+    fn dice_plot_tile_with_mismatched_categories_is_empty() {
+        let svg = render_svg(
+            r##"{"series":[{"type":"dice_plot","ndots":2,
+                 "x_categories":["Sample_1","Sample_2"],
+                 "y_categories":["Gene_A","Gene_B"],
+                 "points":[{"x":"Gene_A","y":"Sample_1","present":[0]}]}]}"##,
+        );
+        assert_eq!(
+            svg.matches("<circle").count(),
+            0,
+            "a cell whose x is not in `x_categories` is silently dropped"
+        );
+    }
+
     /// 分类写法：一条记录一个点，点位与颜色都写在记录里。
     const DICE_PLOT_RECORDS: &str = r##"{
       "series": [{
@@ -196,7 +251,14 @@ mod tests {
 
     #[test]
     fn renders_dice_plot_from_records() {
-        assert_renders(&render_svg(DICE_PLOT_RECORDS), "DICE_PLOT_RECORDS");
+        let svg = render_svg(DICE_PLOT_RECORDS);
+        assert_renders(&svg, "DICE_PLOT_RECORDS");
+        // 记录自带颜色，画出来才会出现在 SVG 里 —— 这也是「category_labels 设晚了，
+        // 一条记录都匹配不上」那个 bug 的回归断言：那时整张图是空的。
+        assert!(
+            svg.contains("#2166ac"),
+            "the colours carried by the records should reach the chart"
+        );
     }
 
     /// 逐点连续写法：每个点各自带填充值与大小值。

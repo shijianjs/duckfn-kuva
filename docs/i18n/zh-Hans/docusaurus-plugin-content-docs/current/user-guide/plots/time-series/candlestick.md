@@ -26,7 +26,11 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 取最近 40 个交易日就够：200 个日期标签会挤成一团。
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 
@@ -53,7 +57,11 @@ FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close,
                'volume': volume}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 取最近 40 个交易日就够：200 个日期标签会挤成一团。
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 
@@ -79,7 +87,11 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 取最近 40 个交易日就够：200 个日期标签会挤成一团。
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 
@@ -128,7 +140,11 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 取最近 40 个交易日就够：200 个日期标签会挤成一团。
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 

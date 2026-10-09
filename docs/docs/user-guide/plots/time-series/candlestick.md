@@ -27,7 +27,11 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 40 trading days is plenty: 200 date labels overlap into a smear.
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 
@@ -55,7 +59,11 @@ FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close,
                'volume': volume}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 40 trading days is plenty: 200 date labels overlap into a smear.
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 
@@ -83,7 +91,11 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 40 trading days is plenty: 200 date labels overlap into a smear.
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 
@@ -134,7 +146,11 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+  -- 40 trading days is plenty: 200 date labels overlap into a smear.
+  SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  ORDER BY date DESC LIMIT 40
+)
 );
 ```
 

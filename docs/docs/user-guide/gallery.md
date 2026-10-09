@@ -1,6 +1,6 @@
 ---
 title: Gallery
-sidebar_position: 4.5
+sidebar_position: 3.5
 description: Every plot type on one page — one runnable SQL example each.
 ---
 
@@ -12,6 +12,10 @@ the full documentation for that plot — field tables, more examples, and its ed
 
 There is nothing to compile here: the `kuva_render` call a card makes is the same call your own queries make.
 Each description is the one that plot's own page opens with.
+
+The plot-type names and one-line descriptions follow kuva's own
+[Gallery](https://psy-fer.github.io/kuva/gallery.html); the SQL is this extension's own spelling of
+the same charts.
 
 ## 3D scatter plot
 
@@ -1208,7 +1212,10 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+    SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+    ORDER BY date DESC LIMIT 40
+  )
 );
 ```
 

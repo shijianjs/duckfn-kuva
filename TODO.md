@@ -21,6 +21,11 @@
       所以先不做。
 - [ ] **终端渲染做不了**：kuva 的 CLI 有 `--terminal`，把图打成盲文点阵 + ANSI 色；那是 CLI 的输出后端，扩展的
       产物是 SVG（画在页面上），没有终端画布可画。`showcase.md` 的最后一节已写明「想要终端里的图就用它的 CLI」。
+      - 后面可以做，新增个函数
+      - 官方 src/bin/kuva/output.rs:48 也就是new了一个backend、然后print: 
+            print!("{}",kuva::TerminalBackend::new(cols, rows).render_scene(&scene));
+      - 返回字符串，可选是否立即打印
+
 
 ## 可选增强
 

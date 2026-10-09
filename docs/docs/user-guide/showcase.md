@@ -1,6 +1,6 @@
 ---
 title: Showcase
-sidebar_position: 4.6
+sidebar_position: 3.6
 description: Elaborate compositions that are still one SQL statement each — the extension pushed further, not a catalogue.
 ---
 
@@ -8,6 +8,10 @@ description: Elaborate compositions that are still one SQL statement each — th
 
 The [Gallery](./gallery.md) is one card per plot type. This page is the opposite: a handful of elaborate
 compositions that show what the extension looks like pushed further, not a catalog.
+
+The library's own version of this page is at
+[psy-fer.github.io/kuva/showcase](https://psy-fer.github.io/kuva/showcase.html) — the same kind of compositions,
+drawn from Rust rather than SQL.
 
 Every one of them is a **single `kuva_render` call over SQL** — no Rust, no local toolchain, nothing to
 install beyond the extension. The SQL is right there on the page and it is editable: change a number, a

@@ -1,6 +1,6 @@
 ---
 title: 组合示例
-sidebar_position: 4.6
+sidebar_position: 3.6
 description: 每张都还是一条 SQL 的精心构图 —— 把扩展再推一步，而不是一张目录。
 ---
 
@@ -8,6 +8,9 @@ description: 每张都还是一条 SQL 的精心构图 —— 把扩展再推一
 
 [图型总览](./gallery.md)是一页一种图型的卡片墙；这一页正好相反：几个精心搭出来的组合，展示扩展再往前推一步
 是什么样子，而不是一份目录。
+
+库里自己那一版同名页在 [psy-fer.github.io/kuva/showcase](https://psy-fer.github.io/kuva/showcase.html) ——
+同类构图，用的是 Rust 而不是 SQL。
 
 每一个都是**一条 `kuva_render` 调用、外面套 SQL** —— 没有 Rust、不需要本地工具链，除了扩展也不用装别的东西。
 SQL 就摆在页面上，而且是可改的：改一个数字、一个颜色或一个阈值，图跟着变。

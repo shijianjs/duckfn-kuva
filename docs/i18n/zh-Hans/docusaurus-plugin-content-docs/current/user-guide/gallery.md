@@ -1,6 +1,6 @@
 ---
 title: 图型总览
-sidebar_position: 4.5
+sidebar_position: 3.5
 description: 一页看完所有图型 —— 每个一条可运行的 SQL。
 ---
 
@@ -10,6 +10,8 @@ description: 一页看完所有图型 —— 每个一条可运行的 SQL。
 在浏览器里。每条下面的链接指向该图型的完整文档 —— 字段表、更多例子与边界情况。
 
 这里没有任何东西需要编译：卡片里那句 `kuva_render`，和你自己查询里要写的是同一句。每段描述取自该图型页的开头。
+
+图型名与一句话描述取自 kuva 官方的 [Gallery 页](https://psy-fer.github.io/kuva/gallery.html)，SQL 是本扩展自己的写法。
 
 ## 三维散点图
 
@@ -1206,7 +1208,10 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({'label': date, 'open': open, 'high': high, 'low': low, 'close': close}
               ORDER BY date) AS candles
-  FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+  FROM (
+    SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
+    ORDER BY date DESC LIMIT 40
+  )
 );
 ```
 

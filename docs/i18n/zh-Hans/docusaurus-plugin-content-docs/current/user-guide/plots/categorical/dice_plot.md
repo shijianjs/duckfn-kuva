@@ -95,14 +95,14 @@ WITH d AS (
 )
 SELECT kuva_render(to_json({
   'title': 'Continuous tiles',
-  'x_axis': {'name': 'sample'},
-  'y_axis': {'name': 'gene'},
+  'x_axis': {'name': 'gene'},
+  'y_axis': {'name': 'sample'},
   'series': [{
     'type': 'dice_plot',
     'ndots': 4,
     'category_labels': ['1', '2', '3', '4'],
-    'x_categories': ['Sample_1', 'Sample_2'],
-    'y_categories': ['Gene_A', 'Gene_B'],
+    'x_categories': ['Gene_A', 'Gene_B'],
+    'y_categories': ['Sample_1', 'Sample_2'],
     'points': (SELECT list({'x': x, 'y': y, 'present': present, 'fill': fill, 'size': size}) FROM d),
     'color_map': 'inferno',
     'fill_legend_label': 'expression',
@@ -151,14 +151,14 @@ WITH d AS (
 )
 SELECT kuva_render(to_json({
   'title': 'Fixed dot radius',
-  'x_axis': {'name': 'sample'},
-  'y_axis': {'name': 'gene'},
+  'x_axis': {'name': 'gene'},
+  'y_axis': {'name': 'sample'},
   'series': [{
     'type': 'dice_plot',
     'ndots': 4,
     'category_labels': ['1', '2', '3', '4'],
-    'x_categories': ['Sample_1', 'Sample_2'],
-    'y_categories': ['Gene_A', 'Gene_B'],
+    'x_categories': ['Gene_A', 'Gene_B'],
+    'y_categories': ['Sample_1', 'Sample_2'],
     'points': (SELECT list({'x': x, 'y': y, 'present': present, 'fill': fill, 'size': size}) FROM d),
     'dot_radius': 6,
     'cell_width': 0.9,
@@ -198,6 +198,8 @@ SELECT kuva_render(to_json({
 - `ndots` 必须在 1~6 之间；点位下标达到或超过它是报错，而不是被夹一下。
 - `category_labels` 与 `dot_legend` 给了的话，都必须正好 `ndots` 项。
 - 逐格写法里 `x_categories` 与 `y_categories` 必填 —— 另外两种写法会自己收集。
+- 逐格写法里 `p.x` / `p.y` 必须是 `x_categories` / `y_categories` 里的**名字**：配不上的格子会被静默丢掉
+  （不报错），一张空白的骰子图往往就是这么来的。
 
 ## 另见
 

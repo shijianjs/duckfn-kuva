@@ -84,6 +84,18 @@ kuva's `dark` theme unless the spec asks for another one: the default theme's ne
 near-black background are exactly the "black frame, black writing" you cannot read. Ask for another
 [theme](./themes.md) if you want the light look.
 
+## Font: use Cascadia Code
+
+The frame is laid out on a fixed 2 × 4 braille grid, so it only lines up if your terminal uses a **monospaced
+font whose glyphs all share exactly the same advance width** — and most "monospace" fonts do not. Testing
+kuva's terminal output (including through anser and zed) against Consolas, JetBrains Mono, Ubuntu Mono,
+DejaVu, SimSun and LXGW WenKai: every one of them rendered the lines jagged and misaligned.
+
+Only **Cascadia Mono** and **Cascadia Code** line up. They are the default font of Windows Terminal, ship
+with Windows, and are open source: [Cascadia Code](https://github.com/microsoft/cascadia-code). kit 0.9.1 bundles Cascadia
+Code, so the frames you see on this site already use it — but if you copy a frame into your own terminal, set
+it to Cascadia Code (or Cascadia Mono) or the grid will not hold.
+
 ## Examples
 
 A [Manhattan plot](./../plots/statistics/manhattan.md) — the case where you are on a cluster and just want

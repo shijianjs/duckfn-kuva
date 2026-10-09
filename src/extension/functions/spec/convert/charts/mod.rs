@@ -74,6 +74,10 @@ use kuva::prelude::*;
 
 use crate::extension::functions::spec::schema::*;
 
+/// 暗底终端下，给默认黑边的图型（phylo 等）用的亮色：树枝用亮青、叶子标签用浅灰。
+const TERMINAL_BRANCH_COLOR: &str = "#7fdbff";
+const TERMINAL_LEAF_COLOR: &str = "#e0e0e0";
+
 impl SeriesSpec {
     /// 这个 series 是否自己指定了颜色（用来决定要不要兜底调色板）。
     pub(super) fn has_explicit_color(&self) -> bool {
@@ -190,6 +194,21 @@ impl SeriesSpec {
                 s.color.is_some()
                     || s.series.iter().any(|x| x.color.is_some())
                     || s.slices.iter().any(|x| x.color.is_some())
+            }
+        }
+    }
+
+    /// 暗底终端模式下，把默认黑色的线条/标签换成亮色，否则在暗底上完全看不见。
+    ///
+    /// kuva 的 phylo 把树枝与叶子标签默认成黑色（`phylo.rs` 里 `with_branch_color` 不调用即 `"black"`），
+    /// 普通图型走 category10 调色板（暗底可读）。这里只补这一类「默认黑边」的图型。
+    pub(crate) fn apply_terminal_defaults(&mut self) {
+        if let SeriesSpec::Phylo(p) = self {
+            if p.branch_color.is_none() {
+                p.branch_color = Some(TERMINAL_BRANCH_COLOR.into());
+            }
+            if p.leaf_color.is_none() {
+                p.leaf_color = Some(TERMINAL_LEAF_COLOR.into());
             }
         }
     }

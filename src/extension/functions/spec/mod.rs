@@ -62,6 +62,19 @@ pub(crate) fn render_terminal_json(json: &str) -> Result<TerminalRender, String>
         spec.panel.theme = Some(ThemeSpec::Named(ThemeKind::Dark));
     }
 
+    // kuva 的 phylo 等图型把边与叶子标签默认成黑色，在暗底上整张图消失；没显式给色时补一个
+    // 亮色。普通图型走 category10 调色板（暗底可读），不用动。
+    for s in spec.panel.series.iter_mut() {
+        s.apply_terminal_defaults();
+    }
+    if let Some(fig) = &mut spec.figure {
+        for p in fig.panels.iter_mut() {
+            for s in p.series.iter_mut() {
+                s.apply_terminal_defaults();
+            }
+        }
+    }
+
     let cols = opts.cols.unwrap_or(DEFAULT_TERM_COLS).max(1);
     let rows = opts.rows.unwrap_or(DEFAULT_TERM_ROWS).max(1);
     let scene = convert::render(spec)?;

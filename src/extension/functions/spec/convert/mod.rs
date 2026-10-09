@@ -447,6 +447,28 @@ mod tests {
         );
     }
 
+    /// phylo 的树枝与叶子标签默认是黑色，在暗底终端上整张图消失 —— 终端入口必须给个亮色。
+    #[test]
+    fn terminal_phylo_is_not_black() {
+        let text = render_terminal(
+            r#"{"series":[{"type":"phylo","edges":[
+                {"parent":"root","child":"Bacteria","length":1.5},
+                {"parent":"root","child":"Eukarya","length":2.0},
+                {"parent":"Bacteria","child":"E. coli","length":0.5},
+                {"parent":"Eukarya","child":"Human","length":0.8}]}]}"#,
+        );
+        // 注入的树枝亮青 = #7fdbff = 127;219;255，叶子浅灰 = #e0e0e0 = 224;224;224。
+        assert!(
+            text.contains("38;2;127;219;255") || text.contains("38;2;224;224;224"),
+            "the injected bright colour for phylo branches should appear, got: {:?}",
+            text.chars().take(160).collect::<String>()
+        );
+        assert!(
+            !text.contains("38;2;0;0;0"),
+            "phylo edges must not be black on a dark terminal"
+        );
+    }
+
     /// `terminal.print` 为真时结果直接打到 stdout，函数返回 NULL —— SQL 这一侧就没有值了。
     #[test]
     fn terminal_print_mode_gives_no_value_back() {

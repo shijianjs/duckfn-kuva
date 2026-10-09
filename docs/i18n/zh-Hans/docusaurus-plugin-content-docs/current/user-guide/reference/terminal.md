@@ -74,6 +74,15 @@ WHERE "group" = 'Condition_A';
 **默认按暗底画。** 终端是暗的，所以这个入口在没有指定主题时用 kuva 的 `dark` 主题渲染：默认主题的近黑文字与
 线条落在近黑背景上，就是那种「黑框框、黑字」根本读不了的样子。想要亮色的观感就显式给一个[主题](./themes.md)。
 
+## 字体：用 Cascadia Code
+
+这一帧是铺在固定的 2 × 4 盲文点阵上的，所以只有在**等宽、且每个字形宽度完全一致**的终端字体下才对得齐 ——
+而多数「等宽」字体其实做不到。我们在本地试过 kuva 的终端输出（包括经 anser、zed 渲染）：Consolas、JetBrains
+Mono、Ubuntu Mono、DejaVu、宋体、霞鹜文楷等宽……每一款画出来的线都是歪的、对不齐的。
+
+只有 **Cascadia Mono** 与 **Cascadia Code** 能对齐。二者是 Windows Terminal 的默认字体、随 Windows 自带，且开源：[Cascadia Code](https://github.com/microsoft/cascadia-code)。kit 0.9.1 已经内置了 Cascadia Code，所以你在**本站**看到的帧用的就是
+它 —— 但如果你把帧复制到自己的终端里，记得把字体设成 Cascadia Code（或 Cascadia Mono），否则点阵网格会散掉。
+
 ## 例子
 
 一张[曼哈顿图](./../plots/statistics/manhattan.md) —— 你人在集群上、只想看看有没有东西显著的那种场合：

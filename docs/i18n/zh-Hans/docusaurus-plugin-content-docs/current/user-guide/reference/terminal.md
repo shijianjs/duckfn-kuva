@@ -47,8 +47,15 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
 WHERE "group" = 'Condition_A';
 ```
 
-上面这个块返回 `NULL` —— 这正是要点。在浏览器里打出去的内容你看不见，但在 CLI 会话里（或者任何掌握 stdout
-的宿主里）它就落在你想要的地方。
+上面这个块返回 `NULL` —— 这正是要点：那一帧去了 stdout，所以没有东西可以交回给 SQL。
+
+::::note[它去哪儿了？]
+
+- **在 CLI 会话里**（或者任何掌握 stdout 的宿主里）它就落在你的终端上，就在那儿。
+- **在浏览器里**它进了 JavaScript 控制台：按 **F12**（macOS 上是 **⌘⌥I**）打开 **Console** 标签页，那一帧就在
+  里面，连转义都在。网页没法替你打开 DevTools —— 浏览器不允许 —— 所以这一份输出得你自己去看一眼。
+
+::::
 
 ## 它是怎么画的
 

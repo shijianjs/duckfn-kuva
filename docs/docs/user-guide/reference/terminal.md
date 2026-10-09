@@ -51,8 +51,17 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
 WHERE "group" = 'Condition_A';
 ```
 
-The block above returns `NULL` — that is the point. In a browser the printed frame goes nowhere you can see,
-but in a CLI session (or any host that owns stdout) it lands exactly where you wanted it.
+The block above returns `NULL` — that is the point: the frame went to stdout, so there is nothing left to
+hand back to SQL.
+
+::::note[Where did it go?]
+
+- **In a CLI session** (or any host that owns stdout) it lands on your terminal, right there.
+- **In a browser** it goes to the JavaScript console: press **F12** (or **⌘⌥I** on macOS) and open the
+  **Console** tab, and the frame is there, escapes and all. A page cannot open DevTools for you — browsers
+  do not allow it — so this is one output you have to go and look at yourself.
+
+::::
 
 ## How it works
 

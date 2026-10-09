@@ -12,6 +12,8 @@ mod enums;
 mod layout;
 
 use kuva::prelude::*;
+// `LabelStyle` 没有跟着 prelude 出来（`LabelConfig` 出来了），所以单独引一次。
+use kuva::render::figure::LabelStyle;
 
 use super::schema::*;
 use layout::build_layout;
@@ -54,12 +56,20 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
     if fig.rows == 0 || fig.cols == 0 {
         return Err("figure: `rows` and `cols` must both be greater than 0".into());
     }
-    let expected = fig.rows * fig.cols;
+    if let Some(structure) = &fig.structure {
+        check_structure(structure, fig.rows, fig.cols)?;
+    }
+    // 合并单元格时，`structure` 的每一项合成一个面板；否则一格一个面板。
+    let expected = fig.structure.as_ref().map_or(fig.rows * fig.cols, Vec::len);
     if fig.panels.len() != expected {
         return Err(format!(
-            "figure: {} panels were given but rows * cols = {}",
+            "figure: {} panels were given but the grid calls for {expected}{}",
             fig.panels.len(),
-            expected
+            if fig.structure.is_some() {
+                " (`structure` groups the cells into that many panels)"
+            } else {
+                " (rows * cols)"
+            }
         ));
     }
 
@@ -77,9 +87,12 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
         all_layouts.push(layout);
     }
 
-    let mut figure = Figure::new(fig.rows, fig.cols)
-        .with_plots(all_plots)
-        .with_layouts(all_layouts);
+    let mut figure = Figure::new(fig.rows, fig.cols);
+    // 合并单元格要在塞进 plots 之前给出（kuva 的 `with_structure`）。
+    if let Some(structure) = &fig.structure {
+        figure = figure.with_structure(structure.clone());
+    }
+    figure = figure.with_plots(all_plots).with_layouts(all_layouts);
 
     if let Some(title) = &fig.title {
         figure = figure.with_title(title.clone());
@@ -97,6 +110,20 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
                 let refs: Vec<&str> = names.iter().map(String::as_str).collect();
                 figure.with_labels_custom(refs, LabelConfig::default())
             }
+            LabelsSpec::Full(full) => {
+                let refs: Vec<&str> = full.names.iter().map(String::as_str).collect();
+                let config = LabelConfig {
+                    style: match full.style.unwrap_or(LabelsKind::Uppercase) {
+                        // `none` 在自定义文字下没有意义（文字是你给的），按大写处理即可。
+                        LabelsKind::None | LabelsKind::Uppercase => LabelStyle::Uppercase,
+                        LabelsKind::Lowercase => LabelStyle::Lowercase,
+                        LabelsKind::Numeric => LabelStyle::Numeric,
+                    },
+                    size: full.size.unwrap_or(16),
+                    bold: full.bold.unwrap_or(true),
+                };
+                figure.with_labels_custom(refs, config)
+            }
         };
     }
     if fig.shared_x_all == Some(true) {
@@ -105,8 +132,26 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
     if fig.shared_y_all == Some(true) {
         figure = figure.with_shared_y_all();
     }
+    for row in &fig.shared_y_rows {
+        figure = figure.with_shared_y(*row);
+    }
+    for col in &fig.shared_x_cols {
+        figure = figure.with_shared_x(*col);
+    }
+    for slice in &fig.shared_y_slices {
+        figure = figure.with_shared_y_slice(slice.index, slice.start, slice.end);
+    }
+    for slice in &fig.shared_x_slices {
+        figure = figure.with_shared_x_slice(slice.index, slice.start, slice.end);
+    }
     if let Some(pos) = &fig.shared_legend {
         figure = figure.with_shared_legend_position(enums::figure_legend_position(pos)?);
+    }
+    if let Some(entries) = &fig.shared_legend_entries {
+        figure = figure.with_shared_legend_entries(entries.iter().map(layout::legend_entry).collect());
+    }
+    if fig.keep_panel_legends == Some(true) {
+        figure = figure.with_keep_panel_legends();
     }
     if let Some(v) = fig.spacing {
         figure = figure.with_spacing(v);
@@ -116,6 +161,16 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
     }
     if let (Some(w), Some(h)) = (fig.cell_width, fig.cell_height) {
         figure = figure.with_cell_size(w, h);
+    }
+    if let Some(heights) = &fig.row_heights {
+        for (row, px) in heights {
+            figure = figure.with_row_height(*row, *px);
+        }
+    }
+    if let Some(widths) = &fig.col_widths {
+        for (col, px) in widths {
+            figure = figure.with_col_width(*col, *px);
+        }
     }
     if let (Some(w), Some(h)) = (fig.figure_width, fig.figure_height) {
         figure = figure.with_figure_size(w, h);
@@ -127,6 +182,43 @@ fn render_figure(fig: FigureSpec) -> Result<String, String> {
 /// 逐个把 series 描述翻成 kuva 的 `Plot`。
 fn build_series(specs: Vec<SeriesSpec>) -> Result<Vec<Plot>, String> {
     specs.into_iter().map(SeriesSpec::build).collect()
+}
+
+/// `structure` 的每一项必须是一个**实心矩形**（L 形之类的跨格 kuva 不支持，它会按包围盒排布，
+/// 静默画成另一个样子）；顺带挡住越界与重复使用同一格。
+fn check_structure(structure: &[Vec<usize>], rows: usize, cols: usize) -> Result<(), String> {
+    let total = rows * cols;
+    let mut seen = vec![false; total];
+    for (i, group) in structure.iter().enumerate() {
+        if group.is_empty() {
+            return Err(format!("figure: `structure` group {i} is empty"));
+        }
+        let (mut min_row, mut max_row, mut min_col, mut max_col) = (usize::MAX, 0, usize::MAX, 0);
+        for cell in group {
+            if *cell >= total {
+                return Err(format!(
+                    "figure: `structure` refers to cell {cell} but a {rows}x{cols} grid only has {total} cells"
+                ));
+            }
+            if seen[*cell] {
+                return Err(format!("figure: `structure` uses cell {cell} more than once"));
+            }
+            seen[*cell] = true;
+            let (row, col) = (*cell / cols, *cell % cols);
+            min_row = min_row.min(row);
+            max_row = max_row.max(row);
+            min_col = min_col.min(col);
+            max_col = max_col.max(col);
+        }
+        let area = (max_row - min_row + 1) * (max_col - min_col + 1);
+        if area != group.len() {
+            return Err(format!(
+                "figure: `structure` group {i} is not a filled rectangle (it covers {area} cells but lists {})",
+                group.len()
+            ));
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -169,6 +261,127 @@ mod tests {
     #[test]
     fn renders_overlay() {
         assert_renders(&render_svg(OVERLAY), "OVERLAY");
+    }
+
+    /// 合并单元格 + 逐行/列尺寸覆盖 + 共享图例的手工条目 + 面板标签的完整写法。
+    const FIGURE_MERGED: &str = r#"{
+      "figure": {
+        "rows": 2,
+        "cols": 2,
+        "structure": [[0, 2], [1], [3]],
+        "labels": {"names": ["i", "ii", "iii"], "size": 14, "bold": false},
+        "shared_legend": "right_top",
+        "shared_legend_entries": [
+          {"label": "measured", "color": "steelblue", "shape": "circle"},
+          {"label": "fit", "color": "crimson", "shape": "line"}
+        ],
+        "keep_panel_legends": true,
+        "shared_y_rows": [0],
+        "shared_x_cols": [0],
+        "shared_y_slices": [{"index": 0, "start": 0, "end": 1}],
+        "row_heights": {"1": 200},
+        "col_widths": {"1": 300},
+        "panels": [
+          {"title": "tall", "series": [{"type": "scatter", "data": [[1, 2], [2, 3]], "legend": "a"}]},
+          {"title": "top right", "series": [{"type": "line", "data": [[0, 1], [1, 2]], "legend": "b"}]},
+          {"title": "bottom right", "series": [{"type": "line", "data": [[0, 2], [1, 1]], "legend": "c"}]}
+        ]
+      }
+    }"#;
+
+    #[test]
+    fn renders_figure_with_structure() {
+        assert_renders(&render_svg(FIGURE_MERGED), "FIGURE_MERGED");
+    }
+
+    /// 合并单元格时，面板数按 `structure` 的组数算，而不是 rows × cols。
+    #[test]
+    fn figure_structure_panel_count_is_reported() {
+        let err = render_json(
+            r#"{"figure":{"rows":2,"cols":2,"structure":[[0,1],[2,3]],
+                 "panels":[{"series":[{"type":"scatter","data":[[1,2]]}]}]}}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("the grid calls for 2"),
+            "unexpected message: {err}"
+        );
+    }
+
+    /// `structure` 的每一项必须能合成一个矩形：L 形（这里 2×2 里的 `[0, 1, 2]`）要报错。
+    #[test]
+    fn figure_structure_must_be_rectangular() {
+        let err = render_json(
+            r#"{"figure":{"rows":2,"cols":2,"structure":[[0,1,2],[3]],
+                 "panels":[{"series":[{"type":"scatter","data":[[1,2]]}]},
+                           {"series":[{"type":"scatter","data":[[1,2]]}]}]}}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("not a filled rectangle"),
+            "unexpected message: {err}"
+        );
+    }
+
+    /// 日期轴的 `unit: "auto"`：由 kuva 按轴范围挑单位与格式，因此不需要 `format`。
+    const DATETIME_AUTO: &str = r#"{
+      "x_axis": {"min": 1704067200, "max": 1735689600},
+      "x_datetime": {"unit": "auto"},
+      "series": [{"type": "line", "data": [[1704067200, 3], [1711929600, 5], [1719792000, 8], [1735689600, 2]]}]
+    }"#;
+
+    #[test]
+    fn renders_datetime_auto() {
+        assert_renders(&render_svg(DATETIME_AUTO), "DATETIME_AUTO");
+    }
+
+    #[test]
+    fn datetime_without_format_is_reported() {
+        let err = render_json(
+            r#"{"x_datetime": {"unit": "month"},
+                "series": [{"type": "line", "data": [[1, 2], [2, 3]]}]}"#,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("`format` is required"),
+            "unexpected message: {err}"
+        );
+    }
+
+    /// 色图名容忍大小写、连字符与 ColorBrewer 缩写：`ylgnbu` 就是 `yellow-green-blue`。
+    const COLORMAP_ALIAS: &str = r#"{
+      "series": [{"type": "heatmap", "data": [[1, 2], [3, 4]], "color_map": "ylgnbu"}]
+    }"#;
+
+    #[test]
+    fn renders_colormap_alias() {
+        assert_renders(&render_svg(COLORMAP_ALIAS), "COLORMAP_ALIAS");
+    }
+
+    #[test]
+    fn unknown_colormap_is_reported() {
+        let err = render_json(r#"{"series":[{"type":"heatmap","data":[[1,2]],"color_map":"nope"}]}"#)
+            .unwrap_err();
+        assert!(err.contains("unknown color_map"), "unexpected message: {err}");
+    }
+
+    /// 全局折行（`grid.wrap`）与分组图例。
+    const WRAP_AND_GROUPS: &str = r#"{
+      "title": "A very long title that would otherwise make the top margin huge",
+      "x_axis": {"name": "A very long x-axis label as well"},
+      "grid": {"wrap": 30},
+      "legend": {
+        "groups": [
+          {"title": "Controls", "entries": [{"label": "C1", "color": "steelblue", "shape": "circle"}]},
+          {"title": "Cases", "entries": [{"label": "T1", "color": "tomato", "shape": "circle"}]}
+        ]
+      },
+      "series": [{"type": "scatter", "data": [[1, 2], [2, 3]], "legend": "raw"}]
+    }"#;
+
+    #[test]
+    fn renders_wrap_and_legend_groups() {
+        assert_renders(&render_svg(WRAP_AND_GROUPS), "WRAP_AND_GROUPS");
     }
 
     /// 双 Y 轴：`secondary_series` 画在右侧那根轴上。

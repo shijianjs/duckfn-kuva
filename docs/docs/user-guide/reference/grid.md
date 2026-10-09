@@ -34,8 +34,9 @@ of switches that change how the whole canvas is drawn.
 | `equal_aspect` | boolean | One data unit is the same number of pixels on both axes (circles stay round). |
 | `scale` | number | Scale every piece of text and tick, *without* changing the canvas size. |
 | `label_background` | boolean | Draw a background behind value labels (bars, pie slices) so they stay legible over the fill. |
-| `bw_mode` | boolean | Grayscale, colour-blind-safe mode: the palette becomes greys and line styles / markers cycle to keep series apart. |
-| `interactive` | boolean | Inject hover/click JavaScript into the SVG. |
+| `bw_mode` | boolean | Grayscale, colour-blind-safe mode: the palette becomes greys and line styles / markers cycle to keep series apart. See [Black & white mode](./bw-mode.md). |
+| `interactive` | boolean | Inject hover/click JavaScript into the SVG. See [SVG interactivity](./interactive.md). |
+| `wrap` | integer | Wrap every text element (title, axis labels, legend) at this many characters; the per-element fields override it. See [Text wrapping](./layout.md). |
 
 :::note[`bw_mode` and `interactive` belong to the canvas, not a series]
 

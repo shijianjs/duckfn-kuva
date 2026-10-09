@@ -22,6 +22,7 @@ description: 图例的显示、位置与排布。
 | `at` | `[number, number]` | 把图例放在画布上的绝对像素位置。 |
 | `at_data` | `[number, number]` | 把图例放在某个数据坐标上。 |
 | `entries` | entry[] | 手写的图例条目，绕开自动收集（见下）。 |
+| `groups` | group[] | 带标题的分组条目 —— `{title, entries}`；优先级最高，会取代 `entries` 与自动收集（见下）。 |
 
 ## 手写条目
 
@@ -70,6 +71,45 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart;
 ```
+
+## 分组条目
+
+`groups` 把图例切成若干带粗体标题的段落，每段各自列条目，条目形状与 `entries` 完全一样：
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (
+  SELECT "group" AS g, expression,
+         CASE WHEN "group" = 'Control'
+              THEN (CASE WHEN expression > 5 THEN '#c44e52' ELSE '#4c72b0' END)
+              ELSE (CASE WHEN expression > 5 THEN '#e6a532' ELSE '#55a868' END)
+         END AS c
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+  WHERE "group" IN ('Control', 'Drug_A')
+)
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'sample'},
+  'y_axis': {'name': 'expression'},
+  'legend': {
+    'position': 'outside_right_top',
+    'groups': [
+      {'title': 'Control', 'entries': [
+        {'label': 'below 5', 'color': '#4c72b0', 'shape': 'circle'},
+        {'label': 'above 5', 'color': '#c44e52', 'shape': 'circle'}]},
+      {'title': 'Drug A', 'entries': [
+        {'label': 'below 5', 'color': '#55a868', 'shape': 'circle'},
+        {'label': 'above 5', 'color': '#e6a532', 'shape': 'circle'}]}
+    ]
+  },
+  'series': [{'type': 'strip',
+              'groups': (SELECT list({'label': g, 'values': vals, 'point_colors': cols} ORDER BY g)
+                         FROM (SELECT g, list(expression ORDER BY expression) AS vals,
+                                      list(c ORDER BY expression) AS cols
+                               FROM d GROUP BY g))}]
+})) AS chart;
+```
+
+分组的顺序就是你写的顺序，组与组之间空半行。与 `entries` 一样，它们是**手写的键**：没有任何东西会去核对它们与
+series 是否一致，所以要自己保证它们和你真正画出来的颜色对得上。
 
 ## 位置
 

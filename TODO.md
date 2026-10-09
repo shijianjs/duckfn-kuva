@@ -13,6 +13,11 @@
 - [ ] **`polar` 的自定义 theta 刻度标签做不了**：官方文档那一节用的是
       `TickFormat::Custom(Arc<dyn Fn(f64) -> String>)` —— 一个 Rust 闭包，JSON 表达不了。
       已经开放的具名格式（`x_axis.tick_format`）覆盖了绝大多数场景。
+      同理：色图的 `ColorMap::Custom` 也是闭包，`colormaps.md` 里已写明只能用内置的 38 种。
+- [ ] **SVG 内嵌字体没有开放**：kuva 的 `SvgBackend::with_embedded_font(true)`（要它自己的 `embed_font`
+      feature）会把 DejaVu Sans 以 base64 `@font-face` 塞进 SVG，让文件在没有系统字体的环境里也自包含，
+      代价是文件大约多 1 MB。没做的理由：字体得进 `.duckdb_extension` 本身，会让每次安装都大出约 1 MB，
+      而 DuckDB 场景下 SVG 是交给浏览器或排版工具渲染的，它们都有字体。`themes.md` 里已写明。
 - [ ] **`phylo` 拿不到叶子的渲染顺序**：官方用 `leaf_labels_top_to_bottom()` 把热力图的行对齐到树上，
       那是一个 Rust 方法，值回不到 SQL 里。`phylo.md` 里已写明「改用 clustermap」。
       能补：给某种输出函数（或 `kuva_render` 的伴随函数）返回叶子顺序，再交给 `heatmap` 的

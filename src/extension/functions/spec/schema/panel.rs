@@ -58,34 +58,78 @@ pub(crate) struct PanelSpec {
 pub(crate) struct FigureSpec {
     pub rows: usize,
     pub cols: usize,
+    /// 合并单元格：每项是一组行优先的格子下标，合成一个**矩形**面板（跨行 / 跨列）。
+    /// 给了它，`panels` 的长度就等于它的长度，不再是 `rows * cols`。
+    pub structure: Option<Vec<Vec<usize>>>,
     pub title: Option<String>,
     pub title_size: Option<u32>,
-    /// 面板标签：`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"`，或自定义数组。
+    /// 面板标签：`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"`，自定义数组，
+    /// 或 `{"names": [...], "style": …, "size": …, "bold": …}`。
     pub labels: Option<LabelsSpec>,
     pub shared_x_all: Option<bool>,
     pub shared_y_all: Option<bool>,
+    /// 在这些**行**内部共享 y 范围（逐行一个数）。
+    #[serde(default)]
+    pub shared_y_rows: Vec<usize>,
+    /// 在这些**列**内部共享 x 范围。
+    #[serde(default)]
+    pub shared_x_cols: Vec<usize>,
+    /// 行内共享 y 的一段：`{"index": 行, "start": 起列, "end": 止列}`（含两端）。
+    #[serde(default)]
+    pub shared_y_slices: Vec<FigureSliceSpec>,
+    /// 列内共享 x 的一段：`{"index": 列, "start": 起行, "end": 止行}`（含两端）。
+    #[serde(default)]
+    pub shared_x_slices: Vec<FigureSliceSpec>,
     /// 共享图例的位置（`"right_top"` / `"bottom"` / …）。不写就没有共享图例。
     pub shared_legend: Option<String>,
+    /// 共享图例的手工条目；给了它就不从各面板收集。
+    pub shared_legend_entries: Option<Vec<super::series::LegendEntrySpec>>,
+    /// 共享图例之外，是否保留各面板自己的图例（默认不保留）。
+    pub keep_panel_legends: Option<bool>,
     pub spacing: Option<f64>,
     pub padding: Option<f64>,
     pub cell_width: Option<f64>,
     pub cell_height: Option<f64>,
+    /// 逐行高度的覆盖：`{"2": 80}`（键是 0 起的行号，值是该行的高度）。
+    pub row_heights: Option<std::collections::HashMap<usize, f64>>,
+    /// 逐列宽度的覆盖：`{"1": 180}`。
+    pub col_widths: Option<std::collections::HashMap<usize, f64>>,
     pub figure_width: Option<f64>,
     pub figure_height: Option<f64>,
-    /// 逐面板配置，按行优先顺序排列，长度必须等于 `rows * cols`。
+    /// 逐面板配置，按行优先顺序排列；长度等于 `rows * cols`，或等于 `structure` 的长度。
     #[serde(default)]
     pub panels: Vec<PanelSpec>,
 }
 
-/// 面板标签：具名样式，或自定义字符串数组。
+/// 共享轴的「一段」。
+#[derive(Debug, Deserialize)]
+pub(crate) struct FigureSliceSpec {
+    /// 行号（`shared_y_slices`）或列号（`shared_x_slices`）。
+    pub index: usize,
+    pub start: usize,
+    pub end: usize,
+}
+
+/// 面板标签：具名样式、自定义字符串数组，或带字体配置的完整写法。
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub(crate) enum LabelsSpec {
     Named(LabelsKind),
     Custom(Vec<String>),
+    Full(LabelsFull),
 }
 
 #[derive(Debug, Deserialize)]
+pub(crate) struct LabelsFull {
+    /// 逐个面板的标签文字。
+    pub names: Vec<String>,
+    /// 缺省按 `"uppercase"` 处理（`with_labels_custom` 的样式字段只影响大小写变换，自定义文字下通常不用）。
+    pub style: Option<LabelsKind>,
+    pub size: Option<u32>,
+    pub bold: Option<bool>,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum LabelsKind {
     None,

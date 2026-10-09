@@ -72,20 +72,23 @@ pub(crate) struct SecondaryAxisSpec {
     pub label_offset: Option<(f64, f64)>,
 }
 
-/// 日期轴：把坐标值当时间戳来排布刻度。
+/// 日期轴：把坐标值当时间戳（Unix 秒）来排布刻度。
 #[derive(Debug, Deserialize)]
 pub(crate) struct DateTimeAxisSpec {
-    /// 时间单位：`"year"` / `"month"` / `"week"` / `"day"` / `"hour"` / `"minute"` / `"second"`。
+    /// 时间单位：`"auto"` / `"year"` / `"month"` / `"week"` / `"day"` / `"hour"` / `"minute"` /
+    /// `"second"`。给 `"auto"` 时由 kuva 按轴的范围自己选单位与格式，`format` 可以省。
     pub unit: DateUnitKind,
     /// 每几个单位一个刻度，默认 1。
     pub step: Option<usize>,
-    /// 刻度标签的格式串（chrono 风格，如 `"%Y-%m"`）。
-    pub format: String,
+    /// 刻度标签的格式串（chrono 风格，如 `"%Y-%m"`）；`unit: "auto"` 时可不给。
+    pub format: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum DateUnitKind {
+    /// 按轴的跨度自动选单位与格式。
+    Auto,
     Year,
     Month,
     Week,
@@ -170,6 +173,9 @@ pub(crate) struct GridSpec {
     pub scale: Option<f64>,
     /// 柱 / 饼等的值标签是否垫一层背景。
     pub label_background: Option<bool>,
+    /// 一次性给所有文字设折行宽度（标题、轴名、图例）。逐元素设的（`title.wrap`、`x_axis.wrap`、
+    /// `legend.wrap`）会覆盖它。
+    pub wrap: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -217,6 +223,17 @@ pub(crate) struct LegendSpec {
     /// 手工给出的图例条目，绕过自动收集。用于「颜色编码在数据里、图例得自己写」的场景
     /// （例如散点带图的逐点颜色）。给了它，自动收集的条目就不再生效。
     pub entries: Option<Vec<super::series::LegendEntrySpec>>,
+    /// 分组图例：每项一组，组有粗体标题、各带自己的条目。**优先级最高** ——
+    /// 给了它，`entries` 与自动收集都不再生效（与 kuva 的 `with_legend_group` 一致）。
+    pub groups: Option<Vec<LegendGroupSpec>>,
+}
+
+/// 图例里的一组条目：粗体标题 + 若干条目。
+#[derive(Debug, Deserialize)]
+pub(crate) struct LegendGroupSpec {
+    pub title: String,
+    #[serde(default)]
+    pub entries: Vec<super::series::LegendEntrySpec>,
 }
 
 // ============================================================================
@@ -296,11 +313,29 @@ pub(crate) struct FontSpec {
 // 色图（连续值 -> 颜色）
 // ============================================================================
 
-/// 连续色图。变体与 kuva 的 `ColorMap` 一一对应（`custom` 除外：自定义映射是 Rust 闭包，
-/// SQL 侧给不了，所以这里不开放）。
+/// 连续色图，**按名字解析**。
+///
+/// 名字容忍大小写、连字符与 ColorBrewer 的常见缩写 —— `yellow-green-blue`、`yellowgreenblue`
+/// 与 `ylgnbu` 指的是同一个，和 kuva 自己的 CLI 一致。认不出的名字会报错并列出这个名字，
+/// 而不是悄悄退回默认（CLI 会退回 viridis，但 SQL 里静默换色更难查）。
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum ColorMapSpec {
+#[serde(try_from = "String")]
+pub(crate) struct ColorMapSpec(pub(crate) ColorMapKind);
+
+impl TryFrom<String> for ColorMapSpec {
+    type Error = String;
+
+    fn try_from(raw: String) -> Result<Self, String> {
+        ColorMapKind::parse(&raw)
+            .map(ColorMapSpec)
+            .ok_or_else(|| format!("unknown color_map `{raw}`"))
+    }
+}
+
+/// 变体与 kuva 的 `ColorMap` 一一对应（`custom` 除外：自定义映射是 Rust 闭包，
+/// SQL 侧给不了，所以这里不开放）。
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ColorMapKind {
     // 顺序型（感知均匀）
     Turbo,
     Viridis,
@@ -344,6 +379,59 @@ pub(crate) enum ColorMapSpec {
     // 周期型（相位、角度、一天中的时刻）
     Rainbow,
     Sinebow,
+}
+
+impl ColorMapKind {
+    /// 归一化（去掉 `_` / `-` / 空格、转小写）之后匹配，并收下 ColorBrewer 的常见缩写。
+    fn parse(raw: &str) -> Option<Self> {
+        let key: String = raw
+            .chars()
+            .filter(|c| !matches!(c, '_' | '-' | ' '))
+            .flat_map(char::to_lowercase)
+            .collect();
+        Some(match key.as_str() {
+            "turbo" => Self::Turbo,
+            "viridis" => Self::Viridis,
+            "inferno" => Self::Inferno,
+            "magma" => Self::Magma,
+            "plasma" => Self::Plasma,
+            "cividis" => Self::Cividis,
+            "warm" => Self::Warm,
+            "cool" => Self::Cool,
+            "cubehelix" => Self::Cubehelix,
+            // ColorBrewer：全名与 RColorBrewer 的缩写都收。
+            "bluegreen" | "bugn" => Self::BlueGreen,
+            "bluepurple" | "bupu" => Self::BluePurple,
+            "greenblue" | "gnbu" => Self::GreenBlue,
+            "orangered" | "orrd" => Self::OrangeRed,
+            "purplebluegreen" | "pubugn" => Self::PurpleBlueGreen,
+            "purpleblue" | "pubu" => Self::PurpleBlue,
+            "purplered" | "purd" => Self::PurpleRed,
+            "redpurple" | "rdpu" => Self::RedPurple,
+            "yellowgreenblue" | "ylgnbu" => Self::YellowGreenBlue,
+            "yellowgreen" | "ylgn" => Self::YellowGreen,
+            "yelloworangebrown" | "ylorbr" => Self::YellowOrangeBrown,
+            "yelloworangered" | "ylorrd" => Self::YellowOrangeRed,
+            "blues" => Self::Blues,
+            "greens" => Self::Greens,
+            "grayscale" | "greys" | "gray" | "grey" => Self::Grayscale,
+            "oranges" => Self::Oranges,
+            "purples" => Self::Purples,
+            "reds" => Self::Reds,
+            "browngreen" | "brbg" => Self::BrownGreen,
+            "pinkgreen" | "piyg" => Self::PinkGreen,
+            "purplegreen" | "prgn" => Self::PurpleGreen,
+            "purpleorange" | "puor" => Self::PurpleOrange,
+            "redblue" | "rdbu" => Self::RedBlue,
+            "redgrey" | "redgray" | "rdgy" => Self::RedGrey,
+            "redyellowblue" | "rdylbu" => Self::RedYellowBlue,
+            "redyellowgreen" | "rdylgn" => Self::RedYellowGreen,
+            "spectral" => Self::Spectral,
+            "rainbow" => Self::Rainbow,
+            "sinebow" => Self::Sinebow,
+            _ => return None,
+        })
+    }
 }
 
 // ============================================================================

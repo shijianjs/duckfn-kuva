@@ -33,8 +33,9 @@ description: 网格线、坐标轴线、刻度位置与尺寸，以及整块画�
 | `equal_aspect` | boolean | 一个数据单位在两轴上占同样的像素（圆保持是圆）。 |
 | `scale` | number | 缩放所有文字与刻度，但**不**改变画布尺寸。 |
 | `label_background` | boolean | 给数值标签垫一层背景（柱、饼等），让它在填充色上依然看得清。 |
-| `bw_mode` | boolean | 灰度 / 色盲友好模式：调色板换成灰阶，线型与 marker 轮流变化，让 series 仍能区分。 |
-| `interactive` | boolean | 往 SVG 里注入悬停 / 点击的 JavaScript。 |
+| `bw_mode` | boolean | 灰度 / 色盲友好模式：调色板换成灰阶，线型与 marker 轮流变化，让 series 仍能区分。见[黑白模式](./bw-mode.md)。 |
+| `interactive` | boolean | 往 SVG 里注入悬停 / 点击的 JavaScript。见 [SVG 交互](./interactive.md)。 |
+| `wrap` | integer | 一次给所有文字（标题、轴标题、图例）设折行宽度；逐元素设置会覆盖它。见[文字折行](./layout.md)。 |
 
 :::note[`bw_mode` 与 `interactive` 属于画布，不属于 series]
 

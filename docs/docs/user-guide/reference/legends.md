@@ -22,6 +22,7 @@ sits and how it is laid out. With no series labelled, nothing is drawn.
 | `at` | `[number, number]` | Place the legend at an absolute canvas pixel position. |
 | `at_data` | `[number, number]` | Place the legend at a data coordinate. |
 | `entries` | entry[] | Hand-written entries, bypassing auto-collection (see below). |
+| `groups` | group[] | Named groups of entries — `{title, entries}`; highest priority, replaces both `entries` and auto-collection (see below). |
 
 ## Hand-written entries
 
@@ -70,6 +71,47 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart;
 ```
+
+## Grouped entries
+
+`groups` splits the legend into named sections, each with a bold title. Every group lists its own entries in
+the same shape as `entries`:
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (
+  SELECT "group" AS g, expression,
+         CASE WHEN "group" = 'Control'
+              THEN (CASE WHEN expression > 5 THEN '#c44e52' ELSE '#4c72b0' END)
+              ELSE (CASE WHEN expression > 5 THEN '#e6a532' ELSE '#55a868' END)
+         END AS c
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+  WHERE "group" IN ('Control', 'Drug_A')
+)
+SELECT kuva_render(to_json({
+  'x_axis': {'name': 'sample'},
+  'y_axis': {'name': 'expression'},
+  'legend': {
+    'position': 'outside_right_top',
+    'groups': [
+      {'title': 'Control', 'entries': [
+        {'label': 'below 5', 'color': '#4c72b0', 'shape': 'circle'},
+        {'label': 'above 5', 'color': '#c44e52', 'shape': 'circle'}]},
+      {'title': 'Drug A', 'entries': [
+        {'label': 'below 5', 'color': '#55a868', 'shape': 'circle'},
+        {'label': 'above 5', 'color': '#e6a532', 'shape': 'circle'}]}
+    ]
+  },
+  'series': [{'type': 'strip',
+              'groups': (SELECT list({'label': g, 'values': vals, 'point_colors': cols} ORDER BY g)
+                         FROM (SELECT g, list(expression ORDER BY expression) AS vals,
+                                      list(c ORDER BY expression) AS cols
+                               FROM d GROUP BY g))}]
+})) AS chart;
+```
+
+The groups are drawn in the order you write them, with a half-line gap between them. Like `entries`, they are
+**hand-written keys**: nothing checks that they describe the series, so keep them in step with the colours you
+actually draw.
 
 ## Positions
 

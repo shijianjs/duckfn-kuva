@@ -18,6 +18,34 @@ name, or an object to override individual colours (starting from `light`).
 | `"minimal"` | Stripped back: no grid, minimal chrome. |
 | `"solarized"` | The Solarized palette. |
 
+## What the built-in themes set
+
+| Property | `light` (default) | `dark` | `minimal` | `solarized` |
+| --- | --- | --- | --- | --- |
+| Background | `white` | `#1e1e1e` | `white` | `#fdf6e3` |
+| Axes / ticks | `black` | `#cccccc` | `black` | `#586e75` |
+| Text | `black` | `#e0e0e0` | `black` | `#657b83` |
+| Grid | `#ccc` | `#444444` | `#e0e0e0` | `#eee8d5` |
+| Legend background | `white` | `#2d2d2d` | `white` | `#fdf6e3` |
+| Legend border | `black` | `#666666` | none | `#93a1a1` |
+| Font | the default stack | the default stack | `serif` | the default stack |
+| Grid drawn | yes | yes | **no** | yes |
+
+Those are the exact values a built-in theme installs — a `theme` object starts from `light` and overrides the
+keys you give, which is how the custom theme below is built.
+
+## Fonts and portability
+
+The default font stack — `DejaVu Sans, Verdana, Liberation Sans, Arial, sans-serif` — is resolved by whatever
+renders the SVG. That is fine on any desktop, but a tool processing the file on a machine with no system fonts
+(a container, a CI job) will substitute something else. kuva can embed the font as a base64 `@font-face`
+block to make the file self-contained, at the cost of roughly 1 MB of extra size.
+
+**This extension does not expose that switch.** The embedded font would have to travel inside the
+`.duckdb_extension` itself, making every install about a megabyte larger for a case that does not arise in
+DuckDB: the SVG is displayed by a browser or a document tool, both of which have fonts. If you do need a
+self-contained SVG, re-render it with `kuva` directly.
+
 ## Custom theme
 
 An object starts from the `light` theme and overrides only the keys you give:

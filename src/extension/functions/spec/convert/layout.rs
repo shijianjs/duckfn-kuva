@@ -44,6 +44,11 @@ pub(super) fn build_layout(
             l = l.with_body_size(v);
         }
     }
+    // 全局折行宽度必须**先**设：逐元素设的（`title.wrap` / `x_axis.wrap` / `legend.wrap`）都是
+    // 在它之后套用的，于是自然覆盖它 —— 这正是 kuva `with_wrap` 的语义。
+    if let Some(v) = panel.grid.as_ref().and_then(|g| g.wrap) {
+        l = l.with_wrap(v);
+    }
     if let Some(t) = &panel.title {
         l = apply_title(l, t);
     }
@@ -65,11 +70,17 @@ pub(super) fn build_layout(
     if let Some(a) = &panel.y2_axis {
         l = apply_secondary_axis(l, a, Secondary::Y)?;
     }
+    // 日期轴的 `unit: "auto"` 要拿轴的范围：轴自己写死的 min/max 优先，否则从数据推。
+    let bounds = combined_bounds(plots);
     if let Some(a) = &panel.x_datetime {
-        l = l.with_x_datetime(datetime_axis(a));
+        let range = explicit_range(panel.x_axis.as_ref())
+            .or_else(|| bounds.map(|((x0, x1), _)| (x0, x1)));
+        l = l.with_x_datetime(datetime_axis(a, range, "x_datetime")?);
     }
     if let Some(a) = &panel.y_datetime {
-        l = l.with_y_datetime(datetime_axis(a));
+        let range = explicit_range(panel.y_axis.as_ref())
+            .or_else(|| bounds.map(|(_, (y0, y1))| (y0, y1)));
+        l = l.with_y_datetime(datetime_axis(a, range, "y_datetime")?);
     }
     if let Some(g) = &panel.grid {
         l = apply_grid(l, g);
@@ -90,7 +101,9 @@ pub(super) fn build_layout(
 }
 
 /// 一条手工图例条目。形状缺省是方块（`rect`）。
-fn legend_entry(e: &LegendEntrySpec) -> LegendEntry {
+///
+/// `pub(super)`：多面板的共享图例（`convert::mod` 的 figure 分支）也要用它。
+pub(super) fn legend_entry(e: &LegendEntrySpec) -> LegendEntry {
     LegendEntry {
         label: e.label.clone(),
         color: e.color.clone(),
@@ -259,9 +272,44 @@ fn apply_secondary_axis(mut l: Layout, a: &SecondaryAxisSpec, which: Secondary) 
     Ok(l)
 }
 
-fn datetime_axis(a: &DateTimeAxisSpec) -> DateTimeAxis {
-    DateTimeAxis {
+/// 所有 plot 坐标范围的并集（日期轴的 auto 模式按范围挑单位与格式）。
+fn combined_bounds(plots: &[Plot]) -> Option<((f64, f64), (f64, f64))> {
+    plots.iter().fold(None, |acc, p| match (acc, p.bounds()) {
+        (Some(((ax0, ax1), (ay0, ay1))), Some(((x0, x1), (y0, y1)))) => {
+            Some(((ax0.min(x0), ax1.max(x1)), (ay0.min(y0), ay1.max(y1))))
+        }
+        (Some(a), None) => Some(a),
+        (None, b) => b,
+    })
+}
+
+/// 轴自己写死的范围（两端都给了才算）。
+fn explicit_range(axis: Option<&AxisSpec>) -> Option<(f64, f64)> {
+    let a = axis?;
+    Some((a.min?, a.max?))
+}
+
+/// 日期轴。`unit: "auto"` 交给 kuva 按范围自己挑单位与格式，此时 `format` 可省；
+/// 其余单位必须给 `format`（kuva 拿它当 chrono 的格式串，缺了就没法写刻度）。
+fn datetime_axis(
+    a: &DateTimeAxisSpec,
+    range: Option<(f64, f64)>,
+    field: &str,
+) -> Result<DateTimeAxis, String> {
+    if matches!(a.unit, DateUnitKind::Auto) {
+        let (min, max) = range.ok_or_else(|| {
+            format!(
+                "{field}: `unit` \"auto\" needs a known axis range — give the axis both `min` and `max`"
+            )
+        })?;
+        return Ok(DateTimeAxis::auto(min, max));
+    }
+    let format = a.format.clone().ok_or_else(|| {
+        format!("{field}: `format` is required unless `unit` is \"auto\" (e.g. \"%Y-%m-%d\")")
+    })?;
+    Ok(DateTimeAxis {
         unit: match a.unit {
+            DateUnitKind::Auto => unreachable!("handled above"),
             DateUnitKind::Year => DateUnit::Year,
             DateUnitKind::Month => DateUnit::Month,
             DateUnitKind::Week => DateUnit::Week,
@@ -271,8 +319,8 @@ fn datetime_axis(a: &DateTimeAxisSpec) -> DateTimeAxis {
             DateUnitKind::Second => DateUnit::Second,
         },
         step: a.step.unwrap_or(1).max(1),
-        format: a.format.clone(),
-    }
+        format,
+    })
 }
 
 fn apply_stats_box(mut l: Layout, s: &StatsBoxSpec) -> Result<Layout, String> {
@@ -386,6 +434,15 @@ fn apply_legend(mut l: Layout, g: &LegendSpec) -> Result<Layout, String> {
     // 手工条目：给出它就绕开自动收集（见 `Layout::with_legend_entries`）。
     if let Some(v) = &g.entries {
         l = l.with_legend_entries(v.iter().map(legend_entry).collect());
+    }
+    // 分组图例的优先级最高（见 kuva 的 `with_legend_group`）：它面前 `entries` 与自动收集都失效。
+    if let Some(groups) = &g.groups {
+        for group in groups {
+            l = l.with_legend_group(
+                group.title.clone(),
+                group.entries.iter().map(legend_entry).collect(),
+            );
+        }
     }
     Ok(l)
 }

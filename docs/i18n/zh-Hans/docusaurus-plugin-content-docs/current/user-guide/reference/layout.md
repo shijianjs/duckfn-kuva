@@ -15,8 +15,9 @@ description: 画布尺寸、标题块、字号，以及 x / y 轴上的每一项
 | `width` | number | 画布宽度（像素）。 |
 | `height` | number | 画布高度（像素）。 |
 
-kuva 的自然尺寸约为 `675 × 511`。两个都别写，图才会保持这个比例 —— 钉进一个又宽又扁的框里会被压扁。
-文档页里也不需要别的：`"show":"svg"` 的块按 SVG 自身的高度自动撑开，所以预览框同样不用钉。
+默认画布是 `600 × 450`，再加上由标题、刻度标签与图例算出来的边距 —— 这正是默认单图出来约 `675 × 511` 的原因。
+两个都别写，图才会保持这个比例 —— 钉进一个又宽又扁的框里会被压扁。文档页里也不需要别的：`"show":"svg"` 的块按
+SVG 自身的高度自动撑开，所以预览框同样不用钉。
 
 ## 标题
 
@@ -70,6 +71,32 @@ kuva 的自然尺寸约为 `675 × 511`。两个都别写，图才会保持这�
 两根轴都适用。
 
 :::
+
+## 文字折行
+
+很长的标题与轴标题可以按字符数折行，而不是逼着画布变宽。折行是**可选的**：不给宽度就什么都不折。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'A title that would otherwise make the top margin enormous',
+  'x_axis': {'name': 'a long x-axis label that would push the bottom margin out'},
+  'grid': {'wrap': 28},
+  'series': [{'type': 'histogram', 'values': list(value), 'bins': 20}]
+})) AS chart
+FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
+```
+
+`grid.wrap` 一次设好所有文字。逐元素的那几个字段在它之后套用，所以会覆盖它：`title.wrap`、
+`title.subtext_wrap`、`x_axis.wrap`、`y_axis.wrap`、`legend.wrap`。
+
+| 元素 | 折行之后 |
+| --- | --- |
+| 标题 / 副标题 | 变成居中的多行，上边距随之变大。 |
+| x 轴标题 | 居中的多行，下边距变大。 |
+| y 轴标题 | 若干行旋转的文字并排叠放，左边距变大。 |
+| 图例标签与标题 | 续行显示，色块留在第一行；图例框变高，宽度有上限，所以右边距不会失控。 |
+
+折行在空白处断开；单个词比上限还长时会被硬断。
 
 ## 色条
 

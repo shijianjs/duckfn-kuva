@@ -18,7 +18,9 @@ continuously, unlike a [palette](./palettes.md), which hands discrete colours to
 
 ## Names
 
-The value is the snake_case name of one of these:
+The value is one of the names below. Matching ignores case and separators and accepts the usual ColorBrewer
+abbreviations, so `yellow_green_blue`, `yellow-green-blue` and `ylgnbu` all resolve to the same colormap.
+An unrecognised name is an error naming the offending string, rather than a silent fallback.
 
 | Kind | Names |
 | --- | --- |
@@ -28,8 +30,15 @@ The value is the snake_case name of one of these:
 | Diverging (two-ended) | `brown_green` · `pink_green` · `purple_green` · `purple_orange` · `red_blue` · `red_grey` · `red_yellow_blue` · `red_yellow_green` · `spectral` |
 | Cyclic | `rainbow` · `sinebow` |
 
-Pick a **diverging** map when the data has a meaningful midpoint (fold change, correlation) and a
-**sequential** one otherwise. A **cyclic** map fits angles, phases and times of day.
+That is 38 gradients, all drawn from the same `ColorMap` implementation.
+
+**Which to pick:** `viridis` is the default for most charts — perceptually uniform and safe for
+colour-vision deficiencies, which is what makes it a good general choice. Reach for `grayscale` when the
+figure has to survive black-and-white printing (or turn on [black & white mode](./bw-mode.md), which forces
+it for you). Use a **diverging** map when the data has a meaningful midpoint — log fold change, a correlation
+coefficient — so the two directions read as different things, and a **sequential** one otherwise.
+`rainbow` and `sinebow` belong to genuinely cyclic data (angle, day of year, phase): a cyclic map wraps back
+to its starting hue, which reads as a false discontinuity on anything that does not actually wrap.
 
 ## Example
 

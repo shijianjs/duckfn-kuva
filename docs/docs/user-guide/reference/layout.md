@@ -16,8 +16,9 @@ multi-panel mode, where each [panel](./figure.md) carries its own copy.
 | `width` | number | Canvas width in pixels. |
 | `height` | number | Canvas height in pixels. |
 
-kuva's natural size is about `675 × 511`. Leave both unset so the chart keeps that proportion — a chart
-pinned into a wide, short box is squashed. Nothing else is needed in a docs page either: a
+The default canvas is `600 × 450`, plus margins computed from the title, tick labels and legend — which is
+why a default chart comes out at about `675 × 511`. Leave both unset so the chart keeps that proportion — a
+chart pinned into a wide, short box is squashed. Nothing else is needed in a docs page either: a
 `"show":"svg"` block grows to the SVG's own height, so the preview box is never pinned.
 
 ## Title
@@ -72,6 +73,33 @@ Sizes for every piece of text, in one place. A `theme` can set the family too.
 axis. Everything else above works on both.
 
 :::
+
+## Text wrapping
+
+Long titles and axis labels can be wrapped at a character limit instead of forcing the canvas to grow.
+Wrapping is opt-in: nothing wraps until you set a width.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'A title that would otherwise make the top margin enormous',
+  'x_axis': {'name': 'a long x-axis label that would push the bottom margin out'},
+  'grid': {'wrap': 28},
+  'series': [{'type': 'histogram', 'values': list(value), 'bins': 20}]
+})) AS chart
+FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
+```
+
+`grid.wrap` sets every text element at once. The per-element fields are applied after it, so they override
+it: `title.wrap`, `title.subtext_wrap`, `x_axis.wrap`, `y_axis.wrap`, `legend.wrap`.
+
+| Element | What wrapping does |
+| --- | --- |
+| Title / subtitle | Centred lines; the top margin grows to fit. |
+| x-axis label | Centred lines; the bottom margin grows. |
+| y-axis label | Several rotated lines stacked sideways; the left margin grows. |
+| Legend labels and titles | Continuation lines with the swatch kept on the first; the legend box gets taller and its width is capped, so the right margin does not run away. |
+
+Wrapping breaks at whitespace, and a single word longer than the limit is hard-broken.
 
 ## Colour bar
 

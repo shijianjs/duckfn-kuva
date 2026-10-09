@@ -183,6 +183,16 @@ npx docusaurus write-translations --locale zh-Hans
 （`AS` → ` S`、`{{DFK_BASE_URL}}` → `{{DFK_B SE_URL}}`、`GWAS` → `GW S`）；中文页那三处则把 `[` 换成了汉字
 （`'series': [{` → `'series': 旭{`）。只有 `npm test` 的 `Parser Error` 才暴露出来，随后按可逆规则逐处修复。
 
+## front matter 的写法
+
+`description` 别以反引号开头，值里也别留裸冒号 —— YAML 解析失败时 Docusaurus 只吐一句
+`Error while parsing Markdown front matter`，**不告诉你是哪个文件**：得往构建日志上翻，找到
+`Can't process doc metadata for doc at path …` 才知道。含特殊字符（`$`、反引号、冒号）就整值加双引号：
+
+```yaml
+description: "在 $...$ 里写公式，渲染时降级成 Unicode 文字。"
+```
+
 ## 收尾自检
 
 一批页面写完之后，一次跑完这几条：

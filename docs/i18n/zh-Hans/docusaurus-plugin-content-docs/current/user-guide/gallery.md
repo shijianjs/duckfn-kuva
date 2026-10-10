@@ -954,9 +954,18 @@ INSERT INTO full_featured_panels SELECT 63, to_json({
   }]
 }) AS chart;
 SELECT kuva_render(
-  '{"figure":{"rows":8,"cols":8,"spacing":6,"padding":8,"panels":['
-  || (SELECT string_agg(j, ',' ORDER BY i) FROM full_featured_panels)
-  || ']}}'
+    to_json({
+        figure: {
+            rows: 8,
+            cols: 8,
+            spacing: 6,
+            padding: 8,
+            panels: (
+                SELECT list(j::JSON ORDER BY i)
+                FROM full_featured_panels
+            )
+        }
+    })
 ) AS chart;
 ```
 

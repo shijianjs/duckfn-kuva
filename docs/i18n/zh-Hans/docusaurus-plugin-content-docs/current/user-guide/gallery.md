@@ -17,6 +17,20 @@ description: 一页看完所有图型 —— 每个一条可运行的 SQL。
 
 全部 64 种图型塞进一个 8 × 8 的 [figure](./reference/figure.md) —— 用的就是下面那些例子，一格一个。这里没有什么「总览模式」：每一格都是一段最普通的图型配置，由 `string_agg` 收集进 `panels`，也就是把多面板 API 用了 64 次。库里对应的版本是 `all_plots_simple` / `all_plots_complex`（见[官方 Gallery](https://psy-fer.github.io/kuva/gallery.html)）；这一张在你读到这里时由浏览器现画。
 
+:::note[这个块为什么保留临时表]
+
+把 64 个面板并成一条语句 —— 无论是一个 CTE 里 64 个 `UNION ALL` 分支，还是用 `FROM (VALUES …)` 一行一个
+面板 —— 看着都更干净，但会踩 DuckDB-Wasm 的 binder bug（引擎 v1.5.6 / `duckdb-wasm` 1.33.1-dev65.0，
+v1.5.4 上同样复现）：一条语句里读大约 45+ 个**不同**文件时，常会报一个误导性的
+`Binder Error: Referenced column … not found in FROM clause!`。这个失败是不确定的 —— 同一段 SQL 有时能过、
+报出的列与分支每次不同、刷新页面就可能翻车 —— 所以下面保留 66 条语句的写法。用
+`npx duckfn-sql-verify` 跑本页可复现。两种单语句改写都留了参考：
+[gallery-full-featured-cte.sql](https://github.com/shijianjs/duckfn-kuva/blob/main/docs/static/gallery-full-featured-cte.sql)
+与
+[gallery-full-featured-values.sql](https://github.com/shijianjs/duckfn-kuva/blob/main/docs/static/gallery-full-featured-values.sql)。
+
+:::
+
 ```sql {"type":"duckfn","show":"svg","option":{"code_max_height":"16rem"}}
 CREATE OR REPLACE TEMP TABLE full_featured_panels (i INTEGER, j VARCHAR);
 INSERT INTO full_featured_panels SELECT 0, to_json({

@@ -21,6 +21,21 @@ the same charts.
 
 All 64 plot types in one 8 × 8 [figure](./reference/figure.md) — the same examples that follow, one cell each. There is no separate "overview mode": each cell is one ordinary chart spec, collected into `panels` by `string_agg`, so this is the multi-panel API used 64 times. The library's own versions of this are `all_plots_simple` / `all_plots_complex` (see the [official Gallery](https://psy-fer.github.io/kuva/gallery.html)); this one is drawn in your browser as you read it.
 
+:::note[Why this block keeps its temp table]
+
+Merging the 64 panels into one statement — a single CTE with 64 `UNION ALL` branches, or the same panels
+as `FROM (VALUES …)` rows — reads cleaner, but it trips a DuckDB-Wasm binder bug (engine v1.5.6,
+`duckdb-wasm` 1.33.1-dev65.0; the same on v1.5.4): a statement that reads roughly 45+ **distinct** files
+often fails with a misleading `Binder Error: Referenced column … not found in FROM clause!`. The failure
+is nondeterministic — the same SQL sometimes passes, the reported column and branch change between runs,
+and reloading the page can flip it — so the 66-statement form below is kept. Reproduce with
+`npx duckfn-sql-verify` on this page. Both single-statement rewrites are kept for reference:
+[gallery-full-featured-cte.sql](https://github.com/shijianjs/duckfn-kuva/blob/main/docs/static/gallery-full-featured-cte.sql)
+and
+[gallery-full-featured-values.sql](https://github.com/shijianjs/duckfn-kuva/blob/main/docs/static/gallery-full-featured-values.sql).
+
+:::
+
 ```sql {"type":"duckfn","show":"svg","option":{"code_max_height":"16rem"}}
 CREATE OR REPLACE TEMP TABLE full_featured_panels (i INTEGER, j VARCHAR);
 INSERT INTO full_featured_panels SELECT 0, to_json({

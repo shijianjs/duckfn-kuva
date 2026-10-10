@@ -91,14 +91,16 @@ one-statement convenience layer over `COPY (SELECT kuva_render(…)) TO …`: th
 whether to open the result all ride along in the JSON, in a top-level `file` object.
 
 ```sql
-SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
--- /tmp/charts/scatter.svg
+-- opens the chart in your browser and returns the path it wrote
+SELECT kuva_render_file({
+  'file': {'open': true},
+  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+}::JSON);
 ```
 
 | Field | Default | What it sets |
 | --- | --- | --- |
-| `file.dir` | system temp directory | Output directory. |
+| `file.dir` | system temp directory | Output directory; created if it does not exist. |
 | `file.name` | `kuva-<time>-<random>[-<type>-<title>].svg` | Output file name. A name with no extension gets `.svg` appended, and the rest is sanitized (illegal characters, Windows reserved device names, trailing dots and spaces). |
 | `file.open` | `false` | Open the written file in the system default browser. |
 

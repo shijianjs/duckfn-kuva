@@ -85,14 +85,16 @@ kuva_render_file(spec_json VARCHAR) -> VARCHAR
 `file` 对象里。
 
 ```sql
-SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
--- /tmp/charts/scatter.svg
+-- 在你的浏览器里打开这张图，并返回它写出的路径
+SELECT kuva_render_file({
+  'file': {'open': true},
+  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+}::JSON);
 ```
 
 | 字段 | 默认 | 设置什么 |
 | --- | --- | --- |
-| `file.dir` | 系统临时目录 | 输出目录。 |
+| `file.dir` | 系统临时目录 | 输出目录；不存在时自动创建。 |
 | `file.name` | `kuva-<时间>-<随机尾缀>[-<图型>-<标题>].svg` | 输出文件名。没写后缀时补 `.svg`，其余部分会过一遍文件名合法性规则（非法字符、Windows 保留设备名、结尾的点与空格）。 |
 | `file.open` | `false` | 写完后用系统默认浏览器打开。 |
 

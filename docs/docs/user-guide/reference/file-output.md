@@ -44,7 +44,7 @@ SELECT left(content, 4) FROM read_text('/tmp/charts/scatter.svg');
 ## Naming and the directory
 
 - **`file.dir`** is used as given; an empty string is an error. Without it the file lands in the system temp
-  directory.
+  directory. A directory that does not exist is created, along with any missing parents.
 - **`file.name`** is used as given, after the file-name legality rules have run: illegal characters
   (`/ \ ? < > : * | "`), control characters, Windows reserved device names (`CON`, `NUL`, `COM1`…) and
   trailing dots and spaces are all replaced with `_`. That is also what keeps a `/` in a name from escaping

@@ -11,7 +11,7 @@
 // {"file": {"dir": "/tmp/charts", "name": "scatter.svg", "open": true}, "series": […]}
 // ```
 //
-// - `dir`：输出目录；缺省用系统临时目录。
+// - `dir`：输出目录；缺省用系统临时目录，不存在时自动创建。
 // - `name`：文件名；缺省自动生成 `kuva-<时间>-<随机尾缀>[-<图型>-<标题>].svg`（见 `spec/file.rs`）。
 //   用户给的名字会先过一遍文件名合法性规则，没写后缀时补 `.svg`。
 // - `open`：`true` 时写完之后用系统默认浏览器打开；缺省 `false`。
@@ -28,11 +28,11 @@
 // function — one `SELECT kuva_render_file(...)` puts the chart where you can see it, no `COPY` needed.
 //
 // **The options live in the JSON** (a top-level `file` object), so this function always takes exactly
-// one argument: `dir` is the output directory (the system temp directory when unset), `name` is the
-// file name (generated as `kuva-<time>-<random>[-<type>-<title>].svg` when unset, see `spec/file.rs`;
-// a caller-supplied one goes through the file-name legality rules and gets `.svg` appended when it has
-// no extension), and `open` opens the file in the system default browser once written (default
-// `false`).
+// one argument: `dir` is the output directory (the system temp directory when unset, created when it
+// does not exist), `name` is the file name (generated as
+// `kuva-<time>-<random>[-<type>-<title>].svg` when unset, see `spec/file.rs`; a caller-supplied one
+// goes through the file-name legality rules and gets `.svg` appended when it has no extension), and
+// `open` opens the file in the system default browser once written (default `false`).
 //
 // Native builds only: the whole module does not compile on wasm (see the module declaration in
 // `functions/mod.rs`), so a wasm build has no such function at all. The dependencies and the
@@ -53,7 +53,7 @@ use super::spec;
 /// Renders a JSON chart description to an SVG file and returns the path.
 #[duck_scalar_function(
     description = "Renders a chart described by a JSON string to an SVG file and returns the file path; the JSON's own `file` object sets the directory, the file name and whether to open it in a browser",
-    comment = "Native builds only: writes the SVG to disk (default: a file in the system temp directory) and optionally opens it in the system default browser; `file: {dir, name, open}` rides along in the JSON",
+    comment = "Native builds only: writes the SVG to disk (default: a file in the system temp directory, created if the directory is missing) and optionally opens it in the system default browser; `file: {dir, name, open}` rides along in the JSON",
     example = "SELECT kuva_render_file('{\"file\":{\"dir\":\"/tmp/charts\",\"name\":\"scatter.svg\",\"open\":true},\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}')"
 )]
 fn kuva_render_file(spec_json: String) -> DuckOptionResult<String> {

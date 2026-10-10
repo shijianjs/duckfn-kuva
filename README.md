@@ -59,9 +59,11 @@ Both keep their own options in the JSON (`terminal` and `file` objects respectiv
 single-argument function:
 
 ```sql
-SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
--- /tmp/charts/scatter.svg
+SELECT kuva_render_file({
+  'file': {'open': true},
+  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+}::JSON);
+-- writes a kuva-<time>-<random>.svg under the system temp directory and opens it in your browser
 ```
 
 ## The JSON spec

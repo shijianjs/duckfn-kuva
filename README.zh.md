@@ -54,9 +54,11 @@ Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 ca
 每个都保持单参数：
 
 ```sql
-SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
--- /tmp/charts/scatter.svg
+SELECT kuva_render_file({
+  'file': {'open': true},
+  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+}::JSON);
+-- 在系统临时目录下写一个 kuva-<时间>-<随机尾缀>.svg，并用浏览器打开
 ```
 
 ## JSON 规格

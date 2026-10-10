@@ -1,6 +1,6 @@
 extension:
   name: duckfn_kuva
-  description: Statistical plotting in SQL - a JSON chart spec in, an SVG document out, with no Python or R needed
+  description: Statistical plotting in SQL - a thin wrapper around the Rust library kuva, with the statistical semantics of seaborn and ggplot2 but no Python or R environment, on every platform DuckDB runs (console, JVM, Python, Node, browser)
   version: 0.1.0
   language: Rust
   build: cargo

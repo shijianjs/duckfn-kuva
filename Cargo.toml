@@ -1,6 +1,6 @@
 [package]
 name = "duckfn_kuva"
-version = "0.1.0"
+version = "0.1.1-dev.0"
 edition = "2024"
 # kuva 0.5 的 MSRV 是 1.87，把模板原本的 1.86 下限抬上去了（它的 `pdf` feature 还要求 1.92，但本扩展
 # 只用默认的 SVG 后端，不打开 pdf/full，故不跟）。

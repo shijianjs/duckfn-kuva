@@ -213,9 +213,10 @@ SELECT kuva_render('{"series":[{"type":"brick","sequences":["ACGX"]}]}');
 ----
 color template does not cover
 
-# A second y axis only means something together with `secondary_series`.
+# The right-hand axis needs `secondary_series` to exist; its range is then inferred from that series'
+# data, so `y2_axis` only has to carry a `name` for the axis to be drawn.
 query I
-SELECT length(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}],"secondary_series":[{"type":"line","data":[[1,10],[2,20]]}]}')) > 500;
+SELECT contains(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}],"secondary_series":[{"type":"line","data":[[1,10],[2,20]]}]}'), '>right<');
 ----
 true
 

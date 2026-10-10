@@ -42,7 +42,7 @@ fn render_single(panel: PanelSpec) -> Result<Scene, String> {
     let has_explicit_color = series.iter().chain(secondary.iter()).any(SeriesSpec::has_explicit_color);
     let plots = build_series(series)?;
     let secondary_plots = build_series(secondary)?;
-    let layout = build_layout(&panel, &plots, has_explicit_color)?;
+    let layout = build_layout(&panel, &plots, &secondary_plots, has_explicit_color)?;
 
     if secondary_plots.is_empty() {
         return Ok(render_multiple(plots, layout));
@@ -89,7 +89,7 @@ fn render_figure(fig: FigureSpec) -> Result<Scene, String> {
             .any(SeriesSpec::has_explicit_color);
         let plots = build_series(series)?;
         let secondary_plots = build_series(secondary)?;
-        let layout = build_layout(&panel, &plots, has_explicit_color)?;
+        let layout = build_layout(&panel, &plots, &secondary_plots, has_explicit_color)?;
         if secondary_plots.is_empty() {
             all_plots.push(plots);
         } else {
@@ -109,7 +109,8 @@ fn render_figure(fig: FigureSpec) -> Result<Scene, String> {
     }
     figure = figure.with_plots(all_plots).with_layouts(all_layouts);
     // 双轴面板：每个槽位都有自己的 layout（上面已全部给出），所以 kuva 不会走它自己的
-    // `auto_from_twin_y_plots` —— 轴的范围与标题由面板自己那份 layout 决定。
+    // `auto_from_twin_y_plots` —— 副轴的范围在 `build_layout` 里就已经用 `with_y2_auto` 推好，
+    // 连同轴标题一起由面板自己那份 layout 决定。
     for (slot, primary, secondary) in twin_y {
         figure = figure.with_twin_y_plots(slot, primary, secondary);
     }
@@ -419,6 +420,25 @@ mod tests {
     #[test]
     fn renders_twin_y() {
         assert_renders(&render_svg(TWIN_Y), "TWIN_Y");
+    }
+
+    /// 只给 `y2_axis` 的 `name`（不给 `min`/`max`）时，右轴的范围从 `secondary_series` 的数据里推 ——
+    /// 就是 `build_layout` 里 `with_y2_auto`（`auto_from_twin_y_plots` 的后半段）补的那一段，
+    /// 所以轴照样画得出来。
+    #[test]
+    fn twin_y_axis_range_is_inferred_from_secondary_series() {
+        let svg = render_svg(
+            r#"{"y2_axis": {"name": "volume"},
+                "series": [{"type": "line", "data": [[0, 20], [1, 45], [2, 60]]}],
+                "secondary_series": [{"type": "line", "data": [[0, 300], [1, 700], [2, 500]]}]}"#,
+        );
+        assert_renders(&svg, "TWIN_Y_AUTO_RANGE");
+        assert!(
+            svg.contains(">volume<"),
+            "the second axis should be drawn from the auto-inferred range"
+        );
+        // 两组数据各一条线。
+        assert_eq!(svg.matches("<path").count(), 2, "expected one line per series");
     }
 
     /// 同一段 JSON 也能交给终端后端：输出不再是 SVG，而是盲文点阵 + ANSI 色的文本。

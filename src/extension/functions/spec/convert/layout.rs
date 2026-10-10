@@ -7,6 +7,9 @@ use super::super::schema::*;
 
 /// 从自动范围出发，逐项套用 JSON 里的覆盖。
 ///
+/// `secondary` 是画在第二根 y 轴上的那组 plots（没有就是空切片）。给它是为了让副轴的范围也能
+/// 自动推出来 —— 见下面 `with_y2_auto` 那一段。
+///
 /// `has_explicit_color` 用于决定要不要补一个默认调色板：kuva 的 `render_multiple` 只要发现
 /// layout 上有 palette，就会无条件覆盖单色图（scatter/line/histogram/box…）的颜色。所以只有
 /// 「JSON 明确给了 palette」或「没有任何 series 自己指定颜色」时我们才设调色板 —— 前者是用户的
@@ -14,6 +17,7 @@ use super::super::schema::*;
 pub(super) fn build_layout(
     panel: &PanelSpec,
     plots: &[Plot],
+    secondary: &[Plot],
     has_explicit_color: bool,
 ) -> Result<Layout, String> {
     let mut l = Layout::auto_from_plots(plots);
@@ -43,6 +47,15 @@ pub(super) fn build_layout(
         if let Some(v) = f.body_size {
             l = l.with_body_size(v);
         }
+    }
+    // 第二根 y 轴的范围：`auto_from_plots` 只看了主轴的数据，副轴那组得单独推。这一步就是
+    // kuva 的 `Layout::auto_from_twin_y_plots` 的后半段（`with_y2_auto`）—— 它同时会把 x 范围
+    // 扩到副轴的数据上、并按副轴的图例文字调整图例宽度。放在这里（字体之后、坐标轴覆盖之前）是
+    // 为了让文字量宽用上 `font.label_size`；而**显式范围仍然优先**：`y2_axis` 两端都给时下面的
+    // `with_y2_range` 会覆盖这里的值，只给一端时那一端在 `ComputedLayout::from_layout` 里于自动
+    // 范围之后覆盖。没有可推的数据（plots 都没有 bounds）时不动，免得写出一个 (inf, -inf) 的范围。
+    if secondary.iter().any(|p| p.bounds().is_some()) {
+        l = l.with_y2_auto(secondary);
     }
     // 全局折行宽度必须**先**设：逐元素设的（`title.wrap` / `x_axis.wrap` / `legend.wrap`）都是
     // 在它之后套用的，于是自然覆盖它 —— 这正是 kuva `with_wrap` 的语义。

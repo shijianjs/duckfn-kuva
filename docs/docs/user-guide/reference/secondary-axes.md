@@ -35,9 +35,10 @@ accepted but produces a plain single-axis chart.
 
 :::
 
-**Give `y2_axis` both a `min` and a `max`.** The right-hand axis is drawn from the range you state — it
-is not inferred from the `secondary_series` data — so a `y2_axis` that carries only a `name` leaves the
-axis itself undrawn (the series is still plotted). The example below sets both.
+**The right-hand axis range is inferred from the `secondary_series` data**, so a `y2_axis` carrying
+only a `name` is enough to draw the axis. `min` / `max` are optional overrides: give both for a fixed
+range, or just one to pin that end while the other keeps following the data. The example below leaves
+them out.
 
 ## Example
 

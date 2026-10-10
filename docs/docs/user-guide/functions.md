@@ -6,14 +6,15 @@ description: The SQL function duckfn_kuva registers, and how the JSON chart spec
 
 # Functions
 
-Loading the extension registers two functions — one that returns SVG, one that returns terminal text. Both
-behave like DuckDB's own: use them in a projection, a
-`WHERE` clause or a `GROUP BY`, and it combines with built-in functions freely.
+Loading the extension registers three functions — one that returns SVG, one that returns terminal text,
+and one that writes an SVG file and returns its path. All behave like DuckDB's own: use them in a
+projection, a `WHERE` clause or a `GROUP BY`, and they combine with built-in functions freely.
 
 | Function | Kind | Signature | Summary |
 | --- | --- | --- | --- |
 | `kuva_render` | scalar | `VARCHAR -> VARCHAR` | Renders a chart described by a JSON string and returns it as an SVG document. |
 | `kuva_render_terminal` | scalar | `VARCHAR -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour. The grid and the `print` switch ride along in the JSON. |
+| `kuva_render_file` | scalar | `VARCHAR -> VARCHAR` | Renders the same JSON to an SVG **file** and returns its path, optionally opening it in a browser. Native builds only; the directory, file name and `open` switch ride along in the JSON. |
 
 ## kuva_render
 
@@ -79,6 +80,38 @@ with the `dark` theme unless the spec asks for another (the default theme's near
 near-black frame); and `print` exists because getting a *string column* onto a console in the DuckDB CLI is
 awkward, while printing is trivial. See [Terminal output](./reference/terminal.md).
 
+## kuva_render_file
+
+```text
+kuva_render_file(spec_json VARCHAR) -> VARCHAR
+```
+
+`kuva_render_file` renders the same JSON and **writes the SVG to a file**, returning the path. It is the
+one-statement convenience layer over `COPY (SELECT kuva_render(…)) TO …`: the directory, the file name and
+whether to open the result all ride along in the JSON, in a top-level `file` object.
+
+```sql
+SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
+                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+-- /tmp/charts/scatter.svg
+```
+
+| Field | Default | What it sets |
+| --- | --- | --- |
+| `file.dir` | system temp directory | Output directory. |
+| `file.name` | `kuva-<time>-<random>[-<type>-<title>].svg` | Output file name. A name with no extension gets `.svg` appended, and the rest is sanitized (illegal characters, Windows reserved device names, trailing dots and spaces). |
+| `file.open` | `false` | Open the written file in the system default browser. |
+
+The returned path is what was actually written, so it is ready to feed into `read_text(…)`, a downstream
+tool, or a second query. With no `file.name` the file is named
+`kuva-<time>-<random>[-<type>-<title>].svg`: the timestamp comes right after the prefix (so a directory
+sorts by time), the chart type and title are appended when the spec carries them, and an existing file is
+never overwritten. A name you do supply is used as-is (and overwrites), which is the point of naming it.
+
+**This function is native-builds only.** A browser (DuckDB-Wasm) build has no local file system to write
+to, so the function is not registered there at all — on the web, use `kuva_render` and show the SVG
+string in the page. See [File output](./reference/file-output.md).
+
 ## How the spec is laid out
 
 A spec has three levels. Each has its own page:
@@ -118,7 +151,8 @@ SELECT kuva_render('{"series":[]}');   -- error: `series` must not be empty
 
 - **A failed render fails the statement.** The error names the function, and the rest of the query is not
   evaluated. Nothing is silently turned into `NULL`.
-- **The result is a string, not a file.** `kuva_render` returns the SVG text; writing it to a file or
-  serving it is up to the caller (for example `COPY (SELECT kuva_render(…)) TO 'chart.svg'`).
+- **`kuva_render` returns a string, not a file.** Writing it out is up to the caller (for example
+  `COPY (SELECT kuva_render(…)) TO 'chart.svg'`) — or use `kuva_render_file`, which does exactly that and
+  returns the path (native builds only).
 - **JSON is the fallback API.** It exists because `series` is heterogeneous; a future SQL-friendly layer
   (one function per chart type, `STRUCT` arguments) can sit on top of the same renderer.

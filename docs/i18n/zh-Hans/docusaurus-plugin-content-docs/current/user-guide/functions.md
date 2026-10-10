@@ -6,13 +6,14 @@ description: duckfn_kuva 注册的 SQL 函数，以及 JSON 图表规格的分�
 
 # 函数
 
-加载扩展会注册两个函数 —— 一个返回 SVG，一个返回终端文本。它们和 DuckDB 自带的函数一样用：可以放进投影、
-`WHERE` 条件或 `GROUP BY`，也能和内置函数随意组合。
+加载扩展会注册三个函数 —— 一个返回 SVG，一个返回终端文本，一个把 SVG 写成文件并返回路径。它们和
+DuckDB 自带的函数一样用：可以放进投影、`WHERE` 条件或 `GROUP BY`，也能和内置函数随意组合。
 
 | 函数 | 类别 | 签名 | 说明 |
 | --- | --- | --- | --- |
 | `kuva_render` | 标量 | `VARCHAR -> VARCHAR` | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
 | `kuva_render_terminal` | 标量 | `VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色；网格与 `print` 开关都在 JSON 里带着。 |
+| `kuva_render_file` | 标量 | `VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成一份 SVG **文件**并返回它的路径，可选用浏览器打开。只有原生构建支持；目录、文件名与 `open` 开关都在 JSON 里带着。 |
 
 ## kuva_render
 
@@ -73,6 +74,35 @@ SELECT kuva_render_terminal(to_json({
 在近黑背景上等于没有）；以及 `print` 之所以存在，是因为在 DuckDB CLI 里把一个**字符串列**弄到控制台上很别扭，
 而打印是随手的。见[终端输出](./reference/terminal.md)。
 
+## kuva_render_file
+
+```text
+kuva_render_file(spec_json VARCHAR) -> VARCHAR
+```
+
+`kuva_render_file` 渲染同一段 JSON，并**把 SVG 写成一个文件**，返回那个路径。它是
+`COPY (SELECT kuva_render(…)) TO …` 之上的一层便捷封装：目录、文件名、要不要打开都写在 JSON 里、放在顶层的
+`file` 对象里。
+
+```sql
+SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
+                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+-- /tmp/charts/scatter.svg
+```
+
+| 字段 | 默认 | 设置什么 |
+| --- | --- | --- |
+| `file.dir` | 系统临时目录 | 输出目录。 |
+| `file.name` | `kuva-<时间>-<随机尾缀>[-<图型>-<标题>].svg` | 输出文件名。没写后缀时补 `.svg`，其余部分会过一遍文件名合法性规则（非法字符、Windows 保留设备名、结尾的点与空格）。 |
+| `file.open` | `false` | 写完后用系统默认浏览器打开。 |
+
+返回的就是真正写出去的那个路径，可以直接交给 `read_text(…)`、下游工具或下一条查询。没给 `file.name` 时文件名是
+`kuva-<时间>-<随机尾缀>[-<图型>-<标题>].svg`：时间紧跟前缀（所以一个目录按名字排序就是按时间排序），spec 里带了
+图型与标题就拼在后面，且绝不覆盖已有文件。你点名给了名字就用那个名字（会覆盖）—— 那正是点名的意义。
+
+**这个函数只有原生构建支持。** 浏览器（DuckDB-Wasm）里没有本地文件系统可写，所以那边根本不注册这个函数 —— 在
+网页上请用 `kuva_render`，把 SVG 字符串显示在页面里。见[文件输出](./reference/file-output.md)。
+
 ## 规格是怎么分层的
 
 一份规格分三层，每层都有自己的页面：
@@ -108,7 +138,8 @@ SELECT kuva_render('{"series":[]}');   -- error: `series` must not be empty
 ## 说明
 
 - **渲染失败就会让整条语句失败。** 错误里带着函数名，查询其余部分不会再求值。不会有东西被静默变成 `NULL`。
-- **结果是字符串，不是文件。** `kuva_render` 返回 SVG 文本；写进文件或对外提供由调用方决定（例如
-  `COPY (SELECT kuva_render(…)) TO 'chart.svg'`）。
+- **`kuva_render` 返回的是字符串，不是文件。** 写进文件由调用方决定（例如
+  `COPY (SELECT kuva_render(…)) TO 'chart.svg'`）—— 或者直接用 `kuva_render_file`，它做的就是这件事并返回
+  路径（仅原生构建）。
 - **JSON 是兜底 API。** 它存在是因为 `series` 是异构的；将来可以在同一个渲染器之上再包一层 SQL 友好的
   API（每个图型一个函数、`STRUCT` 参数）。

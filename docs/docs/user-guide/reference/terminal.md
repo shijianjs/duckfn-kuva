@@ -147,5 +147,5 @@ SELECT kuva_render_terminal(to_json({
 
 - [kuva — Terminal output](https://psy-fer.github.io/kuva/cli/terminal.html) — the CLI's `--terminal` flag
   and `--term-width` / `--term-height`, which this mirrors; both go through the same `TerminalBackend`.
-- [Functions](../functions.md) — `kuva_render` and `kuva_render_terminal` side by side.
+- [Functions](../functions.md) — `kuva_render`, `kuva_render_terminal` and `kuva_render_file` side by side.
 - [Themes](./themes.md) — what `dark` changes, and the other three named themes.

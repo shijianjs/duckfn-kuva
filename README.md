@@ -36,11 +36,13 @@ The result is a complete SVG document — write it out, or hand it to anything t
 `Justfile` wraps the same commands: `just build`, `just sql "SELECT …"`, `just repl` (a REPL with the
 extension already loaded).
 
-## The function
+## The functions
 
 | Function | Kind | Input → output |
 | --- | --- | --- |
 | `kuva_render(spec)` | scalar | `VARCHAR` (a JSON chart spec) → `VARCHAR` (an SVG document) |
+| `kuva_render_terminal(spec)` | scalar | `VARCHAR` → `VARCHAR` (terminal text: braille dots and ANSI colour) |
+| `kuva_render_file(spec)` | scalar | `VARCHAR` → `VARCHAR` (the path of the SVG file it wrote; native builds only) |
 
 DuckDB's JSON type reaches the extension as a plain `VARCHAR`, so the argument is just the spec text.
 Anything malformed — bad JSON, a wrong field type, an empty `series`, a `values` array that does not
@@ -49,6 +51,17 @@ returning NULL:
 
 ```
 Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 categories
+```
+
+`kuva_render_terminal` renders the same JSON for a terminal instead of an SVG document, and
+`kuva_render_file` writes the SVG to a file and returns its path, optionally opening it in a browser.
+Both keep their own options in the JSON (`terminal` and `file` objects respectively), so each stays a
+single-argument function:
+
+```sql
+SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
+                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+-- /tmp/charts/scatter.svg
 ```
 
 ## The JSON spec

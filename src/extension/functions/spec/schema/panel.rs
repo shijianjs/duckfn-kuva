@@ -17,6 +17,52 @@ pub(crate) struct RenderSpec {
     ///
     /// 放在 JSON 里而不是函数签名上：这样再往里加东西 —— 是否打印、要不要上色 —— 都不用动签名。
     pub terminal: Option<TerminalSpec>,
+    /// 文件输出的选项（只有 `kuva_render_file` 看它）。
+    ///
+    /// 与 `terminal` 一个路子：落盘目录、文件名、要不要开浏览器都写在 JSON 里，所以这个函数
+    /// 永远只有一个参数。
+    ///
+    /// 只有原生构建有这一项：wasm 下 `kuva_render_file` 整个不存在（见 `functions/mod.rs` 的模块
+    /// 声明），所以这里连字段都不编译 —— JSON 里给了 `file` 也当未知键忽略。
+    ///
+    /// The file-output options (only `kuva_render_file` looks at them). The same shape as `terminal`:
+    /// the directory, file name and "open it" flag all live in the JSON, so that function always takes
+    /// one argument. Native builds only: a wasm build has no `kuva_render_file` at all (see the module
+    /// declaration in `functions/mod.rs`), so even this field is not compiled there — a `file` key in
+    /// the JSON is ignored as unknown.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub file: Option<FileSpec>,
+}
+
+/// 文件输出的选项，见 [`RenderSpec::file`]。
+///
+/// 只有原生构建编译它（wasm 下连 `RenderSpec.file` 都不存在，见那里的说明）。
+///
+/// The file-output options, see [`RenderSpec::file`]. Native builds only (a wasm build has no
+/// `RenderSpec.file` either, see the note there).
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug, Default, Deserialize)]
+pub(crate) struct FileSpec {
+    /// 输出目录；缺省用系统临时目录。
+    ///
+    /// The output directory; the system temp directory when unset.
+    pub dir: Option<String>,
+    /// 输出文件名；缺省自动生成 `kuva-<随机尾缀>.svg`。
+    ///
+    /// 用户给的名字会先过一遍文件名合法性规则（见 `spec/file.rs`），没写后缀时补 `.svg`。
+    ///
+    /// The output file name; generated as `kuva-<random>.svg` when unset. A caller-supplied name goes
+    /// through the file-name legality rules first (see `spec/file.rs`) and gets `.svg` appended when it
+    /// has no extension.
+    pub name: Option<String>,
+    /// 写完后用系统默认浏览器打开。缺省 `false`。
+    ///
+    /// 只有原生构建才有效：wasm 构建里 `kuva_render_file` 整个不支持（见 `spec/file.rs`）。
+    ///
+    /// Open the file in the system default browser once it has been written. Unset means `false`.
+    /// Native builds only: `kuva_render_file` is not supported in a wasm build at all (see
+    /// `spec/file.rs`).
+    pub open: Option<bool>,
 }
 
 /// 终端渲染的选项，见 [`RenderSpec::terminal`]。

@@ -38,6 +38,8 @@ SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}')
 | 函数 | 类别 | 入参 → 出参 |
 | --- | --- | --- |
 | `kuva_render(spec)` | 标量 | `VARCHAR`（JSON 图表描述）→ `VARCHAR`（一份 SVG 文档） |
+| `kuva_render_terminal(spec)` | 标量 | `VARCHAR` → `VARCHAR`（终端文本：盲文点阵 + ANSI 色） |
+| `kuva_render_file(spec)` | 标量 | `VARCHAR` → `VARCHAR`（它写出的 SVG 文件的路径；仅原生构建） |
 
 DuckDB 的 JSON 类型到扩展这一侧就是普通的 `VARCHAR`，所以入参就是那段描述文本本身。任何不合法的地方
 —— JSON 写错、字段类型不对、`series` 为空、`values` 与 `categories` 长度对不上 —— 都会让整条查询报错
@@ -45,6 +47,16 @@ DuckDB 的 JSON 类型到扩展这一侧就是普通的 `VARCHAR`，所以入参
 
 ```
 Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 categories
+```
+
+`kuva_render_terminal` 把同一段 JSON 渲染给终端而不是 SVG 文档，`kuva_render_file` 则把 SVG 写成文件并
+返回它的路径，可选用浏览器打开。两者各自的选项都写在 JSON 里（分别是 `terminal` 与 `file` 对象），所以
+每个都保持单参数：
+
+```sql
+SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
+                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+-- /tmp/charts/scatter.svg
 ```
 
 ## JSON 规格

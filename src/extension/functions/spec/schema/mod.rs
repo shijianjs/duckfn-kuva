@@ -24,6 +24,11 @@ mod panel;
 mod series;
 mod style;
 
+// `FileSpec` 只有原生构建有（wasm 下 `kuva_render_file` 整个不存在），所以它的 re-export 也跟着 cfg。
+//
+// `FileSpec` is native-only (a wasm build has no `kuva_render_file`), so its re-export is gated too.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) use panel::FileSpec;
 pub(crate) use panel::{FigureSpec, LabelsKind, LabelsSpec, PanelSpec, RenderSpec};
 pub(crate) use series::*;
 pub(crate) use style::*;

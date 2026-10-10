@@ -131,5 +131,5 @@ SELECT kuva_render_terminal(to_json({
 
 - [kuva — Terminal output](https://psy-fer.github.io/kuva/cli/terminal.html) —— CLI 的 `--terminal` 与
   `--term-width` / `--term-height`，这里与它对应；两边走的是同一个 `TerminalBackend`。
-- [函数](../functions.md) —— `kuva_render` 与 `kuva_render_terminal` 并列。
+- [函数](../functions.md) —— `kuva_render`、`kuva_render_terminal` 与 `kuva_render_file` 并列。
 - [主题](./themes.md) —— `dark` 改了什么，以及另外三个具名主题。

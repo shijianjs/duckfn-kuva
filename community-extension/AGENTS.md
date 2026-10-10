@@ -13,7 +13,8 @@
 ## 提交前还剩什么要改
 
 `description.yml` 的 `extension.description` / `maintainers` / `repo.github` 与 `docs.hello_world` /
-`docs.extended_description` 都已按本扩展的真实 API（唯一的函数 `kuva_render`）写好，改 API 时跟着改。
+`docs.extended_description` 都已按本扩展的真实 API（`kuva_render` / `kuva_render_terminal` /
+`kuva_render_file`）写好，改 API 时跟着改。
 **唯一仍是占位符的是 `repo.ref`** —— 它要等打过 tag 之后填那次发布的提交 SHA（见下面
 「`repo.ref` 写发布那一版的提交 SHA」）。本文件下面提到的路径与用户名也照本机实际情况核对一遍。
 

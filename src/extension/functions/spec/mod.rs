@@ -13,6 +13,16 @@
 //! `convert/layout.rs`，`render_json` 自身的在下面。共用的两个小工具在 [`test_support`]。
 
 mod convert;
+// 落盘那条路（`kuva_render_file`）整个是原生专用的：wasm 没有本地文件系统可写。在**模块声明处**一次
+// cfg 掉，`file.rs` 里就不必每个函数头顶挂一个 —— 平台差异集中在这两处声明（这里与 `functions/mod.rs`
+// 里的 `mod kuva_render_file;`）上。
+//
+// The file-writing path (`kuva_render_file`) is native-only: a wasm build has no local file system to
+// write to. It is cfg'd out once at the **module declaration** so `file.rs` needs no per-function
+// `#[cfg]` — the platform difference lives in these two declarations (here and `mod
+// kuva_render_file;` in `functions/mod.rs`).
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) mod file;
 mod schema;
 
 use std::io::Write;

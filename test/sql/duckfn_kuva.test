@@ -1,10 +1,20 @@
 # name: test/sql/duckfn_kuva.test
-# description: Smoke test: the extension loads, and kuva_render turns a JSON spec into an SVG document
+# description: Smoke test: the extension loads, and its three functions (kuva_render / kuva_render_terminal / kuva_render_file) turn a JSON spec into an SVG document, terminal text, or a file path
 # group: [duckfn_kuva]
 
-# Before the extension is loaded the function does not exist.
+# Before the extension is loaded none of the functions exist.
 statement error
 SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2]]}]}');
+----
+does not exist
+
+statement error
+SELECT kuva_render_terminal('{"series":[{"type":"scatter","data":[[1,2]]}]}');
+----
+does not exist
+
+statement error
+SELECT kuva_render_file('{"series":[{"type":"scatter","data":[[1,2]]}]}');
 ----
 does not exist
 
@@ -184,11 +194,12 @@ SELECT kuva_render('{"series":[{"type":"heatmap","data":[[1,2],[3]]}]}');
 ----
 every row must be the same length
 
-# A node reference that does not resolve is reported by name (it would otherwise be an out-of-range index).
-statement error
-SELECT kuva_render('{"series":[{"type":"sankey","nodes":[{"label":"a"}],"links":[{"source":"a","target":"ghost","value":1}]}]}');
+# A link naming a node that `nodes` never declared still renders: undeclared labels are auto-declared,
+# matching kuva (where `nodes` is optional) — see the `sankey_nodes_are_optional` unit test.
+query I
+SELECT left(kuva_render('{"series":[{"type":"sankey","nodes":[{"label":"a"}],"links":[{"source":"a","target":"ghost","value":1}]}]}'), 4);
 ----
-unknown node `ghost`
+<svg
 
 # Survival needs one `events` entry per time, or the tail observations are silently dropped.
 statement error
@@ -207,3 +218,100 @@ query I
 SELECT length(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}],"secondary_series":[{"type":"line","data":[[1,10],[2,20]]}]}')) > 500;
 ----
 true
+
+# ============================================================================
+# kuva_render_terminal: the same JSON, the terminal backend (braille dots + ANSI colour)
+# ============================================================================
+
+# A frame comes back as a non-empty string. The exact glyphs are covered by the Rust unit tests; here
+# we only check that the terminal backend dispatches and produces something.
+query I
+SELECT length(kuva_render_terminal('{"terminal":{"cols":40,"rows":12},"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}')) > 0;
+----
+true
+
+# A multi-panel figure renders as one frame too (the grid rides along in the same JSON).
+query I
+SELECT length(kuva_render_terminal('{"terminal":{"cols":60,"rows":20},"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 0;
+----
+true
+
+# `terminal.print` writes the frame to stdout and returns NULL instead of a string.
+query I
+SELECT kuva_render_terminal('{"terminal":{"cols":40,"rows":12,"print":true},"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}') IS NULL;
+----
+true
+
+# Terminal errors behave as kuva_render's: they fail the statement rather than returning NULL.
+statement error
+SELECT kuva_render_terminal('{oops');
+----
+invalid JSON
+
+statement error
+SELECT kuva_render_terminal('{"series":[]}');
+----
+`series` must not be empty
+
+# ============================================================================
+# kuva_render_file: render to a file and return its path (native builds only)
+#
+# __TEST_DIR__ is the temporary directory the test runner provides.
+# ============================================================================
+
+# An explicit directory and file name: the path is <dir>/<name>, and the file holds the SVG.
+# (Compare inside SQL rather than against a literal `__TEST_DIR__/…` expected value: the runner
+# substitutes the placeholder in the query, not in the expected result.)
+query I
+SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"chart.svg"},"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}') = '__TEST_DIR__/chart.svg';
+----
+true
+
+query I
+SELECT left(content, 4) FROM read_text('__TEST_DIR__/chart.svg');
+----
+<svg
+
+# A name with no extension gets `.svg` appended, so the system renders it as an image.
+query I
+SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"plain"},"series":[{"type":"scatter","data":[[1,2]]}]}') = '__TEST_DIR__/plain.svg';
+----
+true
+
+# No file name: an auto-generated `kuva-<time>-<random>.svg` under the directory.
+query I
+SELECT starts_with(p, '__TEST_DIR__/kuva-') AND ends_with(p, '.svg')
+FROM (SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__"},"series":[{"type":"scatter","data":[[1,2]]}]}') AS p) t;
+----
+true
+
+# The auto-name also carries the chart type and title when the spec has them.
+query I
+SELECT contains(p, '-scatter-') AND contains(p, 'Sales')
+FROM (SELECT kuva_render_file('{"title":"Sales","file":{"dir":"__TEST_DIR__"},"series":[{"type":"scatter","data":[[1,2]]}]}') AS p) t;
+----
+true
+
+# No `file` object at all: the file lands in the system temp directory and still ends in `.svg`.
+query I
+SELECT ends_with(kuva_render_file('{"series":[{"type":"scatter","data":[[1,2]]}]}'), '.svg');
+----
+true
+
+# File errors behave as kuva_render's: they fail the statement, with a message naming the function.
+statement error
+SELECT kuva_render_file('{oops');
+----
+invalid JSON
+
+statement error
+SELECT kuva_render_file('{"series":[]}');
+----
+`series` must not be empty
+
+# A file name that is not usable (it sanitizes down to nothing) is rejected instead of escaping the
+# directory.
+statement error
+SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"/"},"series":[{"type":"scatter","data":[[1,2]]}]}');
+----
+`file.name`

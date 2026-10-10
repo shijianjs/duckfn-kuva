@@ -74,14 +74,20 @@ WHERE "group" = 'Condition_A';
 **默认按暗底画。** 终端是暗的，所以这个入口在没有指定主题时用 kuva 的 `dark` 主题渲染：默认主题的近黑文字与
 线条落在近黑背景上，就是那种「黑框框、黑字」根本读不了的样子。想要亮色的观感就显式给一个[主题](./themes.md)。
 
-## 字体：用 Cascadia Code
+## 字体：终端里无所谓，浏览器里才要 Cascadia Code
 
-这一帧是铺在固定的 2 × 4 盲文点阵上的，所以只有在**等宽、且每个字形宽度完全一致**的终端字体下才对得齐 ——
-而多数「等宽」字体其实做不到。我们在本地试过 kuva 的终端输出（包括经 anser、zed 渲染）：Consolas、JetBrains
-Mono、Ubuntu Mono、DejaVu、宋体、霞鹜文楷等宽……每一款画出来的线都是歪的、对不齐的。
+这一帧铺在固定的 2 × 4 盲文点阵上，能不能对齐**取决于谁在渲染，而不是单看字体**：
 
-只有 **Cascadia Mono** 与 **Cascadia Code** 能对齐。二者是 Windows Terminal 的默认字体、随 Windows 自带，且开源：[Cascadia Code](https://github.com/microsoft/cascadia-code)。kit 0.9.1 已经内置了 Cascadia Code，所以你在**本站**看到的帧用的就是
-它 —— 但如果你把帧复制到自己的终端里，记得把字体设成 Cascadia Code（或 Cascadia Mono），否则点阵网格会散掉。
+- **终端模拟器**（Windows Terminal、JetBrains / RustRover 的内置终端、iTerm2……）按自己的单元格网格
+  摆放字符：每个字符 —— 盲文也一样 —— 都塞进一个等宽的格子，宽度由终端定，跟字形自身的步进无关。
+  所以**任何等宽字体都能对齐**。本地实测：JetBrains Mono 在 Windows Terminal 与 RustRover 内置终端里、
+  新宋体在 Windows Terminal 里，画出来的线都是直的。
+- **不按这层网格排版的环境**（浏览器；本地试过的 Zed 也一样）就不同了：盲文 U+2800–U+28FF 只有在
+  字体**自己**的盲文步进恰好等于 ASCII 步进时才对齐。满足这个条件的字体很少 —— 常见等宽字体
+  （Consolas、JetBrains Mono、Ubuntu Mono、DejaVu、宋体、霞鹜文楷等宽）都不行，JetBrains Mono
+  在浏览器里实测仍然歪。
+
+只有 **Cascadia Mono** 与 **Cascadia Code** 满足后一种情况。二者是 Windows Terminal 的默认字体、随 Windows 自带，且开源：[Cascadia Code](https://github.com/microsoft/cascadia-code)。本站的终端帧就是在浏览器里渲染的，kit 0.9.1 内置了 Cascadia Code（按 `unicode-range` 分片，只下载用到的子集），所以你在**本站**看到的帧用的就是它 —— 把帧复制进自己的终端则**不用**改字体，那里本来就对得齐。
 
 ## 例子
 

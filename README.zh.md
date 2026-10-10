@@ -26,8 +26,8 @@ duckdb -unsigned
 
 ```sql
 LOAD './build/debug/duckfn_kuva.duckdb_extension';
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4);
--- <svg
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 返回的是一份完整的 SVG 文档 —— 写进文件，或交给任何能渲染 SVG 的东西。`Justfile` 把同样的命令包了
@@ -81,30 +81,33 @@ Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 ca
 **组合**有两种。同一个 `series` 数组里放多个元素，它们叠加共用一套坐标轴 —— 折线上叠散点：
 
 ```sql
-SELECT length(kuva_render('{"series":[
+SELECT kuva_render('{"series":[
   {"type":"line","data":[[0,1],[1,2],[2,1.5]],"legend":"signal"},
   {"type":"scatter","data":[[0,1.2],[1,1.8],[2,1.6]],"legend":"observed"}
-]}')) > 0;
+]}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 给顶层 `figure`（`rows` / `cols` / `panels`）则切到多面板网格，可共享坐标轴与图例：
 
 ```sql
-SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
+SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
   {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
   {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
-]}}')) > 0;
+]}}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 **第二根 y 轴**靠 `secondary_series`：这些元素画在右侧那根轴上，轴本身由 `y2_axis` 描述。
 
 ```sql
-SELECT length(kuva_render('{
+SELECT kuva_render('{
   "y_axis":  {"name": "price",  "min": 0, "max": 100},
   "y2_axis": {"name": "volume", "min": 0, "max": 1000},
   "series": [{"type":"line","data":[[0,20],[1,45]],"legend":"price"}],
   "secondary_series": [{"type":"bar","categories":["d1","d2"],"values":[300,700],"legend":"volume"}]
-}')) > 0;
+}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 `theme` 选 light / dark / minimal / solarized（或覆盖个别颜色），`palette` 选十来个具名调色板之一或

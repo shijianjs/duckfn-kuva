@@ -28,8 +28,8 @@ duckdb -unsigned
 
 ```sql
 LOAD './build/debug/duckfn_kuva.duckdb_extension';
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}'), 4);
--- <svg
+SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 The result is a complete SVG document — write it out, or hand it to anything that renders SVG. The
@@ -88,32 +88,35 @@ JSON rather than a DuckDB `STRUCT` is deliberate: the series of one figure are h
 axes — a line with its scatter points on top:
 
 ```sql
-SELECT length(kuva_render('{"series":[
+SELECT kuva_render('{"series":[
   {"type":"line","data":[[0,1],[1,2],[2,1.5]],"legend":"signal"},
   {"type":"scatter","data":[[0,1.2],[1,1.8],[2,1.6]],"legend":"observed"}
-]}')) > 0;
+]}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 A top-level `figure` with `rows`, `cols` and `panels` switches to a multi-panel grid instead, with
 shared axes and an optional shared legend:
 
 ```sql
-SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
+SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
   {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
   {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
-:]}}')) > 0;
+]}}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 A **second y axis** is what `secondary_series` is for: those entries are drawn against the right-hand
 axis, which `y2_axis` then describes.
 
 ```sql
-SELECT length(kuva_render('{
+SELECT kuva_render('{
   "y_axis":  {"name": "price",  "min": 0, "max": 100},
   "y2_axis": {"name": "volume", "min": 0, "max": 1000},
   "series": [{"type":"line","data":[[0,20],[1,45]],"legend":"price"}],
   "secondary_series": [{"type":"bar","categories":["d1","d2"],"values":[300,700],"legend":"volume"}]
-}')) > 0;
+}');
+-- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
 `theme` picks light, dark, minimal or solarized (or overrides individual colours), `palette` picks one

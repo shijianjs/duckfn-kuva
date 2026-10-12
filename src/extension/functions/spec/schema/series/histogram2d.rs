@@ -10,6 +10,7 @@ use super::super::style::ColorMapSpec;
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct Histogram2DSeries {
     /// 原始散点，`[x, y]` 或 `{"x":…, "y":…}`。越界的点会被丢掉。
+    #[serde(default)]
     pub data: Vec<PointSpec>,
     /// x 的取值区间（分箱边界），必填。
     pub x_range: (f64, f64),

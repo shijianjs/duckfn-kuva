@@ -48,7 +48,9 @@ test('判别联合按 type 收窄', () => {
 
   if (s.type === 'scatter') {
     expectTypeOf(s).toEqualTypeOf<ScatterSeries>();
-    expectTypeOf(s.data).toEqualTypeOf<PointSpec[]>();
+    // data 现在是可选的（dataset 形式由 Rust 端注入），所以是 PointSpec[] | undefined。
+    // `data` is now optional (the `dataset` form has it injected by the Rust side), hence `| undefined`.
+    expectTypeOf(s.data).toEqualTypeOf<PointSpec[] | undefined>();
     expectTypeOf(s.legend).toEqualTypeOf<string | null | undefined>();
   }
 
@@ -106,9 +108,6 @@ test('该报错的确实报错', () => {
   // @ts-expect-error 未知图型：字面量不在任何一个变体的 type 里
   const unknownType: SeriesSpec = { type: 'nope' };
 
-  // @ts-expect-error scatter 缺必填的 data
-  const missingRequired: SeriesSpec = { type: 'scatter' };
-
   // @ts-expect-error data 的元素不是点（字符串不在 PointSpec 里）
   const badPoint: SeriesSpec = { type: 'scatter', data: ['x'] };
 
@@ -118,5 +117,15 @@ test('该报错的确实报错', () => {
   // @ts-expect-error 注册表的值必须是行数组，不是行
   const badRegistry: Registry = { sales: { x: 1 } };
 
-  console.log(unknownType, missingRequired, badPoint, badWidth, badRegistry);
+  console.log(unknownType, badPoint, badWidth, badRegistry);
+});
+
+test('dataset + encode 形式不需要 data', () => {
+  // 运行时 data 由 Rust 端 bind 注入，所以类型上 scatter 可以不带 data（仅用 dataset + encode）。
+  // At runtime `data` is injected by the Rust side, so a scatter can be written without `data`
+  // (using only `dataset` + `encode`) — the type reflects that.
+  const ds: SeriesSpec = { type: 'scatter', dataset: 'sales', encode: { x: 'revenue', y: 'profit' } };
+  if (ds.type === 'scatter') {
+    expectTypeOf(ds).toEqualTypeOf<ScatterSeries>();
+  }
 });

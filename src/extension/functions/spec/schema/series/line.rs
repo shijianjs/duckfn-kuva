@@ -10,6 +10,7 @@ use super::common::{BandSpec, CommonStyle, PointSpec};
 pub(crate) struct LineSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
+    #[serde(default)]
     pub data: Vec<PointSpec>,
     pub stroke_width: Option<f64>,
     /// 线型：`"solid"` / `"dashed"` / `"dotted"` / `"dash_dot"`，或自定义 `stroke-dasharray` 字符串。

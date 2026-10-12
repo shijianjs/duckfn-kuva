@@ -10,6 +10,7 @@ use super::common::{BandSpec, CommonStyle, PointSpec, TrendSpec};
 pub(crate) struct ScatterSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
+    #[serde(default)]
     pub data: Vec<PointSpec>,
     /// 统一的点半径（像素）。
     pub size: Option<f64>,

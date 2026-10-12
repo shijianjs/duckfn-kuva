@@ -13,6 +13,7 @@ pub(crate) struct Scatter3DSeries {
     #[serde(flatten)]
     pub common: Common3DStyle,
     /// 三元组 `[x, y, z]` 或 `{"x":…, "y":…, "z":…}`。
+    #[serde(default)]
     pub data: Vec<PointSpec3>,
     /// 逐点半径（气泡），长度须与 `data` 一致。
     pub sizes: Option<Vec<f64>>,

@@ -776,7 +776,7 @@ export interface ScatterSeries {
    * 逐点颜色。
    */
   colors?: string[] | null;
-  data: PointSpec[];
+  data?: PointSpec[];
   /**
    * 交互 SVG 里的分组名（不进图例）。
    */
@@ -855,7 +855,7 @@ export interface LineSeries {
    * 主色（CSS 颜色字符串）。
    */
   color?: string | null;
-  data: PointSpec[];
+  data?: PointSpec[];
   /**
    * 线下填充成面积。
    */
@@ -2082,7 +2082,7 @@ export interface HeatmapSeries {
   /**
    * 行优先矩阵：`data[row][col]`。所有行必须等长。
    */
-  data: number[][];
+  data?: number[][];
   /**
    * 这个图型没有统一的 `color`（颜色由 `color_map` 连续编码），所以这里不平铺 `CommonStyle`。
    * 色条图的标题。
@@ -2141,7 +2141,7 @@ export interface Histogram2DSeries {
   /**
    * 原始散点，`[x, y]` 或 `{"x":…, "y":…}`。越界的点会被丢掉。
    */
-  data: PointSpec[];
+  data?: PointSpec[];
   /**
    * 计数取对数（长尾时好看）。
    */
@@ -2271,7 +2271,7 @@ export interface ClustermapSeries {
   /**
    * 行优先矩阵：`data[row][col]`。所有行必须等长。
    */
-  data: number[][];
+  data?: number[][];
   /**
    * 色条图的标题。
    */
@@ -2711,7 +2711,7 @@ export interface Scatter3DSeries {
   /**
    * 三元组 `[x, y, z]` 或 `{"x":…, "y":…, "z":…}`。
    */
-  data: PointSpec3[];
+  data?: PointSpec3[];
   /**
    * 按深度调暗（远处的点更淡）。
    */

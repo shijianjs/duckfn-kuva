@@ -14,6 +14,7 @@ pub(crate) struct ClustermapSeries {
     /// 打开悬停提示。
     pub tooltips: Option<bool>,
     /// 行优先矩阵：`data[row][col]`。所有行必须等长。
+    #[serde(default)]
     pub data: Vec<Vec<f64>>,
     /// 行标签，长度须等于行数。
     pub row_labels: Option<Vec<String>>,

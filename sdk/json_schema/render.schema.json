@@ -1724,6 +1724,7 @@
         "data": {
           "description": "行优先矩阵：`data[row][col]`。所有行必须等长。",
           "type": "array",
+          "default": [],
           "items": {
             "type": "array",
             "items": {
@@ -1805,7 +1806,6 @@
         }
       },
       "required": [
-        "data",
         "type"
       ]
     },
@@ -3833,6 +3833,7 @@
         "data": {
           "description": "行优先矩阵：`data[row][col]`。所有行必须等长。",
           "type": "array",
+          "default": [],
           "items": {
             "type": "array",
             "items": {
@@ -3925,7 +3926,6 @@
         }
       },
       "required": [
-        "data",
         "type"
       ]
     },
@@ -4209,7 +4209,6 @@
         }
       },
       "required": [
-        "data",
         "x_range",
         "y_range",
         "type"
@@ -5236,7 +5235,6 @@
         }
       },
       "required": [
-        "data",
         "type"
       ]
     },
@@ -9105,7 +9103,6 @@
         }
       },
       "required": [
-        "data",
         "type"
       ]
     },
@@ -9236,7 +9233,6 @@
         }
       },
       "required": [
-        "data",
         "type"
       ]
     },

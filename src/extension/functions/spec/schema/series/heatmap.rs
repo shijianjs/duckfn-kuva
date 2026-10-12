@@ -16,6 +16,7 @@ pub(crate) struct HeatmapSeries {
     /// 每个格子的提示文字，按行优先顺序。
     pub tooltip_labels: Option<Vec<String>>,
     /// 行优先矩阵：`data[row][col]`。所有行必须等长。
+    #[serde(default)]
     pub data: Vec<Vec<f64>>,
     /// 行标签（y 轴，从下往上）。
     pub row_labels: Option<Vec<String>>,

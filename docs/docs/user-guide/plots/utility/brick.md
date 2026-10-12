@@ -80,7 +80,7 @@ SELECT kuva_render(to_json({
 
 ## Custom templates
 
-`template` also takes a character-to-colour map, so any single-character alphabet works: secondary
+`template` also takes a `{"colors": {…}}` map, so any single-character alphabet works: secondary
 structure, repeat-unit classes, chromatin states. `show_values` prints the character inside each brick —
 only worth it when the bricks are wide enough to read.
 
@@ -91,7 +91,7 @@ SELECT kuva_render(to_json({
     'type': 'brick',
     'sequences': ['CCCHHHHHHHHHHCCCCEEEEEECCC', 'CHHHHHHHHCCEEEEECCCHHHHCC'],
     'names': ['prot_1', 'prot_2'],
-    'template': {'H': 'steelblue', 'E': 'firebrick', 'C': '#aaaaaa', 'T': 'seagreen'},
+    'template': {'colors': {'H': 'steelblue', 'E': 'firebrick', 'C': '#aaaaaa', 'T': 'seagreen'}},
     'show_values': true
   }]
 })) AS chart;
@@ -115,8 +115,8 @@ SELECT kuva_render(to_json({
       ['CAT:A,T:B',       '14A1B1A'],
       ['CAT:A,C:B,GGT:C', '10A1B8A1C5A']
     ],
-    'template': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868',
-                 'G': '#e6a532', 'T': '#c44e52'},
+    'template': {'colors': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868',
+                            'G': '#e6a532', 'T': '#c44e52'}},
     'consensus_row': 0,
     'mark_primary': true
   }]
@@ -169,7 +169,7 @@ SELECT kuva_render(to_json({
       ['CAG:A,CCG:B',       '8A1B10A'],
       ['CAG:A',             '20A']
     ],
-    'template': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868'},
+    'template': {'colors': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868'}},
     'consensus_row': 0,
     'notations': ['', null, null]
   }]
@@ -211,7 +211,7 @@ SELECT kuva_render(to_json({
 | `names` | string[] | Row labels; **row 0 is drawn at the top**. |
 | `strigars` | `[string, string][]` | `[motif, strigar]` pairs — replaces `sequences` when given. |
 | `flanked_strigars` | `[string, string, string, string][]` | `[left flank, motif, strigar, right flank]` — replaces `strigars`. |
-| `template` | string \| object | `"dna"` · `"rna"` · a `{character: css colour}` map. |
+| `template` | string \| object | `"dna"` · `"rna"` · a `{"colors": {character: css colour}}` object. |
 | `x_offset` | number | A global x shift for every row. |
 | `x_offsets` | (number \| null)[] | Per-row shifts; `null` falls back to `x_offset`. |
 | `start_positions` | number[] | Per-row reference start coordinate; cannot be combined with `x_offsets`. |
@@ -227,7 +227,7 @@ SELECT kuva_render(to_json({
 ## Notes
 
 - **`sequences`, `strigars` and `flanked_strigars` are three ways to give the rows** — give exactly one.
-- `template` has no sensible default: give `"dna"`, `"rna"`, or a map. A character with no entry in the map
+- `template` has no sensible default: give `"dna"`, `"rna"`, or a `{"colors": …}` map. A character with no entry in the map
   has no colour. (In strigar mode the strigar colours are generated from the motifs; `template` only
   applies to `sequences`.)
 - `names` must have one entry per row — per `strigars` / `flanked_strigars` in those modes, per `sequences`

@@ -300,7 +300,14 @@ pub(crate) struct ThemeCustom {
 #[serde(untagged)]
 pub(crate) enum PaletteSpec {
     Named(PaletteKind),
-    Custom(Vec<String>),
+    Custom(PaletteColors),
+}
+
+/// 自定义调色板：一串颜色。
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub(crate) struct PaletteColors {
+    pub colors: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]

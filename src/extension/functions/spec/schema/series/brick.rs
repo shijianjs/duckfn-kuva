@@ -18,13 +18,20 @@ use serde::Deserialize;
 
 use std::collections::HashMap;
 
-/// 序列字符的配色方案。`custom` 给出「字符 -> 颜色」的映射。
+/// 序列字符的配色方案：具名（`dna` / `rna`），或给出「字符 -> 颜色」的映射。
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum BrickTemplateSpec {
     Named(BrickTemplateKind),
-    Custom(HashMap<char, String>),
+    Custom(BrickColors),
+}
+
+/// 自定义「字符 -> 颜色」的映射。
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub(crate) struct BrickColors {
+    pub colors: HashMap<char, String>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -7,7 +7,7 @@ description: 具名调色板，以及怎么传入自己的一组颜色。
 # 调色板
 
 `palette` 是顶层字段：它决定整张图发给「没有自己设 `color` 的 series」的那些颜色。取值可以是一个名字，
-也可以是你自己给的一组颜色字符串。
+也可以是一个 `{"colors": [...]}` 对象、给一组自己的颜色字符串。
 
 | 取值 | 说明 |
 | --- | --- |
@@ -19,10 +19,10 @@ description: 具名调色板，以及怎么传入自己的一组颜色。
 | `"category10"` | 十个分类色（默认兜底）。 |
 | `"pastel"` · `"bold"` | 更柔和与更浓烈的一对变体。 |
 
-给一组颜色就会替换掉具名调色板：
+给一个 `{"colors": [...]}` 对象就会替换掉具名调色板：
 
 ```json
-{ "palette": ["#4c72b0", "#dd8452", "#55a868", "#c44e52"] }
+{ "palette": {"colors": ["#4c72b0", "#dd8452", "#55a868", "#c44e52"]} }
 ```
 
 ## 具体色值
@@ -78,7 +78,7 @@ FROM (
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
-  'palette': ['#4c72b0', '#dd8452', '#55a868', '#c44e52'],
+  'palette': {'colors': ['#4c72b0', '#dd8452', '#55a868', '#c44e52']},
   'x_axis': {'name': 'GO term', 'tick_rotate': 60},
   'y_axis': {'name': 'hits'},
   'series': [{

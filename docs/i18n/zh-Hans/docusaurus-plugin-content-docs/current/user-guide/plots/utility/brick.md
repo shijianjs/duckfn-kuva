@@ -76,7 +76,7 @@ SELECT kuva_render(to_json({
 
 ## 自定义配色表
 
-`template` 也可以收一张「字符 → 颜色」的表，于是任何单字符字母表都能用：二级结构、重复单元类别、染色质状态。
+`template` 也可以收一个 `{"colors": {…}}` 表（字符 → 颜色），于是任何单字符字母表都能用：二级结构、重复单元类别、染色质状态。
 `show_values` 把字符印在每块砖里 —— 只有砖够宽、读得出来时才值得开。
 
 ```sql {"type":"duckfn","show":"svg"}
@@ -86,7 +86,7 @@ SELECT kuva_render(to_json({
     'type': 'brick',
     'sequences': ['CCCHHHHHHHHHHCCCCEEEEEECCC', 'CHHHHHHHHCCEEEEECCCHHHHCC'],
     'names': ['prot_1', 'prot_2'],
-    'template': {'H': 'steelblue', 'E': 'firebrick', 'C': '#aaaaaa', 'T': 'seagreen'},
+    'template': {'colors': {'H': 'steelblue', 'E': 'firebrick', 'C': '#aaaaaa', 'T': 'seagreen'}},
     'show_values': true
   }]
 })) AS chart;
@@ -109,8 +109,8 @@ SELECT kuva_render(to_json({
       ['CAT:A,T:B',       '14A1B1A'],
       ['CAT:A,C:B,GGT:C', '10A1B8A1C5A']
     ],
-    'template': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868',
-                 'G': '#e6a532', 'T': '#c44e52'},
+    'template': {'colors': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868',
+                            'G': '#e6a532', 'T': '#c44e52'}},
     'consensus_row': 0,
     'mark_primary': true
   }]
@@ -160,7 +160,7 @@ SELECT kuva_render(to_json({
       ['CAG:A,CCG:B',       '8A1B10A'],
       ['CAG:A',             '20A']
     ],
-    'template': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868'},
+    'template': {'colors': {'A': '#4c72b0', 'B': '#dd8452', 'C': '#55a868'}},
     'consensus_row': 0,
     'notations': ['', null, null]
   }]
@@ -201,7 +201,7 @@ SELECT kuva_render(to_json({
 | `names` | string[] | 行名；**第 0 行画在最上面**。 |
 | `strigars` | `[string, string][]` | `[motif, strigar]` 对 —— 给了它就取代 `sequences`。 |
 | `flanked_strigars` | `[string, string, string, string][]` | `[左侧翼, motif, strigar, 右侧翼]` —— 取代 `strigars`。 |
-| `template` | string \| object | `"dna"` · `"rna"` · 一张 `{字符: CSS 颜色}` 表。 |
+| `template` | string \| object | `"dna"` · `"rna"` · 一个 `{"colors": {字符: CSS 颜色}}` 对象。 |
 | `x_offset` | number | 所有行共用的 x 平移量。 |
 | `x_offsets` | (number \| null)[] | 逐行平移；`null` 回退到 `x_offset`。 |
 | `start_positions` | number[] | 逐行的参考起始坐标；不能与 `x_offsets` 同时给。 |
@@ -217,7 +217,7 @@ SELECT kuva_render(to_json({
 ## 说明
 
 - **`sequences`、`strigars` 与 `flanked_strigars` 是同一份数据的三种写法** —— 只能给一种。
-- `template` 没有一个「合理」的默认值：请给 `"dna"`、`"rna"`，或者一张表，**表里没有的字符没有颜色**。
+- `template` 没有一个「合理」的默认值：请给 `"dna"`、`"rna"`，或者一个 `{"colors": …}` 表，**表里没有的字符没有颜色**。
   （strigar / flanked-strigar 模式下 strigar 那部分的配色由 motif 自动生成，`template` 只对 `sequences` 生效。）
 - `names` 必须与生效的那一份数据行数一致 —— 按 `strigars` / `flanked_strigars` 或 `sequences` 算。
 - **第 0 行在最上面**，共识序列因此天然读起来像一行表头。

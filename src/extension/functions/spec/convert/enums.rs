@@ -72,7 +72,7 @@ pub(super) fn to_theme(t: &ThemeSpec) -> Theme {
 
 pub(super) fn to_palette(p: &PaletteSpec) -> Palette {
     match p {
-        PaletteSpec::Custom(colors) => Palette::custom("custom", colors.clone()),
+        PaletteSpec::Custom(c) => Palette::custom("custom", c.colors.clone()),
         PaletteSpec::Named(k) => match k {
             PaletteKind::Wong => Palette::wong(),
             PaletteKind::OkabeIto => Palette::okabe_ito(),
@@ -308,7 +308,7 @@ pub(super) fn legend_shape(s: &LegendShapeSpec) -> LegendShape {
 /// 砖墙图的字符配色表。kuva 没有「按序列内容自动选模板」的能力，所以缺省给 DNA。
 pub(super) fn brick_template(s: &BrickTemplateSpec) -> std::collections::HashMap<char, String> {
     match s {
-        BrickTemplateSpec::Custom(map) => map.clone(),
+        BrickTemplateSpec::Custom(c) => c.colors.clone(),
         BrickTemplateSpec::Named(BrickTemplateKind::Dna) => BrickTemplate::new().dna().template,
         BrickTemplateSpec::Named(BrickTemplateKind::Rna) => BrickTemplate::new().rna().template,
     }

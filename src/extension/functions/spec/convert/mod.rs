@@ -127,10 +127,6 @@ fn render_figure(fig: FigureSpec) -> Result<Scene, String> {
             LabelsSpec::Named(LabelsKind::Uppercase) => figure.with_labels(),
             LabelsSpec::Named(LabelsKind::Lowercase) => figure.with_labels_lowercase(),
             LabelsSpec::Named(LabelsKind::Numeric) => figure.with_labels_numeric(),
-            LabelsSpec::Custom(names) => {
-                let refs: Vec<&str> = names.iter().map(String::as_str).collect();
-                figure.with_labels_custom(refs, LabelConfig::default())
-            }
             LabelsSpec::Full(full) => {
                 let refs: Vec<&str> = full.names.iter().map(String::as_str).collect();
                 let config = LabelConfig {

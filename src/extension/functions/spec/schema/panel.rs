@@ -134,8 +134,8 @@ pub(crate) struct FigureSpec {
     pub structure: Option<Vec<Vec<usize>>>,
     pub title: Option<String>,
     pub title_size: Option<u32>,
-    /// 面板标签：`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"`，自定义数组，
-    /// 或 `{"names": [...], "style": …, "size": …, "bold": …}`。
+    /// 面板标签：`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"`，或
+    /// `{"names": [...], "style": …, "size": …, "bold": …}`。
     pub labels: Option<LabelsSpec>,
     pub shared_x_all: Option<bool>,
     pub shared_y_all: Option<bool>,
@@ -182,13 +182,12 @@ pub(crate) struct FigureSliceSpec {
     pub end: usize,
 }
 
-/// 面板标签：具名样式、自定义字符串数组，或带字体配置的完整写法。
+/// 面板标签：具名样式，或带逐个标签文字的完整写法。
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum LabelsSpec {
     Named(LabelsKind),
-    Custom(Vec<String>),
     Full(LabelsFull),
 }
 

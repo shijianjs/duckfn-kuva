@@ -781,6 +781,21 @@
         "right"
       ]
     },
+    "BrickColors": {
+      "description": "自定义「字符 -> 颜色」的映射。",
+      "type": "object",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "colors"
+      ]
+    },
     "BrickSeries": {
       "description": "砖墙图（brick plot）：一串字符画成一格格「砖」，常用于展示序列 motif。",
       "type": "object",
@@ -969,16 +984,13 @@
       ]
     },
     "BrickTemplateSpec": {
-      "description": "序列字符的配色方案。`custom` 给出「字符 -> 颜色」的映射。",
+      "description": "序列字符的配色方案：具名（`dna` / `rna`），或给出「字符 -> 颜色」的映射。",
       "anyOf": [
         {
           "$ref": "#/$defs/BrickTemplateKind"
         },
         {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
+          "$ref": "#/$defs/BrickColors"
         }
       ]
     },
@@ -2946,7 +2958,7 @@
           ]
         },
         "labels": {
-          "description": "面板标签：`\"uppercase\"` / `\"lowercase\"` / `\"numeric\"` / `\"none\"`，自定义数组，\n或 `{\"names\": [...], \"style\": …, \"size\": …, \"bold\": …}`。",
+          "description": "面板标签：`\"uppercase\"` / `\"lowercase\"` / `\"numeric\"` / `\"none\"`，或\n`{\"names\": [...], \"style\": …, \"size\": …, \"bold\": …}`。",
           "anyOf": [
             {
               "$ref": "#/$defs/LabelsSpec"
@@ -4828,16 +4840,10 @@
       ]
     },
     "LabelsSpec": {
-      "description": "面板标签：具名样式、自定义字符串数组，或带字体配置的完整写法。",
+      "description": "面板标签：具名样式，或带逐个标签文字的完整写法。",
       "anyOf": [
         {
           "$ref": "#/$defs/LabelsKind"
-        },
-        {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         },
         {
           "$ref": "#/$defs/LabelsFull"
@@ -6039,6 +6045,21 @@
         "vertical"
       ]
     },
+    "PaletteColors": {
+      "description": "自定义调色板：一串颜色。",
+      "type": "object",
+      "properties": {
+        "colors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "colors"
+      ]
+    },
     "PaletteKind": {
       "type": "string",
       "enum": [
@@ -6063,10 +6084,7 @@
           "$ref": "#/$defs/PaletteKind"
         },
         {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "$ref": "#/$defs/PaletteColors"
         }
       ]
     },

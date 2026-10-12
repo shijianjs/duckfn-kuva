@@ -7,7 +7,7 @@ description: The named palettes and how to pass your own list of colours.
 # Colour palettes
 
 `palette` is a top-level field: it chooses the colours the figure hands out to series that do not set
-their own `color`. It is a name, or a list of colour strings of your own.
+their own `color`. It is a name, or a `{"colors": [...]}` object of colour strings of your own.
 
 | Value | Notes |
 | --- | --- |
@@ -19,10 +19,10 @@ their own `color`. It is a name, or a list of colour strings of your own.
 | `"category10"` | Ten categorical colours (the default fallback). |
 | `"pastel"` · `"bold"` | Softer and stronger variants. |
 
-A list replaces the named palette:
+A `{"colors": [...]}` object replaces the named palette:
 
 ```json
-{ "palette": ["#4c72b0", "#dd8452", "#55a868", "#c44e52"] }
+{ "palette": {"colors": ["#4c72b0", "#dd8452", "#55a868", "#c44e52"]} }
 ```
 
 ## Colours
@@ -82,7 +82,7 @@ Your own list of colours, cycled across the bars:
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
-  'palette': ['#4c72b0', '#dd8452', '#55a868', '#c44e52'],
+  'palette': {'colors': ['#4c72b0', '#dd8452', '#55a868', '#c44e52']},
   'x_axis': {'name': 'GO term', 'tick_rotate': 60},
   'y_axis': {'name': 'hits'},
   'series': [{

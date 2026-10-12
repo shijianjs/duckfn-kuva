@@ -12,9 +12,9 @@ export type OrientationKind = "horizontal" | "vertical";
 export type TickFormatSpec = TickFormatKind | number;
 export type TickFormatKind = "auto" | "integer" | "sci" | "percent" | "degree";
 /**
- * 面板标签：具名样式、自定义字符串数组，或带字体配置的完整写法。
+ * 面板标签：具名样式，或带逐个标签文字的完整写法。
  */
-export type LabelsSpec = LabelsKind | string[] | LabelsFull;
+export type LabelsSpec = LabelsKind | LabelsFull;
 export type LabelsKind = "none" | "uppercase" | "lowercase" | "numeric";
 export type AxisLineKind = "open" | "box";
 export type TickAlignKind = "inside" | "outside" | "center";
@@ -34,7 +34,7 @@ export type MarkerSpec = "circle" | "square" | "triangle" | "diamond" | "cross" 
 /**
  * 具名调色板，或一组自定义颜色。
  */
-export type PaletteSpec = PaletteKind | string[];
+export type PaletteSpec = PaletteKind | PaletteColors;
 export type PaletteKind =
   | "wong"
   | "okabe_ito"
@@ -242,13 +242,9 @@ export type BumpTieBreakKind = "average" | "min" | "max" | "stable";
  */
 export type BrickAnchorKind = "left" | "right";
 /**
- * 序列字符的配色方案。`custom` 给出「字符 -> 颜色」的映射。
+ * 序列字符的配色方案：具名（`dna` / `rna`），或给出「字符 -> 颜色」的映射。
  */
-export type BrickTemplateSpec =
-  | BrickTemplateKind
-  | {
-      [k: string]: string;
-    };
+export type BrickTemplateSpec = BrickTemplateKind | BrickColors;
 export type BrickTemplateKind = "dna" | "rna";
 /**
  * 各层怎么上色。
@@ -453,8 +449,8 @@ export interface FigureSpec {
    */
   keep_panel_legends?: boolean | null;
   /**
-   * 面板标签：`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"`，自定义数组，
-   * 或 `{"names": [...], "style": …, "size": …, "bold": …}`。
+   * 面板标签：`"uppercase"` / `"lowercase"` / `"numeric"` / `"none"`，或
+   * `{"names": [...], "style": …, "size": …, "bold": …}`。
    */
   labels?: LabelsSpec | null;
   padding?: number | null;
@@ -720,6 +716,13 @@ export interface LegendEntrySpec {
 export interface LegendGroupSpec {
   entries?: LegendEntrySpec[];
   title: string;
+  [k: string]: unknown;
+}
+/**
+ * 自定义调色板：一串颜色。
+ */
+export interface PaletteColors {
+  colors: string[];
   [k: string]: unknown;
 }
 /**
@@ -4199,6 +4202,15 @@ export interface BrickSeries {
    * 坐标原点。
    */
   x_origin?: number | null;
+  [k: string]: unknown;
+}
+/**
+ * 自定义「字符 -> 颜色」的映射。
+ */
+export interface BrickColors {
+  colors: {
+    [k: string]: string;
+  };
   [k: string]: unknown;
 }
 /**

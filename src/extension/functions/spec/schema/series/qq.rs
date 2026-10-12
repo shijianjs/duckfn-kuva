@@ -7,7 +7,9 @@ use serde::Deserialize;
 
 use super::common::{CommonStyle, ValuesGroup};
 
+/// QQ 图（分位数-分位数）：两组分布对齐到同一条参考线上。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct QqSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -28,6 +30,7 @@ pub(crate) struct QqSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum QqModeKind {
     Normal,

@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 画法：`"point"`（默认）/ `"line"` / `"both"`。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum SeriesStyleKind {
     Line,
@@ -11,7 +12,9 @@ pub(crate) enum SeriesStyleKind {
     Both,
 }
 
+/// 序列图：等间距的 y 值序列，画成点 / 线 / 两者。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SeriesPlotSpec {
     /// 图例文字。
     pub legend: Option<String>,

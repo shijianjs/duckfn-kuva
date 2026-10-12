@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::super::style::ColorMapSpec;
 
+/// 六边形分箱图（hexbin）：散点按六边形网格聚合，可选第三变量。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct HexbinSeries {
     /// 色条图的标题。
     pub colorbar_label: Option<String>,
@@ -39,6 +41,7 @@ pub(crate) struct HexbinSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum ZReduceKind {
     Count,

@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 区块的方向。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum StrandKind {
     /// 同向。
@@ -12,7 +13,9 @@ pub(crate) enum StrandKind {
     Reverse,
 }
 
+/// 共线性图（synteny）：两条或多条序列上的区块对应关系。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SyntenySeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -32,6 +35,7 @@ pub(crate) struct SyntenySeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SyntenySequenceSpec {
     pub label: String,
     /// 坐标上限。
@@ -40,6 +44,7 @@ pub(crate) struct SyntenySequenceSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SyntenyBlockSpec {
     /// 上方那条序列的下标。
     pub seq1: usize,

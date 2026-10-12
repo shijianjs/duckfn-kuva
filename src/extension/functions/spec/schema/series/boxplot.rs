@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 箱线图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BoxSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -27,6 +29,7 @@ pub(crate) struct BoxSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BoxGroupSpec {
     pub label: String,
     pub values: Vec<f64>,

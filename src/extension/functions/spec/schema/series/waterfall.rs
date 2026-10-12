@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 瀑布图：逐项的增量堆积，末了给一个累计。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct WaterfallSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -25,6 +27,7 @@ pub(crate) struct WaterfallSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct WaterfallBarSpec {
     pub label: String,
     /// 增量；`kind` 缺省时若给了 `from`/`to` 就是 `difference`，否则是 `delta`。
@@ -38,6 +41,7 @@ pub(crate) struct WaterfallBarSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum WaterfallKindSpec {
     Delta,

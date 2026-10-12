@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 帕累托图：按值降序的柱 + 累计百分比折线。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ParetoSeries {
     /// 柱的图例文字（默认 `"Value"`）。
     pub bar_legend_label: Option<String>,
@@ -35,6 +37,7 @@ pub(crate) struct ParetoSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ParetoCategorySpec {
     pub label: String,
     pub value: f64,

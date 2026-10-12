@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::super::style::ColorMapSpec;
 
+/// 热力图：行 × 列的数值矩阵，用连续色图编码。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct HeatmapSeries {
     /// 这个图型没有统一的 `color`（颜色由 `color_map` 连续编码），所以这里不平铺 `CommonStyle`。
     /// 色条图的标题。

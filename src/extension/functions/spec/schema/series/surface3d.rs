@@ -6,7 +6,9 @@ use super::common::Box3DSpec;
 use super::scatter3d::Common3DStyle;
 use super::super::style::ColorMapSpec;
 
+/// 三维曲面图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct Surface3DSeries {
     #[serde(flatten)]
     pub common: Common3DStyle,

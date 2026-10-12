@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::{CommonStyle, ValuesGroup};
 
+/// ECDF 图（经验累积分布）：每个类别一条阶梯曲线。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct EcdfSeries {
     #[serde(flatten)]
     pub common: CommonStyle,

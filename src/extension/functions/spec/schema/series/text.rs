@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 正文的对齐方式。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TextAlignKind {
     Left,
@@ -11,7 +12,9 @@ pub(crate) enum TextAlignKind {
     Right,
 }
 
+/// 文字块图：把一段带轻量标记的正文排成一张图（`#` 标题、`**粗体**`、`---` 分隔线）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TextSpec {
     /// 正文。行级标记：`#` / `##` 标题、`**粗体**`、`---` 分隔线、空行分段。
     pub body: String,

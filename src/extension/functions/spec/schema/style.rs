@@ -10,6 +10,7 @@ use serde::Deserialize;
 
 /// 标题：可以直接给字符串，也可以给对象。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum TitleSpec {
     Text(String),
@@ -17,6 +18,7 @@ pub(crate) enum TitleSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TitleFull {
     pub text: Option<String>,
     pub subtext: Option<String>,
@@ -33,6 +35,7 @@ pub(crate) struct TitleFull {
 
 /// 一根坐标轴。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct AxisSpec {
     /// 轴标题。
     pub name: Option<String>,
@@ -58,6 +61,7 @@ pub(crate) struct AxisSpec {
 
 /// 第二根轴（双 Y / 双 X 图）。字段与 [`AxisSpec`] 一一对应，只是作用在另一侧。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SecondaryAxisSpec {
     /// 轴标题。
     pub name: Option<String>,
@@ -74,6 +78,7 @@ pub(crate) struct SecondaryAxisSpec {
 
 /// 日期轴：把坐标值当时间戳（Unix 秒）来排布刻度。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DateTimeAxisSpec {
     /// 时间单位：`"auto"` / `"year"` / `"month"` / `"week"` / `"day"` / `"hour"` / `"minute"` /
     /// `"second"`。给 `"auto"` 时由 kuva 按轴的范围自己选单位与格式，`format` 可以省。
@@ -85,6 +90,7 @@ pub(crate) struct DateTimeAxisSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum DateUnitKind {
     /// 按轴的跨度自动选单位与格式。
@@ -100,6 +106,7 @@ pub(crate) enum DateUnitKind {
 
 /// 统计框：图角上的一小块文字（样本量、p 值、模型名…）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct StatsBoxSpec {
     /// 逐行文字。
     #[serde(default)]
@@ -113,6 +120,7 @@ pub(crate) struct StatsBoxSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TickFormatKind {
     Auto,
@@ -124,6 +132,7 @@ pub(crate) enum TickFormatKind {
 
 /// `"percent"` 这类具名格式，或 `2` 这种定点小数位数。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum TickFormatSpec {
     Named(TickFormatKind),
@@ -131,6 +140,7 @@ pub(crate) enum TickFormatSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum LabelOverlapKind {
     Allow,
@@ -144,6 +154,7 @@ pub(crate) enum LabelOverlapKind {
 
 /// 网格 / 轴线 / 刻度等非数据部分。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct GridSpec {
     pub show_grid: Option<bool>,
     pub ticks: Option<usize>,
@@ -179,6 +190,7 @@ pub(crate) struct GridSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum AxisLineKind {
     Open,
@@ -186,6 +198,7 @@ pub(crate) enum AxisLineKind {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TickAlignKind {
     Inside,
@@ -194,6 +207,7 @@ pub(crate) enum TickAlignKind {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TickPosKind {
     Primary,
@@ -202,6 +216,7 @@ pub(crate) enum TickPosKind {
 
 /// 图例。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LegendSpec {
     pub show: Option<bool>,
     /// 位置具名值，见 `convert::enums::legend_position` 支持的字符串。
@@ -230,6 +245,7 @@ pub(crate) struct LegendSpec {
 
 /// 图例里的一组条目：粗体标题 + 若干条目。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LegendGroupSpec {
     pub title: String,
     #[serde(default)]
@@ -242,6 +258,7 @@ pub(crate) struct LegendGroupSpec {
 
 /// 具名主题，或一组字段覆盖（以 light 主题为底）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum ThemeSpec {
     Named(ThemeKind),
@@ -250,6 +267,7 @@ pub(crate) enum ThemeSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum ThemeKind {
     Light,
@@ -259,6 +277,7 @@ pub(crate) enum ThemeKind {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ThemeCustom {
     pub background: Option<String>,
     pub axis_color: Option<String>,
@@ -277,6 +296,7 @@ pub(crate) struct ThemeCustom {
 
 /// 具名调色板，或一组自定义颜色。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum PaletteSpec {
     Named(PaletteKind),
@@ -284,6 +304,7 @@ pub(crate) enum PaletteSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum PaletteKind {
     Wong,
@@ -301,6 +322,7 @@ pub(crate) enum PaletteKind {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FontSpec {
     pub family: Option<String>,
     pub title_size: Option<u32>,
@@ -319,6 +341,7 @@ pub(crate) struct FontSpec {
 /// 与 `ylgnbu` 指的是同一个，和 kuva 自己的 CLI 一致。认不出的名字会报错并列出这个名字，
 /// 而不是悄悄退回默认（CLI 会退回 viridis，但 SQL 里静默换色更难查）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(try_from = "String")]
 pub(crate) struct ColorMapSpec(pub(crate) ColorMapKind);
 
@@ -334,7 +357,18 @@ impl TryFrom<String> for ColorMapSpec {
 
 /// 变体与 kuva 的 `ColorMap` 一一对应（`custom` 除外：自定义映射是 Rust 闭包，
 /// SQL 侧给不了，所以这里不开放）。
+///
+/// JSON 侧的名字由下面 `parse` 的归一化匹配决定（snake_case：`YellowGreenBlue` 收
+/// `"yellow_green_blue"`，也收去掉分隔符的 `"yellowgreenblue"` 与 ColorBrewer 缩写）。它不
+/// derive `Deserialize`，也就没有 `rename_all` 可言 —— 改 `parse` 的收录面时，对照着这里的
+/// 变体名逐一核对。
+///
+/// The JSON names are decided by the normalizing match in `parse` below (snake_case:
+/// `YellowGreenBlue` accepts `"yellow_green_blue"`, the separator-free `"yellowgreenblue"`, and
+/// the ColorBrewer abbreviations). It does not derive `Deserialize`, so there is no `rename_all`
+/// to speak of — when the set accepted by `parse` changes, check it against the variant names here.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) enum ColorMapKind {
     // 顺序型（感知均匀）
     Turbo,
@@ -439,6 +473,7 @@ impl ColorMapKind {
 // ============================================================================
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct AnnotationsSpec {
     #[serde(default)]
     pub reference_lines: Vec<ReferenceLineSpec>,
@@ -450,6 +485,7 @@ pub(crate) struct AnnotationsSpec {
 
 /// 参考线。`orientation` 缺省按 `horizontal` 解释（`value` 落在 y 轴上）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ReferenceLineSpec {
     pub orientation: Option<OrientationKind>,
     /// 线的位置：水平线是 y 值，垂直线是 x 值。
@@ -461,6 +497,7 @@ pub(crate) struct ReferenceLineSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ShadedRegionSpec {
     pub orientation: Option<OrientationKind>,
     pub min: f64,
@@ -470,6 +507,7 @@ pub(crate) struct ShadedRegionSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TextAnnotationSpec {
     pub text: String,
     pub x: f64,
@@ -483,6 +521,7 @@ pub(crate) struct TextAnnotationSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum OrientationKind {
     Horizontal,

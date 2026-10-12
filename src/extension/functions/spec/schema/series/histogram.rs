@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 直方图：给 `values` 自动分箱（`bins` / `range` 可选），或给 `edges` + `counts` 直接喂分箱结果。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct HistogramSeries {
     #[serde(flatten)]
     pub common: CommonStyle,

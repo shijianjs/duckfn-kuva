@@ -6,7 +6,9 @@ use serde::Deserialize;
 
 use super::common::{CommonStyle, ErrSpec};
 
+/// 柱状图。两种写法：简单（`categories` + `values`）与分组 / 堆叠（`categories` + `series`）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BarSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -30,6 +32,7 @@ pub(crate) struct BarSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BarGroupSpec {
     pub name: String,
     pub values: Vec<f64>,

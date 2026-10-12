@@ -6,6 +6,7 @@ use super::scatter::MarkerSpec;
 
 /// 一个图例条目。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LegendEntrySpec {
     pub label: String,
     pub color: String,
@@ -17,6 +18,7 @@ pub(crate) struct LegendEntrySpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum LegendShapeSpec {
     Named(LegendShapeKind),
@@ -26,6 +28,7 @@ pub(crate) enum LegendShapeSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum LegendShapeKind {
     Rect,
@@ -33,7 +36,9 @@ pub(crate) enum LegendShapeKind {
     Circle,
 }
 
+/// 独立图例图：把一组图例条目单独画出来（适合拼进报告或幻灯片）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LegendPlotSpec {
     #[serde(default)]
     pub entries: Vec<LegendEntrySpec>,

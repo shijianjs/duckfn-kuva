@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// PR 图（precision-recall 曲线）：按分类阈值扫出的精确率-召回率曲线。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PrSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -18,6 +20,7 @@ pub(crate) struct PrSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PrGroupSpec {
     pub label: String,
     /// 原始预测：`(score, is_positive)`。给了它就由 kuva 扫阈值。
@@ -39,6 +42,7 @@ pub(crate) struct PrGroupSpec {
 
 /// 一条原始预测：`[score, is_positive]` 或 `{"score": …, "label": …}`。
 #[derive(Debug, Clone, Copy, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum PredictionSpec {
     Tuple((f64, bool)),

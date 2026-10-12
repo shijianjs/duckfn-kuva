@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// K 线图（蜡烛图）+ 可选的成交量副图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct CandlestickSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -30,6 +32,7 @@ pub(crate) struct CandlestickSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct CandleSpec {
     /// x 轴标签。
     pub label: String,

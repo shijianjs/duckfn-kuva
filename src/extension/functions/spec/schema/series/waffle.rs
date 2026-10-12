@@ -5,6 +5,7 @@ use serde::Deserialize;
 /// 填充顺序。变体名与 kuva 的 `FillOrder` 逐字一致（那里的 `Left` 表示「从左侧起步」，
 /// 两种方向都带 `Left` 后缀是 kuva 的命名，不是笔误），所以这里不做改名。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 #[allow(clippy::enum_variant_names)]
 pub(crate) enum FillOrderKind {
@@ -20,13 +21,16 @@ pub(crate) enum FillOrderKind {
 
 /// 格子形状。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum CellShapeKind {
     Square,
     Circle,
 }
 
+/// 华夫图：把占比摊成固定数量的格子。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct WaffleSeries {
     /// 给了就画图例（当前用作图例的标题）。
     pub legend: Option<String>,
@@ -52,6 +56,7 @@ pub(crate) struct WaffleSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct WaffleCategorySpec {
     pub label: String,
     pub value: f64,

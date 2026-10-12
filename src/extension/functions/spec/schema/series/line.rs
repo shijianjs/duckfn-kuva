@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::{BandSpec, CommonStyle, PointSpec};
 
+/// 折线图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LineSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -21,6 +23,7 @@ pub(crate) struct LineSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum LineStyleSpec {
     Named(LineStyleKind),
@@ -28,6 +31,7 @@ pub(crate) enum LineStyleSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum LineStyleKind {
     Solid,

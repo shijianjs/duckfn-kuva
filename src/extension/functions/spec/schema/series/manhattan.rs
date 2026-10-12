@@ -12,6 +12,7 @@ use super::volcano::VolcanoLabelSpec;
 
 /// 参考基因组版本（决定每条染色体的长度，用来算累积坐标）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum GenomeBuildKind {
     Hg19,
@@ -19,7 +20,9 @@ pub(crate) enum GenomeBuildKind {
     T2T,
 }
 
+/// 曼哈顿图：按染色体排布的基因组关联结果。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ManhattanSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -44,6 +47,7 @@ pub(crate) struct ManhattanSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ManhattanPointSpec {
     /// 染色体名，`chr` 前缀可写可不写。
     pub chromosome: String,

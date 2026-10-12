@@ -36,6 +36,28 @@ name = "duckfn_kuva"
 path = "src/wasm_lib.rs"
 crate-type = ["staticlib"]
 
+[[bin]]
+# SDK 用的 JSON Schema 生成器（`just json_schema`）：把 `src/extension/functions/spec/schema/` 里的
+# 类型（唯一真相源）渲染成 `sdk/json_schema/*.schema.json`。**只有打开 `json-schema` feature 才编**，
+# 所以扩展产物（含 wasm）里不带 schemars。
+#
+# The JSON Schema generator for the SDK (`just json_schema`): it renders the types under
+# `src/extension/functions/spec/schema/` (the single source of truth) into
+# `sdk/json_schema/*.schema.json`. It is built **only with the `json-schema` feature**, so the extension
+# binary (and the wasm build) never carries schemars.
+name = "json_schema"
+path = "src/bin/json_schema.rs"
+required-features = ["json-schema"]
+
+[features]
+# 生成 SDK 用的 JSON Schema 时才打开：它给 schema 类型加上 `schemars::JsonSchema` 派生，并让
+# `src/bin/json_schema.rs` 可编。默认关掉 —— 扩展本体（含 wasm 产物）用不到它，不替它付编译成本。
+#
+# Only turned on to generate the SDK's JSON Schema: it adds the `schemars::JsonSchema` derive to the
+# schema types and makes `src/bin/json_schema.rs` buildable. Off by default — the extension itself
+# (wasm included) has no use for it and should not pay for it.
+json-schema = ["dep:schemars"]
+
 [dependencies]
 # duckfn：属性宏框架，把普通 Rust 函数变成 DuckDB 的标量 / 聚合 / 表函数等（见 src/extension/functions/）。
 # 只挑实际用到的那个 feature（`cli`）。本模板用到 duckfn 的这两项：
@@ -146,6 +168,16 @@ kuva = "0.5"
 # and wasm-safe, so they sit fine next to kuva's SVG backend.
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# schemars：把 Rust 类型（`spec/schema/`，含文档注释）渲染成 JSON Schema，供 SDK 侧生成类型化模型。
+# **可选**：只有 `json-schema` feature 打开时才编（见上面的 [features] 与 [[bin]]）—— 扩展本体用不到，
+# 不该替它付编译成本，wasm 产物也不该变大。
+#
+# schemars: renders the Rust types under `spec/schema/` (doc comments included) into JSON Schema for an
+# SDK to generate typed models from. **Optional**: compiled only with the `json-schema` feature (see
+# `[features]` and `[[bin]]` above) — the extension itself has no use for it, so it should not pay for
+# it, and the wasm artifact should not grow.
+schemars = { version = "1", optional = true }
 
 # 下面三个只服务 `kuva_render_file`（把渲染好的 SVG 落成文件、可选用浏览器打开），各管一段：
 #

@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 极坐标图：角度在圆周、半径在半径上。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PolarSpec {
     /// 显示图例。
     pub show_legend: Option<bool>,
@@ -31,6 +33,7 @@ pub(crate) struct PolarSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PolarSeriesSpec {
     /// 半径序列。
     pub r: Vec<f64>,
@@ -49,6 +52,7 @@ pub(crate) struct PolarSeriesSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum PolarModeKind {
     Scatter,

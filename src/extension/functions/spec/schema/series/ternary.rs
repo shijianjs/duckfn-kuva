@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 三元图（ternary）：三个分量之和为 1 的散点。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TernarySeries {
     /// 显示图例（图例文字取自各点的 `group`）。
     pub show_legend: Option<bool>,
@@ -27,6 +29,7 @@ pub(crate) struct TernarySeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TernaryPointSpec {
     /// 上角的分量。
     pub a: f64,

@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 树的方向。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TreeOrientationKind {
     Left,
@@ -14,6 +15,7 @@ pub(crate) enum TreeOrientationKind {
 
 /// 树枝的画法。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TreeBranchStyleKind {
     Rectangular,
@@ -26,6 +28,7 @@ pub(crate) enum TreeBranchStyleKind {
 /// 单独抽出来是为了复用 —— `phylo` 直接 flatten 它，`clustermap` 的 `row_tree` / `col_tree`
 /// 也是同一个东西：描述一棵树的小语言只有这一份。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TreeInputSpec {
     /// Newick 字符串，如 `"((A:0.1,B:0.2):0.3,C:0.4);"`。
     pub newick: Option<String>,
@@ -38,7 +41,9 @@ pub(crate) struct TreeInputSpec {
     pub linkage: Option<LinkageSpec>,
 }
 
+/// 系统发育树。树的输入（`newick` / `edges` / `dist` / `linkage` 四选一）平铺在本对象上。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PhyloSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -62,6 +67,7 @@ pub(crate) struct PhyloSeries {
 /// 两种写法都收：数组写法更紧凑，对象写法在 SQL 里更好构造（`[[1, '#f00']]` 这种混合数组
 /// DuckDB 会把两个元素统一成同一种类型，`int` 与 `string` 是合不到一起的）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum CladeColorSpec {
     Tuple((usize, String)),
@@ -82,6 +88,7 @@ impl CladeColorSpec {
 
 /// 一条枝：父节点名、子节点名、从父到子的枝长。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TreeEdgeSpec {
     pub parent: String,
     pub child: String,
@@ -90,6 +97,7 @@ pub(crate) struct TreeEdgeSpec {
 
 /// 距离矩阵：`dist` 必须是方阵，`dist[i][j]` 是第 i 与第 j 个标签的距离。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DistanceMatrixSpec {
     pub labels: Vec<String>,
     pub dist: Vec<Vec<f64>>,
@@ -97,6 +105,7 @@ pub(crate) struct DistanceMatrixSpec {
 
 /// linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LinkageSpec {
     pub labels: Vec<String>,
     pub linkage: Vec<[f64; 4]>,

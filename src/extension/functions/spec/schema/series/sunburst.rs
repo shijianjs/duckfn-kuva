@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::treemap::{TreeColorModeSpec, TreeNodeSpec};
 
+/// 旭日图（旭日 / 环形树图）。数据模型与 `treemap` 完全一样。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SunburstSeries {
     /// 色条图的标题。
     pub colorbar_label: Option<String>,

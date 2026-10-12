@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::{CommonStyle, ValuesGroup};
 
+/// 小提琴图：每个类别一条核密度曲线，宽度编码该处的密度。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ViolinSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -40,6 +42,7 @@ pub(crate) struct ViolinSeries {
 /// 对开小提琴的「另一半」：只有值。标签由 [`ViolinSeries::groups`] 按下标带过来，所以这里
 /// 不收 `label` —— 写了也会被忽略。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ViolinHalf {
     pub values: Vec<f64>,
 }

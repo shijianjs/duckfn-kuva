@@ -1,0 +1,15 @@
+{
+  "$id": "datasets.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Registry",
+  "description": "数据集注册表：数据集名 -> 行数组，`kuva_render` 的第二个参数。每行是一个「字段名 -> 值」的对象，字段值可以是标量，也可以是数组 / 对象（分组分布图型的一组观测值本身就是数组）。",
+  "type": "object",
+  "additionalProperties": {
+    "type": "array",
+    "items": {
+      "description": "一行数据：「字段名 -> 值」的对象；字段名就是 series `encode` 里出现的那些名字。",
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

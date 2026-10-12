@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 棒棒糖图（lollipop）：从基线到每个值画一根杆 + 一个点。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LollipopSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -35,6 +37,7 @@ pub(crate) struct LollipopSeries {
 /// 分类写法下 x 取该点**在 `points` 里的次序**（0 起），字符串本身成为点的标签 ——
 /// 与 kuva 自己的 CLI 一致（它的 `--x-col` 遇到字符串列时就是这么做的）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum LollipopXSpec {
     Number(f64),
@@ -42,6 +45,7 @@ pub(crate) enum LollipopXSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LollipopPointSpec {
     pub x: LollipopXSpec,
     pub y: f64,
@@ -51,6 +55,7 @@ pub(crate) struct LollipopPointSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LollipopDomainSpec {
     pub start: f64,
     pub end: f64,

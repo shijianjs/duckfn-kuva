@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 韦恩图：2~4 个集合的交叠区域。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct VennSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -35,6 +37,7 @@ pub(crate) struct VennSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct VennSetSpec {
     pub label: String,
     /// 集合大小（预计算写法）。
@@ -44,6 +47,7 @@ pub(crate) struct VennSetSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct VennOverlapSpec {
     /// 参与这个交集的集合名。
     pub sets: Vec<String>,

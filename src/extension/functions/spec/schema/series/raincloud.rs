@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::{CommonStyle, ValuesGroup};
 
+/// 雨云图（raincloud）：半小提琴 + 箱线 + 抖动散点三件套。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RaincloudSeries {
     #[serde(flatten)]
     pub common: CommonStyle,

@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 堆叠面积图：多个系列在同一批 x 上堆起来。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct StackedAreaSpec {
     /// 图例位置字符串（见 `convert::enums::legend_position`）。
     pub legend_position: Option<String>,
@@ -21,6 +23,7 @@ pub(crate) struct StackedAreaSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct AreaSeriesSpec {
     pub values: Vec<f64>,
     pub label: Option<String>,

@@ -5,7 +5,9 @@ use serde::Deserialize;
 use super::super::style::ColorMapSpec;
 use super::TreeInputSpec;
 
+/// 聚类热图（clustermap）：热图 + 行列的层次聚类树 + 注释色条。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ClustermapSeries {
     /// 色条图的标题。
     pub legend: Option<String>,
@@ -47,6 +49,7 @@ pub(crate) struct ClustermapSeries {
 
 /// 一条注释色条：每个元素一个格子，按矩阵的行列顺序。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct AnnotationTrackSpec {
     pub colors: Vec<String>,
     /// 色条右侧的标签。
@@ -56,6 +59,7 @@ pub(crate) struct AnnotationTrackSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum ClustermapNormKind {
     None,

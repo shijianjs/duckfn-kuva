@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 森林图（forest plot）：逐行的点估计 + 置信区间。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ForestSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -22,6 +24,7 @@ pub(crate) struct ForestSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ForestRowSpec {
     pub label: String,
     /// 点估计。

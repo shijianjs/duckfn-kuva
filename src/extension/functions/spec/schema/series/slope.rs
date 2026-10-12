@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::super::style::TickFormatSpec;
 
+/// 斜率图：两列数值之间的变化，每一行一个对象。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SlopeSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -38,6 +40,7 @@ pub(crate) struct SlopeSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SlopePointSpec {
     pub label: String,
     pub before: f64,

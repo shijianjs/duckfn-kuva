@@ -7,6 +7,7 @@ use super::super::style::TickFormatSpec;
 /// 节点排序方式：`"input"`（按 `column` 落位）/ `"crossing_reduction"` /
 /// `"neighbornet"`。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum SankeyNodeOrderKind {
     Input,
@@ -16,6 +17,7 @@ pub(crate) enum SankeyNodeOrderKind {
 
 /// 连边着色：`"source"`（取源节点色）/ `"gradient"` / `"per_link"`（用 `links[].color`）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum SankeyLinkColorKind {
     Source,
@@ -25,13 +27,16 @@ pub(crate) enum SankeyLinkColorKind {
 
 /// 节点着色：`"label"`（同一标签同色）/ `"left"`（按最左侧的来源节点着色）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum SankeyNodeColoringKind {
     Label,
     Left,
 }
 
+/// 桑基图：节点 + 带权重的流向。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SankeySeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -70,6 +75,7 @@ pub(crate) struct SankeySeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SankeyNodeSpec {
     pub label: String,
     pub color: Option<String>,
@@ -78,6 +84,7 @@ pub(crate) struct SankeyNodeSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SankeyLinkSpec {
     /// 源节点名。
     pub source: String,
@@ -88,6 +95,7 @@ pub(crate) struct SankeyLinkSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct AlluviumSpec {
     /// 从左到右依次经过的节点名。
     pub nodes: Vec<String>,

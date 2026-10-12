@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::ValuesGroup;
 
+/// 山脊图（ridgeline）：一组分布按纵向堆叠、彼此重叠。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RidgelineSeries {
     /// 每条山脊一组观测值；`color` 逐组生效（这个图型没有统一的 `color` 字段）。
     pub groups: Vec<ValuesGroup>,

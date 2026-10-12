@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 密度曲线图：核密度估计（或直接给一条预计算的曲线）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DensitySeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -34,6 +36,7 @@ pub(crate) struct DensitySeries {
 
 /// 一条曲线：x 与 y 等长。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct CurveSpec {
     pub x: Vec<f64>,
     pub y: Vec<f64>,

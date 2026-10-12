@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 火山图：x 是 log2 倍数变化，y 是 -log10(p 值)。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct VolcanoSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -30,6 +32,7 @@ pub(crate) struct VolcanoSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct VolcanoPointSpec {
     /// 基因/项目名，出现在标签上。
     pub name: String,
@@ -40,6 +43,7 @@ pub(crate) struct VolcanoPointSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum VolcanoLabelSpec {
     Named(VolcanoLabelKind),
@@ -51,6 +55,7 @@ pub(crate) enum VolcanoLabelSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum VolcanoLabelKind {
     Exact,

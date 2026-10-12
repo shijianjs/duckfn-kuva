@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 和弦图：N×N 的流矩阵画成环上的带子。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ChordSeries {
     /// 图例标题。
     pub legend: Option<String>,

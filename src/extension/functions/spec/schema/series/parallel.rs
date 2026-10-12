@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 平行坐标：每行一个观测、每列一根垂直轴。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ParallelSpec {
     /// 图例标题（分组名）。
     pub legend: Option<String>,
@@ -36,6 +38,7 @@ pub(crate) struct ParallelSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ParallelRowSpec {
     /// 与 `axis_names` 一一对应。
     pub values: Vec<f64>,

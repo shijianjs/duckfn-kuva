@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::super::style::ColorMapSpec;
 
+/// 点图（dot plot）：类别 × 类别的网格，点的大小与颜色各编码一个连续量。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DotPlotSeries {
     /// 这个图型没有统一的 `color` / `legend`：颜色由 `color_map` 连续编码，图例是尺寸图例 +
     /// 色条图，所以这里不平铺 [`super::common::CommonStyle`]。
@@ -38,6 +40,7 @@ pub(crate) struct DotPlotSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DotPointSpec {
     /// x 轴类别名。
     pub x: String,

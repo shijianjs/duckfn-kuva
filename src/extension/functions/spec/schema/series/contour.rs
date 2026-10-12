@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::super::style::ColorMapSpec;
 
+/// 等高线图：网格值 -> 等值线（或填色）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ContourSeries {
     /// 色条图的标题。
     pub legend: Option<String>,

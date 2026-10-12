@@ -17,7 +17,13 @@ mod convert;
 //
 // Parsing and binding of the second argument (the dataset registry): it fills each series' data
 // fields before deserialization (see the module docs).
-mod dataset;
+//
+// `dataset` 与 `schema` 是 `pub(crate)`：`src/bin/json_schema.rs` 要拿 `dataset::Registry`（第二个
+// 参数的形状）与 `schema::RenderSpec`（配置的形状）去生成 JSON Schema。
+//
+// `dataset` and `schema` are `pub(crate)` so `src/bin/json_schema.rs` can reach `dataset::Registry`
+// (the shape of the second argument) and `schema::RenderSpec` (the shape of the config).
+pub(crate) mod dataset;
 // 落盘那条路（`kuva_render_file`）整个是原生专用的：wasm 没有本地文件系统可写。在**模块声明处**一次
 // cfg 掉，`file.rs` 里就不必每个函数头顶挂一个 —— 平台差异集中在这两处声明（这里与 `functions/mod.rs`
 // 里的 `mod kuva_render_file;`）上。
@@ -28,7 +34,7 @@ mod dataset;
 // kuva_render_file;` in `functions/mod.rs`).
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) mod file;
-mod schema;
+pub(crate) mod schema;
 
 use std::io::Write;
 

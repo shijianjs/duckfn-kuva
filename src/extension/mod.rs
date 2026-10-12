@@ -1,9 +1,16 @@
 // 子模块只在 `extension/` 树下挂：src/lib.rs 与 src/wasm_lib.rs 都只写 `mod extension;`，
 // 新增模块时不要动那两个 crate root，改这里即可。
 //
+// 可见性写成 `pub(crate)`：`src/bin/json_schema.rs` 用 `#[path]` 把同一份源码再编一遍（与
+// `src/bin/duckfn.rs` 同一个路子），schema 类型得能从 bin 的 crate root 走到。
+//
 // Submodules hang off the `extension/` subtree only: both src/lib.rs and src/wasm_lib.rs just declare
 // `mod extension;`, so new modules are attached here instead of in the crate roots.
-mod functions;
+//
+// The visibility is `pub(crate)`: `src/bin/json_schema.rs` compiles these same sources a second time
+// via `#[path]` (the same trick `src/bin/duckfn.rs` uses), and the schema types have to be reachable
+// from that bin's crate root.
+pub(crate) mod functions;
 mod types;
 
 use duckfn::duckfn_entrypoint;

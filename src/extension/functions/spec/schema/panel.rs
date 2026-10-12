@@ -7,6 +7,7 @@ use super::style::*;
 
 /// 一次渲染的完整规格。单图的字段直接写在顶层；出现 `figure` 就切到多面板模式。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RenderSpec {
     /// 面板级配置（布局覆盖 + series）。
     #[serde(flatten)]
@@ -42,6 +43,7 @@ pub(crate) struct RenderSpec {
 /// `RenderSpec.file` either, see the note there).
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, Default, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FileSpec {
     /// 输出目录；缺省用系统临时目录。
     ///
@@ -67,6 +69,7 @@ pub(crate) struct FileSpec {
 
 /// 终端渲染的选项，见 [`RenderSpec::terminal`]。
 #[derive(Debug, Default, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TerminalSpec {
     /// 字符网格的列数（默认 100，和 kuva CLI 探测不到终端尺寸时的回退值一样）。
     pub cols: Option<usize>,
@@ -83,6 +86,7 @@ pub(crate) struct TerminalSpec {
 ///
 /// 单图模式用它当顶层；多面板模式用它当每个 panel。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PanelSpec {
     pub title: Option<TitleSpec>,
     pub x_axis: Option<AxisSpec>,
@@ -105,7 +109,9 @@ pub(crate) struct PanelSpec {
     /// 色条刻度标签的格式（热力图 / 二维直方图 / 六边形分箱图 / 等高线图）。
     /// 取值同 `x_axis.tick_format`。
     pub colorbar_tick_format: Option<super::style::TickFormatSpec>,
+    /// 画布宽度（像素，即 SVG 的宽）。
     pub width: Option<f64>,
+    /// 画布高度（像素，即 SVG 的高）。
     pub height: Option<f64>,
     /// 叠加到同一套坐标轴上的 series。
     #[serde(default)]
@@ -119,6 +125,7 @@ pub(crate) struct PanelSpec {
 
 /// 多面板网格（对应 kuva 的 `Figure`）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FigureSpec {
     pub rows: usize,
     pub cols: usize,
@@ -167,6 +174,7 @@ pub(crate) struct FigureSpec {
 
 /// 共享轴的「一段」。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FigureSliceSpec {
     /// 行号（`shared_y_slices`）或列号（`shared_x_slices`）。
     pub index: usize,
@@ -176,6 +184,7 @@ pub(crate) struct FigureSliceSpec {
 
 /// 面板标签：具名样式、自定义字符串数组，或带字体配置的完整写法。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum LabelsSpec {
     Named(LabelsKind),
@@ -184,6 +193,7 @@ pub(crate) enum LabelsSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LabelsFull {
     /// 逐个面板的标签文字。
     pub names: Vec<String>,
@@ -194,6 +204,7 @@ pub(crate) struct LabelsFull {
 }
 
 #[derive(Debug, Clone, Copy, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum LabelsKind {
     None,

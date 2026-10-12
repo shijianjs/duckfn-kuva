@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 节点形状。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum NodeShapeKind {
     Circle,
@@ -14,6 +15,7 @@ pub(crate) enum NodeShapeKind {
 
 /// 布局方式。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum NetworkLayoutKind {
     /// 力导向（默认）。
@@ -23,7 +25,9 @@ pub(crate) enum NetworkLayoutKind {
     Circle,
 }
 
+/// 网络图：节点 + 边，布局可选力导向 / Kamada-Kawai / 圆周。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct NetworkSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -47,6 +51,7 @@ pub(crate) struct NetworkSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct NetworkNodeSpec {
     pub label: String,
     pub color: Option<String>,
@@ -60,6 +65,7 @@ pub(crate) struct NetworkNodeSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct NetworkEdgeSpec {
     /// 源节点名。
     pub source: String,

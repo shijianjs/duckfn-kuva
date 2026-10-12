@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 交集的排序方式。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum UpSetSortKind {
     /// 按交集大小（默认）。
@@ -14,7 +15,9 @@ pub(crate) enum UpSetSortKind {
     Natural,
 }
 
+/// UpSet 图：集合交集的条形图 + 点矩阵。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct UpSetSeries {
     #[serde(default)]
     pub set_names: Vec<String>,
@@ -38,6 +41,7 @@ pub(crate) struct UpSetSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct UpSetIntersectionSpec {
     /// 位掩码：第 `i` 位为 1 表示包含 `set_names[i]`。
     pub mask: u64,

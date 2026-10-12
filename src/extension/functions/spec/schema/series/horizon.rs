@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// Horizon 图：多条时间序列叠成「分层」的带状图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct HorizonSeries {
     /// 显示图例。
     pub show_legend: Option<bool>,
@@ -24,6 +26,7 @@ pub(crate) struct HorizonSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct HorizonSeriesSpec {
     pub label: String,
     /// x 序列（通常是时间）。

@@ -10,6 +10,7 @@ use super::super::style::ColorMapSpec;
 /// 着色方式：`"by_parent"`（按父节点）/ `"explicit"`（用节点自己的 `color`）
 /// 或 `{"color_map": "viridis"}`（按叶子数值上色，并自动开色条）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum TreeColorModeSpec {
     Named(TreeColorModeKind),
@@ -17,6 +18,7 @@ pub(crate) enum TreeColorModeSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TreeColorModeKind {
     ByParent,
@@ -27,6 +29,7 @@ pub(crate) enum TreeColorModeKind {
 /// 树 / 森林的一个节点。有 `children` 就是内部节点（`value` 缺省时由子节点求和），
 /// 否则是叶子（`value` 必填）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TreeNodeSpec {
     pub label: String,
     /// 叶子的大小；内部节点不给就按子节点求和。
@@ -36,7 +39,9 @@ pub(crate) struct TreeNodeSpec {
     pub children: Vec<TreeNodeSpec>,
 }
 
+/// 矩形树图 / 旭日图：同一套「森林 + 叶子数值」模型，只是一个铺成矩形、一个铺成圆环。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct TreemapSeries {
     /// 色条图的标题。
     pub colorbar_label: Option<String>,
@@ -70,6 +75,7 @@ pub(crate) struct TreemapSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TreemapLayoutKind {
     Squarify,

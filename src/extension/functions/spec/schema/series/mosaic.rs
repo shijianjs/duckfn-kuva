@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 马赛克图（列 × 行的长表，宽度与高度正比于数值）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct MosaicSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -30,6 +32,7 @@ pub(crate) struct MosaicSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct MosaicCellSpec {
     /// 列名（x 轴）。
     pub col: String,

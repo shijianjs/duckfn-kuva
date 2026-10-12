@@ -6,7 +6,9 @@ use super::common::{Box3DSpec, PointSpec3};
 use super::scatter::MarkerSpec;
 use super::super::style::ColorMapSpec;
 
+/// 三维散点图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct Scatter3DSeries {
     #[serde(flatten)]
     pub common: Common3DStyle,
@@ -29,6 +31,7 @@ pub(crate) struct Scatter3DSeries {
 
 /// 3D 图共有的「主色 / 尺寸 / 图例」——两个 3D 图型都有这三个字段，但没有 tooltip。
 #[derive(Debug, Default, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct Common3DStyle {
     pub color: Option<String>,
     /// 统一的点半径（像素）。

@@ -5,7 +5,9 @@ use serde::Deserialize;
 use super::common::PointSpec;
 use super::super::style::ColorMapSpec;
 
+/// 二维直方图：把散点分到 `bins_x` × `bins_y` 的网格里。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct Histogram2DSeries {
     /// 原始散点，`[x, y]` 或 `{"x":…, "y":…}`。越界的点会被丢掉。
     pub data: Vec<PointSpec>,

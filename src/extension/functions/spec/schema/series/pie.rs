@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 饼图 / 环形图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PieSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -20,6 +22,7 @@ pub(crate) struct PieSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SliceSpec {
     pub label: String,
     pub value: f64,
@@ -28,6 +31,7 @@ pub(crate) struct SliceSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum PieLabelKind {
     Inside,

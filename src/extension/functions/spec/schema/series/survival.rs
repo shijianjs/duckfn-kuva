@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::CommonStyle;
 
+/// 生存曲线（Kaplan-Meier）：时间是数值、事件是布尔（`true` = 发生了事件）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SurvivalSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -25,6 +27,7 @@ pub(crate) struct SurvivalSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct SurvivalGroupSpec {
     pub label: String,
     /// 每个受试者的随访时间，长度须与 `events` 一致。

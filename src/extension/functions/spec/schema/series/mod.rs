@@ -150,6 +150,7 @@ pub(crate) use waffle::*;
 
 /// 一张图里叠加的 series。`type` 决定用哪个变体。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub(crate) enum SeriesSpec {
     Scatter(ScatterSeries),

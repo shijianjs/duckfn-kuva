@@ -5,7 +5,9 @@ use serde::Deserialize;
 use super::common::CommonStyle;
 use super::scatter::MarkerSpec;
 
+/// 散点带图（strip / beeswarm）：把每个观测值直接画成一个点。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct StripSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -24,6 +26,7 @@ pub(crate) struct StripSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct StripGroupSpec {
     pub label: String,
     pub values: Vec<f64>,
@@ -34,6 +37,7 @@ pub(crate) struct StripGroupSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum StripStyleSpec {
     Named(StripStyleKind),
@@ -42,6 +46,7 @@ pub(crate) enum StripStyleSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum StripStyleKind {
     Strip,
@@ -50,6 +55,7 @@ pub(crate) enum StripStyleKind {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct StripJitterSpec {
     #[serde(rename = "type")]
     pub kind: Option<StripStyleKind>,

@@ -6,6 +6,7 @@ use super::stacked_area::AreaSeriesSpec;
 
 /// 基线算法。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum StreamBaselineKind {
     /// wiggle（默认）：让主流尽量穿过中间。
@@ -18,6 +19,7 @@ pub(crate) enum StreamBaselineKind {
 
 /// 层序。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum StreamOrderKind {
     /// 由内到外（默认）。
@@ -28,7 +30,9 @@ pub(crate) enum StreamOrderKind {
     Original,
 }
 
+/// 河流图（streamgraph）：堆叠面积图 + 内部排序 + 流的内联标签。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct StreamgraphSpec {
     /// 图例标题。
     pub legend: Option<String>,

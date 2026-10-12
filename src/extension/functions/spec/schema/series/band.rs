@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 带状区间图：两条边界之间填色（置信带、误差范围、正常区间…）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct IntervalSpec {
     /// 图例文字。
     pub legend: Option<String>,

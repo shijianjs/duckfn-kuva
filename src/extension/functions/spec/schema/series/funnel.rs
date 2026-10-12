@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 各层怎么上色。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum FunnelColorModeKind {
     /// 同一个颜色（默认）。
@@ -16,6 +17,7 @@ pub(crate) enum FunnelColorModeKind {
 
 /// 漏斗朝向。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum FunnelOrientationKind {
     /// 竖着往下（默认）。
@@ -23,7 +25,9 @@ pub(crate) enum FunnelOrientationKind {
     Horizontal,
 }
 
+/// 漏斗图：一层层的转化率；`mirror` 给的是背靠背的发散版。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FunnelSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -51,6 +55,7 @@ pub(crate) struct FunnelSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FunnelStageSpec {
     pub label: String,
     pub value: f64,

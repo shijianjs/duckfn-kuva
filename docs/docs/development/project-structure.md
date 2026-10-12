@@ -11,6 +11,8 @@ src/lib.rs             native crate root  ->  mod extension;
 src/wasm_lib.rs        wasm crate root    ->  mod extension;   (the same mods, mirrored)
 src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; mod types;
 src/bin/duckfn.rs      duckfn CLI entry   ->  #[path] mod extension; + duckfn::cli::run(...)
+src/bin/json_schema.rs JSON Schema generator ->  #[path] mod extension; + schemars
+                       (only built with the json-schema feature, see below)
 
 src/extension/functions/
     mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_file; mod spec;
@@ -29,6 +31,7 @@ src/extension/types/
 
 src/extension/functions/…   the registered functions
 test/sql/                   SQLLogicTest files
+sdk/json_schema/            the generated JSON Schema of kuva_render's two arguments
 scripts/rename.sh           rename the extension after cloning
 scripts/release.sh          version bump, tag, development version
 Justfile                    the everyday commands
@@ -44,13 +47,14 @@ forwards it a second time from the wasm root, which breaks as soon as modules ne
 (`error[E0583]: file not found for module …`): there would be two copies of the same path set to keep
 in sync.
 
-Three entry points compile the same module tree — the two crate roots and the CLI:
+Four entry points compile the same module tree — the two crate roots and the two bins:
 
 ```mermaid
 flowchart LR
     native["src/lib.rs<br/>native crate root"] --> tree["src/extension/mod.rs<br/>entry point and module tree"]
     wasm["src/wasm_lib.rs<br/>wasm crate root"] --> tree
     cli["src/bin/duckfn.rs<br/>CLI entry"] --> tree
+    schema["src/bin/json_schema.rs<br/>schema generator"] --> tree
     tree --> functions["functions/<br/>registered functions"]
     tree --> types["types/<br/>SQL-facing types"]
 ```
@@ -68,6 +72,31 @@ The `#[path]` attribute is not a shortcut, it is necessary: the documentation me
 `#[duck_*]` is collected by `inventory`'s static constructors, which only fire for object files that
 are really linked into the final binary. With `use duckfn_kuva::…` the linker may drop those modules
 and the exported CSV comes out empty — silently.
+
+## The JSON Schema bin
+
+`src/bin/json_schema.rs` (`just json_schema`) renders the two arguments of `kuva_render(json,
+data_json)` into `sdk/json_schema/`:
+
+| File | Shape of | Source of truth |
+| --- | --- | --- |
+| `render.schema.json` | the first argument (chart config) | `spec/schema/`, root type `RenderSpec` |
+| `datasets.schema.json` | the second argument (dataset registry) | `spec/dataset.rs`, type `Registry` |
+
+[schemars](https://crates.io/crates/schemars) reads the Rust types directly, and the `///` doc comments
+become `description`s in the schema — there is no second, hand-maintained field table and no
+AI-written prose. Change a type (or a comment), re-run the command, commit the diff. The files are
+**generated artifacts**: never edit them by hand, and `git diff -- sdk/` should be empty right after a
+run.
+
+The `#[path]` trick is used here for a different reason than in the CLI bin: the schema types are all
+`pub(crate)`, so an rlib consumer cannot reach them at all.
+
+schemars is an **optional dependency** behind the `json-schema` feature (see `Cargo.toml`), and the bin
+carries `required-features = ["json-schema"]`. A plain `cargo build` — and the wasm artifact —
+therefore never compiles it, which keeps the extension free of a dependency only its tooling needs.
+The same mechanism adds `#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]` to every
+type under `spec/schema/`, so the extension sources carry no schemars code when the feature is off.
 
 ## One chart type per file
 
@@ -96,6 +125,9 @@ shape the build:
   pull in fontdue, png, krilla, arrow and the like (and `pdf` needs Rust ≥ 1.92); none is enabled.
 - **[quick-xml](https://crates.io/crates/quick-xml)** — a **dev-dependency only**, used by the unit tests
   to prove the rendered SVG is well-formed XML. It never lands in the extension binary.
+- **[schemars](https://crates.io/crates/schemars)** — **optional** (the `json-schema` feature): renders
+  the `spec/schema/` types into the JSON Schema under `sdk/json_schema/`. It is compiled for
+  `src/bin/json_schema.rs` only; the extension itself and the wasm artifact never see it.
 
 [serde](https://crates.io/crates/serde) / [serde_json](https://crates.io/crates/serde_json) are the
 foundation of the JSON entry point: a spec is deserialized into typed structs rather than read key by

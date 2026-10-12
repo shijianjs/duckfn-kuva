@@ -11,6 +11,8 @@ src/lib.rs             原生 crate root  ->  mod extension;
 src/wasm_lib.rs        wasm crate root  ->  mod extension;   （同一组 mod，镜像）
 src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; mod types;
 src/bin/duckfn.rs      duckfn CLI 入口  ->  #[path] mod extension; + duckfn::cli::run(...)
+src/bin/json_schema.rs JSON Schema 生成器 ->  #[path] mod extension; + schemars
+                       （只有打开 json-schema feature 才编，见下）
 
 src/extension/functions/
     mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_file; mod spec;
@@ -28,6 +30,7 @@ src/extension/types/
     mod.rs             空的槽：面向 SQL 的类型放这一层（目前为空）
 
 test/sql/                   SQLLogicTest 用例
+sdk/json_schema/            生成出来的 JSON Schema：kuva_render 两个参数的形状
 scripts/rename.sh           克隆后改扩展名
 scripts/release.sh          提版本号、打 tag、切开发版本
 Justfile                    日常命令
@@ -41,13 +44,14 @@ community-extension/        社区扩展注册草稿
 往下挂。官方 Rust 模板的写法是 `mod lib;` 再由 wasm 那个 root 转发一次，模块一嵌套就会
 `error[E0583]: file not found for module …`：那等于同一组路径存了两份、要一直保持同步。
 
-三个入口都编同一棵模块树 —— 两个 crate root 与那个 CLI：
+四个入口都编同一棵模块树 —— 两个 crate root 与两个 bin：
 
 ```mermaid
 flowchart LR
     native["src/lib.rs<br/>原生 crate root"] --> tree["src/extension/mod.rs<br/>入口点与模块树"]
     wasm["src/wasm_lib.rs<br/>wasm crate root"] --> tree
     cli["src/bin/duckfn.rs<br/>CLI 入口"] --> tree
+    schema["src/bin/json_schema.rs<br/>schema 生成器"] --> tree
     tree --> functions["functions/<br/>注册进 DuckDB 的函数"]
     tree --> types["types/<br/>面向 SQL 的类型"]
 ```
@@ -62,6 +66,28 @@ flowchart LR
 那里的 `#[path]` 不是省事的写法，而是必需的：`#[duck_*]` 的文档元数据靠 `inventory` 的静态构造器收集，
 只有**真正被链接进最终二进制**的目标文件才会生效。写成 `use duckfn_kuva::…` 时，链接器可能把这些模块
 整块丢掉，导出的 CSV 就会静默变空。
+
+## JSON Schema 生成器
+
+`src/bin/json_schema.rs`（`just json_schema`）把 `kuva_render(json, data_json)` 的两个参数渲染成
+`sdk/json_schema/` 下的两个文件：
+
+| 文件 | 描述的形状 | 真相源 |
+| --- | --- | --- |
+| `render.schema.json` | 第一个参数（图表配置） | `spec/schema/`，根类型 `RenderSpec` |
+| `datasets.schema.json` | 第二个参数（数据集注册表） | `spec/dataset.rs`，类型 `Registry` |
+
+[schemars](https://crates.io/crates/schemars) 直接读 Rust 的类型定义，`///` 文档注释自动变成 schema
+里的 `description` —— 没有第二份手工维护的字段表，也没有 AI 现编的说明。改了类型（或改了注释），
+重跑一遍命令、把 diff 一起提交。这两个文件是**产物**：不手改，刚跑完命令时 `git diff -- sdk/` 应为空。
+
+这里的 `#[path]` 与 CLI bin 那边原因不同：schema 类型全是 `pub(crate)`，rlib 之外根本摸不到。
+
+schemars 是挂在 `json-schema` feature 上的**可选依赖**（见 `Cargo.toml`），bin 上也带了
+`required-features = ["json-schema"]`。所以默认的 `cargo build` —— 以及 wasm 产物 —— 连编都不会编它，
+扩展本体不为一个只有工具链需要的依赖付成本。同一个机制还给 `spec/schema/` 下的每个类型加上
+`#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]`：feature 关着时，扩展源码里
+一行 schemars 代码都没有。
 
 ## 每种图型一个文件
 
@@ -87,6 +113,9 @@ flowchart LR
   Rust ≥ 1.92）；一个都没开。
 - **[quick-xml](https://crates.io/crates/quick-xml)** —— **只作 dev-dependency**，单测用它确认渲染出的
   SVG 是合法 XML。它不会进扩展二进制。
+- **[schemars](https://crates.io/crates/schemars)** —— **可选依赖**（`json-schema` feature）：把
+  `spec/schema/` 里的类型渲染成 `sdk/json_schema/` 下的 JSON Schema。只有 `src/bin/json_schema.rs`
+  编它；扩展本体与 wasm 产物完全看不到它。
 
 [serde](https://crates.io/crates/serde) / [serde_json](https://crates.io/crates/serde_json) 是 JSON 入口的
 地基：规格是被反序列化成有类型的 struct，而不是从 Map 里逐键读。

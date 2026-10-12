@@ -65,3 +65,12 @@ test: ci-build
     cargo test --lib
     make test
     git clean -fdX -- test/sql
+
+# 改了 `spec/schema/` 或 `spec/dataset.rs` 里的类型（或文档注释）就跑一遍，把 diff 一起提交 ——
+# 那两个文件是**产物**，不手改。真相源是那两个目录里的 Rust 类型，生成器是
+# `src/bin/json_schema.rs`（schemars，`///` 文档注释自动变成 schema 里的 description）。
+# schemars 是可选依赖（`json-schema` feature，见 Cargo.toml），只有这个 bin 编它，
+# 扩展本体与 wasm 产物不带；想确认手里的产物没过期，跑完 `git diff -- sdk/` 应为空。
+# 重新生成 `sdk/json_schema/` 下的 JSON Schema（`render.schema.json` / `datasets.schema.json`）。
+json_schema:
+    cargo run --bin json_schema --features json-schema

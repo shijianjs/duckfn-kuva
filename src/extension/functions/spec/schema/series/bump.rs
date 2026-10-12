@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 曲线的形状。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum CurveStyleKind {
     /// S 形（默认）。
@@ -14,6 +15,7 @@ pub(crate) enum CurveStyleKind {
 
 /// 名次并列时怎么决出名次（取平均 / 取最小 / 取最大 / 按出现顺序稳定取）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum BumpTieBreakKind {
     Average,
@@ -22,7 +24,9 @@ pub(crate) enum BumpTieBreakKind {
     Stable,
 }
 
+/// 凹凸图（bump chart）：名次随时间变化的折线。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BumpSpec {
     /// 显示图例。
     pub legend: Option<bool>,
@@ -50,6 +54,7 @@ pub(crate) struct BumpSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BumpSpecItem {
     pub name: String,
     /// 已知的名次（允许小数名次，如 2.5 表示并列第二）。

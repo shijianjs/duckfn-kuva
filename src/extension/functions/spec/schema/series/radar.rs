@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 雷达图（蜘蛛图）：多条闭合多边形共用一组辐射轴。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RadarSpec {
     /// 轴名，顺时针排列，**至少 3 个**。
     pub axes: Vec<String>,
@@ -46,6 +48,7 @@ pub(crate) struct RadarSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RadarSeriesSpec {
     /// 与 `axes` 一一对应。
     pub values: Vec<f64>,

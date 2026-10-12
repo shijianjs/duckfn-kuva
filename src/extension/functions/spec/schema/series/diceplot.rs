@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::super::style::ColorMapSpec;
 
+/// 骰子图（dice plot）：类别 × 类别的网格，每格画 n 个点（点 = 计数、颜色 = 另一个量）。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DicePlotSeries {
     /// 填充色图例的标题。
     pub fill_legend_label: Option<String>,
@@ -50,6 +52,7 @@ pub(crate) struct DicePlotSeries {
 
 /// 分类写法的一条记录。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DiceRecordSpec {
     pub x: String,
     pub y: String,
@@ -61,6 +64,7 @@ pub(crate) struct DiceRecordSpec {
 
 /// 逐点连续写法的一条记录。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DiceDotSpec {
     pub x: String,
     pub y: String,
@@ -73,6 +77,7 @@ pub(crate) struct DiceDotSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DicePointSpec {
     /// x 轴类别名。
     pub x: String,

@@ -6,6 +6,7 @@ use super::super::style::ColorMapSpec;
 
 /// 箭矢的锚点。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum QuiverPivotKind {
     /// 尾端（默认）。
@@ -14,7 +15,9 @@ pub(crate) enum QuiverPivotKind {
     Tip,
 }
 
+/// 向量场图（quiver）：在网格上画箭头，方向与长度编码 (u, v)。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct QuiverSpec {
     /// 图例文字。
     pub legend: Option<String>,
@@ -54,6 +57,7 @@ pub(crate) struct QuiverSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct QuiverArrowSpec {
     pub x: f64,
     pub y: f64,

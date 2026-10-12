@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 半径的编码方式。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum RoseEncodingKind {
     /// 扇形面积正比于数值（默认，视觉上更准确）。
@@ -14,6 +15,7 @@ pub(crate) enum RoseEncodingKind {
 
 /// 多系列怎么摆。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum RoseModeKind {
     /// 同一扇区里堆叠（默认）。
@@ -22,7 +24,9 @@ pub(crate) enum RoseModeKind {
     Grouped,
 }
 
+/// 南丁格尔玫瑰图（coxcomb）：极坐标下的柱状图，扇形面积（或半径）正比于数值。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RoseSpec {
     /// 图例标题。
     pub legend: Option<String>,
@@ -69,6 +73,7 @@ pub(crate) struct RoseSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RoseSliceSpec {
     pub label: String,
     pub value: f64,
@@ -76,6 +81,7 @@ pub(crate) struct RoseSliceSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RoseSeriesSpec {
     pub name: String,
     /// 与扇区一一对应，长度应与 `labels` 一致。

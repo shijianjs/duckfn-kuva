@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 /// 画法。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum PyramidModeKind {
     /// 左右各自一组柱（默认）。
@@ -12,7 +13,9 @@ pub(crate) enum PyramidModeKind {
     Overlap,
 }
 
+/// 人口金字塔：左右两列数值背靠背。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PyramidSpec {
     /// 显示图例。
     pub show_legend: Option<bool>,
@@ -37,6 +40,7 @@ pub(crate) struct PyramidSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PyramidItemSpec {
     pub label: String,
     #[serde(default)]
@@ -47,6 +51,7 @@ pub(crate) struct PyramidItemSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct PyramidGroupSpec {
     /// 年龄组标签（0-4、5-9 …）。
     pub age: String,

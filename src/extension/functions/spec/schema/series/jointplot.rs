@@ -6,6 +6,7 @@ use super::scatter::MarkerSpec;
 
 /// 边缘面板的形态。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum MarginalTypeKind {
     /// 直方图（默认）。
@@ -14,7 +15,9 @@ pub(crate) enum MarginalTypeKind {
     Density,
 }
 
+/// 联合分布图（jointplot）：散点 + 顶部 / 右侧的边缘分布。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct JointSpec {
     /// 打开悬停提示。
     pub tooltips: Option<bool>,
@@ -46,6 +49,7 @@ pub(crate) struct JointSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct JointGroupSpec {
     pub x: Vec<f64>,
     /// 长度须与 `x` 一致。

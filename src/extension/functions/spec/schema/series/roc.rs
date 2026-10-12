@@ -5,7 +5,9 @@ use serde::Deserialize;
 use super::common::CommonStyle;
 use super::pr::PredictionSpec;
 
+/// ROC 图：按分类阈值扫出的真阳率-假阳率曲线。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RocSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -19,6 +21,7 @@ pub(crate) struct RocSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct RocGroupSpec {
     pub label: String,
     /// 原始预测：`(score, is_positive)`。给了它就由 kuva 扫阈值。

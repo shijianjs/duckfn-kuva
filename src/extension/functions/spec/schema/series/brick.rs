@@ -20,6 +20,7 @@ use std::collections::HashMap;
 
 /// 序列字符的配色方案。`custom` 给出「字符 -> 颜色」的映射。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum BrickTemplateSpec {
     Named(BrickTemplateKind),
@@ -27,6 +28,7 @@ pub(crate) enum BrickTemplateSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum BrickTemplateKind {
     /// A 绿 / C 蓝 / G 橙 / T 红。
@@ -37,13 +39,16 @@ pub(crate) enum BrickTemplateKind {
 
 /// 序列起点的对齐方式。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum BrickAnchorKind {
     Left,
     Right,
 }
 
+/// 砖墙图（brick plot）：一串字符画成一格格「砖」，常用于展示序列 motif。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct BrickSeries {
     /// 逐行的序列字符串，1 个字符 = 1 格。**给了 `strigars` 就不参与渲染**。
     #[serde(default)]

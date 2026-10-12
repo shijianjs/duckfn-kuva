@@ -6,6 +6,7 @@ use super::super::style::ColorMapSpec;
 
 /// 同一天出现多条记录时怎么合并。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum CalendarAggKind {
     /// 数条数（`value` 被忽略）。
@@ -17,13 +18,16 @@ pub(crate) enum CalendarAggKind {
 
 /// 一周从哪天开始。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum WeekStartKind {
     Monday,
     Sunday,
 }
 
+/// 日历热力图：一年 365（或 366）天，每天一格。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct CalendarSeries {
     /// 图例标题。
     pub legend_label: Option<String>,
@@ -65,6 +69,7 @@ pub(crate) struct CalendarSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct CalendarPointSpec {
     /// `"YYYY-MM-DD"`。
     pub date: String,
@@ -73,6 +78,7 @@ pub(crate) struct CalendarPointSpec {
 
 /// 一个展示区间。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct CalendarPeriodSpec {
     /// 区间左侧的标签。
     pub label: String,
@@ -83,6 +89,7 @@ pub(crate) struct CalendarPeriodSpec {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct DateRangeSpec {
     pub start: String,
     pub end: String,

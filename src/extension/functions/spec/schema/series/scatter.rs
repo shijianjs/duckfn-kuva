@@ -4,7 +4,9 @@ use serde::Deserialize;
 
 use super::common::{BandSpec, CommonStyle, PointSpec, TrendSpec};
 
+/// 散点图。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct ScatterSeries {
     #[serde(flatten)]
     pub common: CommonStyle,
@@ -26,6 +28,7 @@ pub(crate) struct ScatterSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum MarkerSpec {
     Circle,

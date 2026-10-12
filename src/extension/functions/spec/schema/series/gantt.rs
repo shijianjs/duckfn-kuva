@@ -2,7 +2,9 @@
 
 use serde::Deserialize;
 
+/// 甘特图：任务的时间条 + 里程碑 + 可选的分组表头。
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct GanttSeries {
     /// 图例标题。
     pub legend: Option<String>,
@@ -26,6 +28,7 @@ pub(crate) struct GanttSeries {
 }
 
 #[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct GanttTaskSpec {
     pub label: String,
     /// 开始时间（单位自定，kuva 只当数值用）。

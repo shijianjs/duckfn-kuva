@@ -31,6 +31,7 @@ src/extension/types/
 
 test/sql/                   SQLLogicTest 用例
 sdk/json_schema/            生成出来的 JSON Schema：kuva_render 两个参数的形状
+sdk/ts/                    由那两个 schema 生成的 TypeScript SDK 包
 scripts/rename.sh           克隆后改扩展名
 scripts/release.sh          提版本号、打 tag、切开发版本
 Justfile                    日常命令
@@ -98,20 +99,43 @@ json-schema-to-typescript 这类生成器则只读兄弟、被引用的属性全
 
 ## TypeScript SDK
 
-`sdk/ts/` 是两个参数的 TypeScript 类型，用
-[json-schema-to-typescript](https://www.npmjs.com/package/json-schema-to-typescript) 从上面那两个
-schema 生成（命令与选型理由见 `sdk/ts/README.md`）：
+`sdk/ts/` 是一个小 npm 包（`@shijianjs/duckfn-kuva`，**纯类型包、无运行时代码**），用
+[json-schema-to-typescript](https://www.npmjs.com/package/json-schema-to-typescript) 把上面那两个
+schema 转成 TypeScript：
+
+```text
+sdk/ts/
+  package.json / package-lock.json   生成器、TypeScript 与 vitest 的版本钉在这里
+  tsconfig.json                      `npm run check`：src + test，严格模式，不产文件
+  tsconfig.build.json                `npm run build`：只编 src，向 dist/ 产 .d.ts
+  src/render.ts, src/datasets.ts     产物（根类型 RenderSpec / Registry）
+  src/index.ts                       唯一手写的源文件：再导出上面两个
+  test/types.test-d.ts               vitest 类型测试（判别联合收窄、字段形状、@ts-expect-error）
+  test/schema.test.ts                vitest 运行时测试：盯 schema 文件本身的结构
+```
 
 ```shell
-npx -y json-schema-to-typescript@15 sdk/json_schema/render.schema.json   -o sdk/ts/render.ts
-npx -y json-schema-to-typescript@15 sdk/json_schema/datasets.schema.json -o sdk/ts/datasets.ts
+just ts_sdk        # = cd sdk/ts && npm install && npm run gen
+cd sdk/ts && npm test   # vitest run --typecheck
 ```
+
+纯类型包没有运行时代码可测，所以 vitest 两种模式一起用：`*.test-d.ts` 走 `--typecheck`（tsc
+驱动，断言生成出来的类型；「该报错的确实报错」用 `@ts-expect-error` 钉住，哪条指令变成 unused
+vitest 就报失败），`*.test.ts` 走普通运行时，盯 schema 文件本身（所有 `$ref` 都解析、每个
+`SeriesSpec` 变体都是裸 `$ref` 且被引用的 `$def` 里有必填的 const `type` 标签 —— 判别联合依赖的
+就是这个归一化形状）。
 
 先试过 quicktype，否了：它的 JSON Schema 模式**不把 `oneOf` 生成为判别联合** —— 64 个 series 变体
 被合并成一个大接口、所有字段可选，`{type: "scatter"}` 缺 `data` 都编译得过。这是工具的问题不是
 schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAPI 风格 `discriminator`，三种写法
 都一样合并）。json-schema-to-typescript 保留 `oneOf` 为联合类型，配合上面的归一化，
-`switch (s.type)` 就能收窄到对应变体。两个文件和 schema 一样是产物：重新生成，不手改。
+`switch (s.type)` 就能收窄到对应变体。
+
+生成文件和 schema 一样是产物：重新生成，不手改；CI 的 `sdk-artifacts-fresh` job 按提交进去的锁文件
+把两层都重生成一遍再比对，看守整个 `sdk/`。以后发 npm 就是在 `sdk/ts/` 里
+`npm publish --access public`；那里的版本号跟 `Cargo.toml` 手工对齐（`just release_bump` 不碰它
+—— 开发中的 `-dev.N` 号里不含上一个正式版本号的字样，它的 grep 找不到）。细节见
+`sdk/ts/README.md`。
 
 ## 每种图型一个文件
 

@@ -1,0 +1,20 @@
+{
+  // 检查用配置：`npm run check`。src 与 test 都过一遍严格类型检查，不产文件。
+  //
+  // Check configuration behind `npm run check`: both src and test go through strict type checking,
+  // nothing is emitted.
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "test"]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "@shijianjs/duckfn-kuva",
+  "version": "0.1.1-dev.0",
+  "description": "TypeScript types for kuva_render — the DuckDB extension that renders charts from SQL",
+  "keywords": [
+    "duckdb",
+    "duckdb-extension",
+    "chart",
+    "plot",
+    "visualization",
+    "typescript",
+    "types"
+  ],
+  "license": "MIT",
+  "author": "shijianjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shijianjs/duckfn-kuva.git",
+    "directory": "sdk/ts"
+  },
+  "bugs": "https://github.com/shijianjs/duckfn-kuva/issues",
+  "homepage": "https://github.com/shijianjs/duckfn-kuva#readme",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts"
+    },
+    "./render": {
+      "types": "./dist/render.d.ts"
+    },
+    "./datasets": {
+      "types": "./dist/datasets.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "gen": "json2ts -i ../json_schema/render.schema.json -o src/render.ts && json2ts -i ../json_schema/datasets.schema.json -o src/datasets.ts",
+    "check": "tsc --noEmit",
+    "test": "vitest run --typecheck",
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run check && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "json-schema-to-typescript": "15.0.4",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.4"
+  }
+}

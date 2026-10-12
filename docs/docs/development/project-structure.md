@@ -32,6 +32,7 @@ src/extension/types/
 src/extension/functions/…   the registered functions
 test/sql/                   SQLLogicTest files
 sdk/json_schema/            the generated JSON Schema of kuva_render's two arguments
+sdk/ts/                     the TypeScript SDK package, generated from those schemas
 scripts/rename.sh           rename the extension after cloning
 scripts/release.sh          version bump, tag, development version
 Justfile                    the everyday commands
@@ -109,22 +110,45 @@ every draft and every generator is happy, and validation under 2020-12 is unchan
 
 ## The TypeScript SDK
 
-`sdk/ts/` holds the TypeScript types of both arguments, generated from the two schemas with
-[json-schema-to-typescript](https://www.npmjs.com/package/json-schema-to-typescript) (commands and
-rationale in `sdk/ts/README.md`):
+`sdk/ts/` is a small npm package (`@shijianjs/duckfn-kuva`, types only — no runtime code) that turns
+the two schemas into TypeScript with
+[json-schema-to-typescript](https://www.npmjs.com/package/json-schema-to-typescript):
+
+```text
+sdk/ts/
+  package.json / package-lock.json   the generator, TypeScript and vitest versions are pinned here
+  tsconfig.json                      `npm run check`: src + test, strict, no emit
+  tsconfig.build.json                `npm run build`: src only, .d.ts into dist/
+  src/render.ts, src/datasets.ts     generated artifacts (root types RenderSpec / Registry)
+  src/index.ts                       the only hand-written source: re-exports both
+  test/types.test-d.ts               vitest type tests (narrowing, shapes, @ts-expect-error)
+  test/schema.test.ts                vitest runtime tests over the schema file itself
+```
 
 ```shell
-npx -y json-schema-to-typescript@15 sdk/json_schema/render.schema.json   -o sdk/ts/render.ts
-npx -y json-schema-to-typescript@15 sdk/json_schema/datasets.schema.json -o sdk/ts/datasets.ts
+just ts_sdk        # = cd sdk/ts && npm install && npm run gen
+cd sdk/ts && npm test   # vitest run --typecheck
 ```
+
+A types-only package has no runtime code to test, so vitest runs in two modes at once: `*.test-d.ts`
+under `--typecheck` (tsc-driven, asserting the generated types — the "must fail" cases are pinned
+with `@ts-expect-error`, which vitest reports as a failure the moment a directive becomes unused),
+and `*.test.ts` as ordinary runtime tests over the schema file itself (every `$ref` resolves, every
+`SeriesSpec` variant is a bare `$ref` to a def that declares a required const `type` tag — the
+normalized shape the discriminated union depends on).
 
 quicktype was tried first and rejected: its JSON Schema mode never turns `oneOf` into a discriminated
 union — all 64 series variants collapse into one interface with every field optional, so a
 `{type: "scatter"}` without `data` passes the compiler. That is a property of the tool, not of the
 schema (verified with minimal cases: pure `$ref` members, inline `const`, OpenAPI-style
 `discriminator` — all merged). json-schema-to-typescript keeps `oneOf` as a union, and together with
-the normalization above `switch (s.type)` narrows to the right variant. Both files are artifacts like
-the schemas: regenerate, never hand-edit.
+the normalization above `switch (s.type)` narrows to the right variant.
+
+The generated files are artifacts like the schemas — regenerate, never hand-edit — and the
+`sdk-artifacts-fresh` CI job guards all of `sdk/` by regenerating both layers from the committed
+lockfile. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
+there tracks `Cargo.toml` by hand (`just release_bump` does not touch it, since a `-dev.N` version
+never contains the previous release's number for its grep to find). Details in `sdk/ts/README.md`.
 
 ## One chart type per file
 

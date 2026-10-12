@@ -1,0 +1,17 @@
+{
+  // 构建用配置：`npm run build`（prepublishOnly 会调）。只编 src，向 dist/ 产 .d.ts ——
+  // 这个包是纯类型包，没有任何运行时代码，所以 declarationOnly。
+  //
+  // Build configuration behind `npm run build` (called by prepublishOnly): src only, emitting
+  // .d.ts into dist/ — this package is types only and carries no runtime code, hence
+  // declarationOnly.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

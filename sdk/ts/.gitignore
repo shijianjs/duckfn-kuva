@@ -1,0 +1,8 @@
+# Dependencies
+/node_modules
+
+# Build output (`npm run build`)：发布的是这里面的 .d.ts，但不入库。
+# Build output (`npm run build`): the .d.ts that gets published, never committed.
+/dist
+
+npm-debug.log*

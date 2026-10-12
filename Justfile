@@ -74,3 +74,11 @@ test: ci-build
 # 重新生成 `sdk/json_schema/` 下的 JSON Schema（`render.schema.json` / `datasets.schema.json`）。
 json_schema:
     cargo run --bin json_schema --features json-schema
+
+# 重新生成 `sdk/ts/` 下的 TypeScript 类型（schema 改了之后跑它）。实际命令在
+# `sdk/ts/package.json` 的 `gen` script 里，生成器版本由 `sdk/ts/package-lock.json` 钉住；
+# 连 schema 一起更新就是 `just json_schema && just ts_sdk`。
+#
+# 前置：Node.js + npm（docs/ 的文档站本来就要，不是新增依赖）。
+ts_sdk:
+    cd sdk/ts && npm install && npm run gen

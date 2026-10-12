@@ -38,28 +38,39 @@ jobs:
       extension_name: duckfn_kuva
       extra_toolchains: rust;python3
 
-  # `sdk/json_schema/` 里的两个 schema 是**产物**：改了 `spec/schema/` 或 `spec/dataset.rs` 里的类型
-  # （或它们的文档注释）就必须重跑 `just json_schema` 并把 diff 一起提交。这个 job 就是那道把关：
-  # 重新生成一遍，`git diff` 非空即失败 —— 否则提交进去的 schema 会慢慢和源码对不上，而它本应是
+  # `sdk/` 下的四个文件都是**产物**：改了 `spec/schema/` 或 `spec/dataset.rs` 里的类型（或它们的
+  # 文档注释）就必须重跑 `just json_schema` + `just ts_sdk` 并把 diff 一起提交。这个 job 就是那道
+  # 把关：重新生成一遍，`git diff` 非空即失败 —— 否则提交进去的产物会慢慢和源码对不上，而它本应是
   # 「唯一真相源」的投影。
   #
-  # `sdk/json_schema/` holds **generated artifacts**: after touching a type under `spec/schema/` or
-  # `spec/dataset.rs` (or their doc comments) one must re-run `just json_schema` and commit the diff.
-  # This job is that guard: regenerate and fail on any `git diff` — otherwise the committed schema
-  # slowly drifts from the sources it is supposed to be a projection of.
-  json-schema-fresh:
-    name: JSON Schema is up to date
+  # The four files under `sdk/` are **generated artifacts**: after touching a type under
+  # `spec/schema/` or `spec/dataset.rs` (or their doc comments) one must re-run `just json_schema`
+  # plus `just ts_sdk` and commit the diff. This job is that guard: regenerate and fail on any
+  # `git diff` — otherwise the committed artifacts slowly drift from the sources they are supposed
+  # to be a projection of.
+  sdk-artifacts-fresh:
+    name: SDK artifacts are up to date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      # ubuntu-latest 自带 Rust 工具链；生成器只依赖 schemars（可选 feature），不碰 DuckDB。
+      # ubuntu-latest 自带 Rust 与 Node；schema 生成器只依赖 schemars（可选 feature），
+      # TS 生成器由 sdk/ts/package-lock.json 钉版本，`npm ci` 严格按锁文件装。
       #
-      # ubuntu-latest ships a Rust toolchain; the generator only needs schemars (the optional
-      # feature) and never touches DuckDB.
+      # ubuntu-latest ships Rust and Node; the schema generator only needs schemars (the optional
+      # feature), and the TypeScript generator is pinned by sdk/ts/package-lock.json, installed
+      # strictly from the lockfile with `npm ci`.
       - name: Regenerate the JSON Schema
         run: cargo run --bin json_schema --features json-schema
+
+      - name: Regenerate the TypeScript SDK
+        run: |
+          set -euo pipefail
+          cd sdk/ts
+          npm ci
+          npm run gen
+          npm test
 
       # 只盯 sdk/：源码那边自己有 diff 是正常的，产物这边不允许「忘了重新生成」。
       #
@@ -68,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           if ! git diff --exit-code -- sdk/; then
-            echo "::error::sdk/json_schema/ is stale — run 'just json_schema' and commit the result"
+            echo "::error::sdk/ is stale — run 'just json_schema' and 'just ts_sdk', then commit the result"
             exit 1
           fi
 

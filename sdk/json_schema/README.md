@@ -30,6 +30,10 @@ just json_schema
 （`$ref` 全是本文件内的 `#/$defs/…`）。schema 只覆盖**形状**（类型、必填、枚举名）；
 长度一致、数值范围这类校验在 Rust 的 `convert` 层做，schema 不重复那份真相。
 
+当前的宿主 SDK：[`../ts/`](../ts/)（json-schema-to-typescript）与
+[`../java/`](../java/)（先经 `tools/openapi.mjs` 包成 OpenAPI 3.1 补 `discriminator`，再交给
+openapi-generator）。
+
 已知边界，都不是 bug：
 
 - `dataset` / `encode` 两个键不出现在 schema 里 —— 它们在反序列化**之前**就被

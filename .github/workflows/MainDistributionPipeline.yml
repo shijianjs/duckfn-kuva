@@ -75,6 +75,17 @@ jobs:
       # 只盯 sdk/：源码那边自己有 diff 是正常的，产物这边不允许「忘了重新生成」。
       #
       # Only sdk/ is watched: diffs in the sources are normal, a stale artifact is not.
+      # Java 的产物落在 sdk/java/target（gitignore），不进上面的 diff；这一步只是编译 + 跑测试，
+      # 确认生成链路通。ubuntu runner 自带 JDK 与 Maven。
+      #
+      # The Java output lands in sdk/java/target (gitignored) and is not part of the diff below; this
+      # step just builds and tests it. The ubuntu runner ships JDK + Maven.
+      - name: Build and test the Java SDK
+        run: |
+          set -euo pipefail
+          cd sdk/java
+          mvn -B -q test
+
       - name: Check the artifacts are unchanged
         run: |
           set -euo pipefail

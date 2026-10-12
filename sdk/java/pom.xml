@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.shijianjs</groupId>
+  <artifactId>duckfn-kuva</artifactId>
+  <version>0.1.1-dev.0</version>
+  <packaging>jar</packaging>
+
+  <name>duckfn-kuva</name>
+  <description>Java model for kuva_render — build the chart spec (and dataset registry) as typed objects, serialize to JSON with Jackson, pass to the DuckDB extension</description>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <openapi-generator.version>7.26.0</openapi-generator.version>
+    <jackson.version>2.18.9</jackson.version>
+  </properties>
+
+  <dependencies>
+    <!--
+      Jackson (databind): openapi-generator 用 `library=native` 生成的模型是 Jackson 注解的 POJO，
+      宿主用它把 RenderSpec 序列化成 kuva_render 的第一个参数。此外没有别的运行时依赖。
+    -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <!-- openapi-generator 的 supporting files 用 javax.annotation.Generated（JDK 9+ 已移出 JDK）。 -->
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>1.3.2</version>
+    </dependency>
+    <!-- openapi-generator 给必填属性加 @javax.annotation.Nonnull（findbugs jsr305）。 -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.11.3</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!--
+        1) 先把 sdk/json_schema/ 下的两份 JSON Schema 包成一份 OpenAPI 3.1 文档（tools/openapi.mjs，
+           补 discriminator）。真相源仍是 json_schema，这只是容器转换。
+      -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>build-openapi</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>node</executable>
+              <workingDirectory>${project.basedir}</workingDirectory>
+              <arguments>
+                <argument>tools/openapi.mjs</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--
+        2) openapi-generator（generatorName=java, library=native）：从 OpenAPI 3.1 生成 Java 模型。
+           `library=native` 是 Jackson 系（默认 okhttp-gson 是 Gson）。`SeriesSpec` 那个 64 成员
+           `oneOf` 由 discriminator 分出 `@JsonDeserialize/@JsonSerialize` 分发（包装类语义），各变体是
+           独立的 Jackson POJO。
+      -->
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>${openapi-generator.version}</version>
+        <executions>
+          <execution>
+            <id>java-models</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.build.directory}/openapi.json</inputSpec>
+              <generatorName>java</generatorName>
+              <library>native</library>
+              <output>${project.build.directory}/generated-sources/openapi</output>
+              <invokerPackage>io.github.shijianjs.duckfnkuva</invokerPackage>
+              <modelPackage>io.github.shijianjs.duckfnkuva</modelPackage>
+              <apiPackage>io.github.shijianjs.duckfnkuva.api</apiPackage>
+              <generateModels>true</generateModels>
+              <generateModelTests>false</generateModelTests>
+              <generateModelDocumentation>false</generateModelDocumentation>
+              <generateApis>false</generateApis>
+              <generateApiTests>false</generateApiTests>
+              <generateApiDocumentation>false</generateApiDocumentation>
+              <generateSupportingFiles>true</generateSupportingFiles>
+              <configOptions>
+                <annotationLibrary>none</annotationLibrary>
+                <openApiNullable>false</openApiNullable>
+                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+              </configOptions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

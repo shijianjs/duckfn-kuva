@@ -33,6 +33,7 @@ src/extension/functions/…   the registered functions
 test/sql/                   SQLLogicTest files
 sdk/json_schema/            the generated JSON Schema of kuva_render's two arguments
 sdk/ts/                     the TypeScript SDK package, generated from those schemas
+sdk/java/                   the Java SDK, generated from those schemas via an OpenAPI 3.1 wrapper
 scripts/rename.sh           rename the extension after cloning
 scripts/release.sh          version bump, tag, development version
 Justfile                    the everyday commands
@@ -149,6 +150,23 @@ The generated files are artifacts like the schemas — regenerate, never hand-ed
 lockfile. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
 there tracks `Cargo.toml` by hand (`just release_bump` does not touch it, since a `-dev.N` version
 never contains the previous release's number for its grep to find). Details in `sdk/ts/README.md`.
+
+## The Java SDK
+
+`sdk/java/` turns the same two schemas into Jackson-annotated Java models with
+[openapi-generator](https://openapi-generator.tech). Raw JSON Schema has no `discriminator` keyword, so
+`tools/openapi.mjs` wraps the schemas into an OpenAPI 3.1 document (a superset of JSON Schema 2020-12)
+and adds the discriminator for the 64-variant `SeriesSpec` `oneOf`; it also hoists the inline array
+members of `anyOf`/`oneOf` into named `$ref`s, without which openapi-generator emits `List<Double>.class`
+(invalid Java). The generated sources land under `target/generated-sources/` and are **not** committed —
+the repo keeps the generator config (`pom.xml` + `tools/openapi.mjs`) and a small hand-written test.
+
+```shell
+just java_sdk              # = cd sdk/java && mvn -q generate-sources (regenerate only)
+cd sdk/java && mvn test    # generate + compile + test
+```
+
+Prerequisite: JDK 17+ and Maven. See `sdk/java/README.md`.
 
 ## One chart type per file
 

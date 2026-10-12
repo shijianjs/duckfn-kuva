@@ -82,3 +82,12 @@ json_schema:
 # 前置：Node.js + npm（docs/ 的文档站本来就要，不是新增依赖）。
 ts_sdk:
     cd sdk/ts && npm install && npm run gen
+
+# 重新生成 `sdk/java/` 下的 Java 模型（schema 改了之后跑它）。实际命令在 `sdk/java/pom.xml`：
+# exec 先跑 `tools/openapi.mjs` 把 `sdk/json_schema/` 包成一份 OpenAPI 3.1（补 discriminator），再用
+# openapi-generator（generatorName=java、library=native=Jackson）生成模型。连 schema 一起更新就是
+# `just json_schema && just java_sdk`。
+#
+# 前置：JDK 17+ 与 Maven（见 `sdk/java/README.md`）。
+java_sdk:
+    cd sdk/java && mvn -q generate-sources

@@ -32,6 +32,7 @@ src/extension/types/
 test/sql/                   SQLLogicTest 用例
 sdk/json_schema/            生成出来的 JSON Schema：kuva_render 两个参数的形状
 sdk/ts/                    由那两个 schema 生成的 TypeScript SDK 包
+sdk/java/                  由那两个 schema 生成的 Java SDK（先包一层 OpenAPI 3.1）
 scripts/rename.sh           克隆后改扩展名
 scripts/release.sh          提版本号、打 tag、切开发版本
 Justfile                    日常命令
@@ -136,6 +137,22 @@ schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAP
 `npm publish --access public`；那里的版本号跟 `Cargo.toml` 手工对齐（`just release_bump` 不碰它
 —— 开发中的 `-dev.N` 号里不含上一个正式版本号的字样，它的 grep 找不到）。细节见
 `sdk/ts/README.md`。
+
+## Java SDK
+
+`sdk/java/` 用 [openapi-generator](https://openapi-generator.tech) 把同样那两个 schema 生成带 Jackson
+注解的 Java 模型。raw JSON Schema 没有 `discriminator` 关键字，所以 `tools/openapi.mjs` 先把 schema
+包成一份 OpenAPI 3.1（JSON Schema 2020-12 的超集），再给 64 成员的 `SeriesSpec` `oneOf` 补上
+discriminator；它还把 `anyOf`/`oneOf` 里的内联数组成员提成具名 `$ref`，否则 openapi-generator 会生成
+`List<Double>.class`（非法 Java）。生成物落在 `target/generated-sources/` 下、**不入库** —— 入库的是
+生成它的配置（`pom.xml` + `tools/openapi.mjs`）与一个小测试。
+
+```shell
+just java_sdk              # = cd sdk/java && mvn -q generate-sources（只重生成）
+cd sdk/java && mvn test    # 生成 + 编译 + 测试
+```
+
+前置：JDK 17+ 与 Maven。见 `sdk/java/README.md`。
 
 ## 每种图型一个文件
 

@@ -18,7 +18,7 @@ SELECT kuva_render(to_json({
     'type': 'line',
     'color': 'steelblue',
     'stroke_width': 2,
-    'data': array_agg([time, value] ORDER BY time)
+    'data': array_agg({'x': time, 'y': value} ORDER BY time)
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
@@ -50,13 +50,13 @@ SELECT kuva_render(to_json({
   'legend': {'position': 'outside_right_top'},
   'series': [
     {'type': 'line', 'color': 'steelblue',  'stroke_width': 2, 'line_style': 'solid',
-     'legend': 'Solid',    'data': (SELECT array_agg([x, sin(x)] ORDER BY x) FROM t)},
+     'legend': 'Solid',    'data': (SELECT array_agg({'x': x, 'y': sin(x)} ORDER BY x) FROM t)},
     {'type': 'line', 'color': 'crimson',    'stroke_width': 2, 'line_style': 'dashed',
-     'legend': 'Dashed',   'data': (SELECT array_agg([x, cos(x)] ORDER BY x) FROM t)},
+     'legend': 'Dashed',   'data': (SELECT array_agg({'x': x, 'y': cos(x)} ORDER BY x) FROM t)},
     {'type': 'line', 'color': 'seagreen',   'stroke_width': 2, 'line_style': 'dotted',
-     'legend': 'Dotted',   'data': (SELECT array_agg([x, sin(x * 0.7)] ORDER BY x) FROM t)},
+     'legend': 'Dotted',   'data': (SELECT array_agg({'x': x, 'y': sin(x * 0.7)} ORDER BY x) FROM t)},
     {'type': 'line', 'color': 'darkorange', 'stroke_width': 2, 'line_style': 'dash_dot',
-     'legend': 'Dash-dot', 'data': (SELECT array_agg([x, cos(x * 0.7)] ORDER BY x) FROM t)}
+     'legend': 'Dash-dot', 'data': (SELECT array_agg({'x': x, 'y': cos(x * 0.7)} ORDER BY x) FROM t)}
   ]
 })) AS chart;
 ```
@@ -76,7 +76,7 @@ SELECT kuva_render(to_json({
     'stroke_width': 2,
     'fill': true,
     'fill_opacity': 0.3,
-    'data': array_agg([time, value] ORDER BY time)
+    'data': array_agg({'x': time, 'y': value} ORDER BY time)
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
@@ -100,7 +100,7 @@ SELECT kuva_render(to_json({
     'color': 'steelblue',
     'stroke_width': 2,
     'step': true,
-    'data': [[0, 2], [1, 5], [2, 3], [3, 7], [4, 4], [5, 8], [6, 5], [7, 9]]
+    'data': [{"x": 0, "y": 2}, {"x": 1, "y": 5}, {"x": 2, "y": 3}, {"x": 3, "y": 7}, {"x": 4, "y": 4}, {"x": 5, "y": 8}, {"x": 6, "y": 5}, {"x": 7, "y": 9}]
   }]
 })) AS chart;
 ```
@@ -120,7 +120,7 @@ SELECT kuva_render(to_json({
     'type': 'line',
     'color': 'steelblue',
     'stroke_width': 2,
-    'data': (SELECT array_agg([x, sin(x)] ORDER BY x) FROM t),
+    'data': (SELECT array_agg({'x': x, 'y': sin(x)} ORDER BY x) FROM t),
     'band': {
       'lower': (SELECT array_agg(sin(x) - 0.3 ORDER BY x) FROM t),
       'upper': (SELECT array_agg(sin(x) + 0.3 ORDER BY x) FROM t)
@@ -131,8 +131,8 @@ SELECT kuva_render(to_json({
 
 ## Error bars
 
-A point carrying errors is written as an object rather than an `[x, y]` pair: `x_err` / `y_err` take a
-**number** for a symmetric bar, or a **`[negative, positive]` pair** for an asymmetric one.
+`x_err` / `y_err` take a **number** for a symmetric bar, or a **`{"neg": …, "pos": …}` object** for an
+asymmetric one.
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -168,11 +168,11 @@ SELECT kuva_render(to_json({
     'color': 'steelblue',
     'stroke_width': 2,
     'data': [
-      {'x': 0, 'y': 0, 'y_err': [0.1, 0.3]},
-      {'x': 1, 'y': 1, 'y_err': [0.2, 0.5]},
-      {'x': 2, 'y': 2, 'y_err': [0.1, 0.4]},
-      {'x': 3, 'y': 3, 'y_err': [0.3, 0.2]},
-      {'x': 4, 'y': 4, 'y_err': [0.2, 0.6]}
+      {'x': 0, 'y': 0, 'y_err': {"neg": 0.1, "pos": 0.3}},
+      {'x': 1, 'y': 1, 'y_err': {"neg": 0.2, "pos": 0.5}},
+      {'x': 2, 'y': 2, 'y_err': {"neg": 0.1, "pos": 0.4}},
+      {'x': 3, 'y': 3, 'y_err': {"neg": 0.3, "pos": 0.2}},
+      {'x': 4, 'y': 4, 'y_err': {"neg": 0.2, "pos": 0.6}}
     ]
   }]
 })) AS chart;
@@ -190,7 +190,7 @@ SELECT kuva_render(to_json({
   'series': list({'type': 'line', 'stroke_width': 2, 'data': pts, 'legend': g} ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  SELECT "group" AS g, array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   GROUP BY "group"
 );

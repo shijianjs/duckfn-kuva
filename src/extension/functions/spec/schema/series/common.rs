@@ -28,13 +28,23 @@ pub(crate) struct ValuesGroup {
     pub color: Option<String>,
 }
 
-/// 误差棒：一个数是对称的，`[下, 上]` 是不对称的两个臂。
+/// 误差棒：一个数是对称的，`{"neg":…, "pos":…}` 是不对称的两个臂。
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub(crate) enum ErrSpec {
     Symmetric(f64),
-    Asymmetric(f64, f64),
+    Asymmetric(ErrArms),
+}
+
+/// 不对称误差棒的两个臂 —— 具名字段比 `[下, 上]` 这种位置数组更不容易写反。
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub(crate) struct ErrArms {
+    /// 负方向的臂。
+    pub neg: f64,
+    /// 正方向的臂。
+    pub pos: f64,
 }
 
 impl ErrSpec {
@@ -42,50 +52,32 @@ impl ErrSpec {
     pub fn arms(self) -> (f64, f64) {
         match self {
             ErrSpec::Symmetric(e) => (e, e),
-            ErrSpec::Asymmetric(neg, pos) => (neg, pos),
+            ErrSpec::Asymmetric(a) => (a.neg, a.pos),
         }
     }
 }
 
-/// 一个点的完整写法。
+/// 一个点：`{"x":…, "y":…}`，可带 `x_err` / `y_err`。
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub(crate) struct PointFull {
+pub(crate) struct PointSpec {
     pub x: f64,
     pub y: f64,
     pub x_err: Option<ErrSpec>,
     pub y_err: Option<ErrSpec>,
 }
 
-/// 一个点：可以是 `[x, y]` 数组，也可以是 `{"x":…, "y":…}` 对象（带可选误差）。
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(untagged)]
-pub(crate) enum PointSpec {
-    Pair([f64; 2]),
-    Full(PointFull),
-}
-
 impl PointSpec {
     pub fn xy(&self) -> (f64, f64) {
-        match self {
-            PointSpec::Pair([x, y]) => (*x, *y),
-            PointSpec::Full(p) => (p.x, p.y),
-        }
+        (self.x, self.y)
     }
 
     pub fn x_err(&self) -> Option<(f64, f64)> {
-        match self {
-            PointSpec::Pair(_) => None,
-            PointSpec::Full(p) => p.x_err.map(ErrSpec::arms),
-        }
+        self.x_err.map(ErrSpec::arms)
     }
 
     pub fn y_err(&self) -> Option<(f64, f64)> {
-        match self {
-            PointSpec::Pair(_) => None,
-            PointSpec::Full(p) => p.y_err.map(ErrSpec::arms),
-        }
+        self.y_err.map(ErrSpec::arms)
     }
 }
 
@@ -127,25 +119,18 @@ pub(crate) struct BandSpec {
     pub upper: Vec<f64>,
 }
 
-/// 一个三维点：`[x, y, z]` 或 `{"x":…, "y":…, "z":…}`。
+/// 一个三维点：`{"x":…, "y":…, "z":…}`。
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(untagged)]
-pub(crate) enum PointSpec3 {
-    Triple([f64; 3]),
-    Full {
-        x: f64,
-        y: f64,
-        z: f64,
-    },
+pub(crate) struct PointSpec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 impl PointSpec3 {
     pub fn xyz(self) -> (f64, f64, f64) {
-        match self {
-            PointSpec3::Triple([x, y, z]) => (x, y, z),
-            PointSpec3::Full { x, y, z } => (x, y, z),
-        }
+        (self.x, self.y, self.z)
     }
 }
 

@@ -15,7 +15,7 @@ SELECT kuva_render(to_json({
   'x_axis': {'name': '$\log_2$ fold change'},
   'y_axis': {'name': '$-\log_{10}(p)$'},
   'series': [{'type': 'scatter', 'color': 'steelblue',
-              'data': (SELECT array_agg([log2fc, neg_log10_pvalue])
+              'data': (SELECT array_agg({'x': log2fc, 'y': neg_log10_pvalue})
                        FROM read_csv_auto('{{DFK_BASE_URL}}data/volcano_logp.tsv'))}]
 })) AS chart;
 ```
@@ -106,7 +106,7 @@ SELECT kuva_render(to_json({
   'title': 'Mean of $x_i$, with $\sum_{i=1}^{n} x_i / n$ and $\sqrt{x^2+y^2}$',
   'x_axis': {'name': 'time (min), $t \in [0, 100]$'},
   'y_axis': {'name': 'value ($\mu \pm \sigma$)'},
-  'series': [{'type': 'line', 'data': (SELECT array_agg([time, value] ORDER BY time) FROM d)}]
+  'series': [{'type': 'line', 'data': (SELECT array_agg({'x': time, 'y': value} ORDER BY time) FROM d)}]
 })) AS chart;
 ```
 

@@ -28,7 +28,7 @@ duckdb -unsigned
 
 ```sql
 LOAD './build/debug/duckfn_kuva.duckdb_extension';
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}');
+SELECT kuva_render('{"series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 3, "y": 4}, {"x": 5, "y": 3}]}]}');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
@@ -69,7 +69,7 @@ Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 ca
 ```sql
 SELECT kuva_render_file({
   'file': {'open': true},
-  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+  'series': [{'type': 'scatter', 'data': [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]
 }::JSON);
 -- 在系统临时目录下写一个 kuva-<时间>-<随机尾缀>.svg，并用浏览器打开
 ```
@@ -97,7 +97,7 @@ SELECT kuva_render_file({
 两个例子，看一个 `type` 能带多少东西：
 
 ```json
-{"type": "scatter", "data": [[1, 2], {"x": 3, "y": 4, "y_err": [0.1, 0.3]}],
+{"type": "scatter", "data": [{"x": 1, "y": 2}, {"x": 3, "y": 4, "y_err": {"neg": 0.1, "pos": 0.3}}],
  "trend": {"type": "linear", "equation": true}, "legend": "samples"}
 {"type": "violin", "groups": [{"label": "control", "values": [1, 2, 2, 3]}], "strip": 0.15}
 ```
@@ -109,8 +109,8 @@ SELECT kuva_render_file({
 
 ```sql
 SELECT kuva_render('{"series":[
-  {"type":"line","data":[[0,1],[1,2],[2,1.5]],"legend":"signal"},
-  {"type":"scatter","data":[[0,1.2],[1,1.8],[2,1.6]],"legend":"observed"}
+  {"type":"line","data":[{"x": 0, "y": 1}, {"x": 1, "y": 2}, {"x": 2, "y": 1.5}],"legend":"signal"},
+  {"type":"scatter","data":[{"x": 0, "y": 1.2}, {"x": 1, "y": 1.8}, {"x": 2, "y": 1.6}],"legend":"observed"}
 ]}');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
@@ -119,7 +119,7 @@ SELECT kuva_render('{"series":[
 
 ```sql
 SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
-  {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
+  {"series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 2, "y": 3}]}]},
   {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
 ]}}');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
@@ -131,7 +131,7 @@ SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
 SELECT kuva_render('{
   "y_axis":  {"name": "price",  "min": 0, "max": 100},
   "y2_axis": {"name": "volume", "min": 0, "max": 1000},
-  "series": [{"type":"line","data":[[0,20],[1,45]],"legend":"price"}],
+  "series": [{"type":"line","data":[{"x": 0, "y": 20}, {"x": 1, "y": 45}],"legend":"price"}],
   "secondary_series": [{"type":"bar","categories":["d1","d2"],"values":[300,700],"legend":"volume"}]
 }');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>

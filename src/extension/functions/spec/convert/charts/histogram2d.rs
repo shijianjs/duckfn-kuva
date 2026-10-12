@@ -40,7 +40,7 @@ mod tests {
     const HISTOGRAM2D: &str = r##"{
       "series": [{
         "type": "histogram2d",
-        "data": [[0.1, 0.2], [0.4, 0.9], [0.7, 0.3], [0.2, 0.8], [0.9, 0.1]],
+        "data": [{"x": 0.1, "y": 0.2}, {"x": 0.4, "y": 0.9}, {"x": 0.7, "y": 0.3}, {"x": 0.2, "y": 0.8}, {"x": 0.9, "y": 0.1}],
         "x_range": [0, 1],
         "y_range": [0, 1],
         "bins_x": 5,
@@ -60,7 +60,7 @@ mod tests {
     fn zero_bins_is_reported() {
         // kuva 内部按 `bins_x - 1` 算格子宽，0 会下溢 panic。
         let err = render_json(
-            r#"{"series":[{"type":"histogram2d","data":[[0,0]],"x_range":[0,1],"y_range":[0,1],"bins_x":0}]}"#,
+            r#"{"series":[{"type":"histogram2d","data":[{"x":0,"y":0}],"x_range":[0,1],"y_range":[0,1],"bins_x":0}]}"#,
         )
         .unwrap_err();
         assert!(

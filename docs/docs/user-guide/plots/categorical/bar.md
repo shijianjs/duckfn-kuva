@@ -154,8 +154,8 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/bar.tsv');
 
 ## Error bars
 
-`errors` attaches one error to every bar — a **number** for a symmetric bar, a **`[negative, positive]`**
-pair for an asymmetric one — with `error_color` and `error_cap_width` for its appearance.
+`errors` attaches one error to every bar — a **number** for a symmetric bar, a **`{"neg": …, "pos": …}`**
+object for an asymmetric one — with `error_color` and `error_cap_width` for its appearance.
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({

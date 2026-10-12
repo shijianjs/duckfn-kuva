@@ -62,7 +62,7 @@ use super::spec;
 #[duck_scalar_function(
     description = "Renders a complete chart described by a JSON string into an SVG document",
     comment = "The full-featured, JSON-based entry point: one JSON object describes canvas, axes, legend, annotations and a heterogeneous list of series",
-    example = "SELECT kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4],[5,3]]}]}')"
+    example = "SELECT kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[{\"x\":1,\"y\":2},{\"x\":3,\"y\":4},{\"x\":5,\"y\":3}]}]}')"
 )]
 fn kuva_render(spec_json: String) -> DuckOptionResult<String> {
     match spec::render_json(&spec_json) {
@@ -111,7 +111,7 @@ chapter per kind in [the duckfn user guide](https://shijianjs.github.io/duckfn/)
    #[duck_scalar_function(
        description = "One line for the function table of the community-extension page",
        comment = "The detail that does not fit the one-liner",
-       example = "SELECT kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}')"
+       example = "SELECT kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[{\"x\":1,\"y\":2},{\"x\":3,\"y\":4}]}]}')"
    )]
    ```
 

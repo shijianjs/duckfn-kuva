@@ -34,7 +34,7 @@ The smallest useful call — read a column pair and render it:
 ```sql {"type":"duckfn","show":"svg"}
 -- press Run: the result is a complete SVG document, and it is drawn right here
 SELECT kuva_render(to_json({
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
@@ -112,7 +112,7 @@ whether to open the result all ride along in the JSON, in a top-level `file` obj
 -- opens the chart in your browser and returns the path it wrote
 SELECT kuva_render_file({
   'file': {'open': true},
-  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+  'series': [{'type': 'scatter', 'data': [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]
 }::JSON);
 ```
 

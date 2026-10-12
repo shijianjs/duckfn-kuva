@@ -22,7 +22,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, z]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': z}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter3d.tsv')
 );
 ```
@@ -49,7 +49,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, z]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': z}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter3d.tsv')
 );
 ```
@@ -74,7 +74,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, z] ORDER BY "group", x) AS pts,
+  SELECT list({'x': x, 'y': y, 'z': z} ORDER BY "group", x) AS pts,
          list(CASE "group" WHEN 'A' THEN '#4c72b0'
                            WHEN 'B' THEN '#dd8452'
                            ELSE '#55a868' END ORDER BY "group", x) AS cols,
@@ -108,7 +108,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, z]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': z}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter3d.tsv')
 );
 ```
@@ -139,7 +139,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, z]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': z}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter3d.tsv')
 );
 ```

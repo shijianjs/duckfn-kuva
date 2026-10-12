@@ -159,8 +159,8 @@ SELECT kuva_render(to_json({
     'type': 'roc',
     'groups': [{
       'label': 'external classifier',
-      'points': [[0, 0], [0.05, 0.42], [0.1, 0.61], [0.2, 0.78],
-                 [0.35, 0.88], [0.5, 0.93], [0.75, 0.97], [1, 1]]
+      'points': [{"fpr": 0, "tpr": 0}, {"fpr": 0.05, "tpr": 0.42}, {"fpr": 0.1, "tpr": 0.61}, {"fpr": 0.2, "tpr": 0.78},
+                 {"fpr": 0.35, "tpr": 0.88}, {"fpr": 0.5, "tpr": 0.93}, {"fpr": 0.75, "tpr": 0.97}, {"fpr": 1, "tpr": 1}]
     }]
   }]
 })) AS chart;

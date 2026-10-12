@@ -132,7 +132,7 @@ A fixed range and a logarithmic y axis, from the same data the scatter page uses
 SELECT kuva_render(to_json({
   'x_axis': {'name': 'x', 'min': 0, 'max': 10, 'tick_step': 2},
   'y_axis': {'name': 'y', 'log': true},
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```

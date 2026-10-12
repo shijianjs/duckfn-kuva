@@ -17,7 +17,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 30,
@@ -42,7 +42,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 25,
@@ -67,7 +67,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 10,
@@ -87,7 +87,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 50,
@@ -121,7 +121,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 40,
@@ -152,7 +152,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 40,
@@ -180,7 +180,7 @@ SELECT kuva_render(to_json({
 
 | 字段 | 类型 | 设置什么 |
 | --- | --- | --- |
-| `data` | point[] | 要分箱的点，`[x, y]` 数组或 `{x, y}` 对象。区间之外的点会被丢掉。 |
+| `data` | point[] | 要分箱的点，`{x, y}` 对象。区间之外的点会被丢掉。 |
 | `x_range` | `[number, number]` | **必填。** x 的分箱区间。 |
 | `y_range` | `[number, number]` | **必填。** y 的分箱区间。 |
 | `bins_x` | integer | x 方向的箱数（默认 10）。 |

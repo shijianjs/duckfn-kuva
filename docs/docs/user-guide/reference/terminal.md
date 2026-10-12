@@ -21,7 +21,7 @@ holding the terminal's own settings:
 ```sql {"type":"duckfn","show":"terminal"}
 SELECT kuva_render_terminal(to_json({
   'terminal': {'cols': 100, 'rows': 24},
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS frame
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
@@ -45,7 +45,7 @@ truncated. Printing, on the other hand, is trivial:
 ```sql {"type":"duckfn"}
 SELECT kuva_render_terminal(to_json({
   'terminal': {'cols': 100, 'rows': 24, 'print': true},
-  'series': [{'type': 'line', 'data': array_agg([time, value] ORDER BY time)}]
+  'series': [{'type': 'line', 'data': array_agg({'x': time, 'y': value} ORDER BY time)}]
 })) AS frame   -- prints the frame to stdout, and this column is NULL
 FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
 WHERE "group" = 'Condition_A';

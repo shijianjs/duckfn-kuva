@@ -77,7 +77,7 @@ mod tests {
     const SCATTER3D: &str = r##"{
       "series": [{
         "type": "scatter3d",
-        "data": [[1, 2, 3], [2, 3, 1], [3, 1, 2], {"x": 4, "y": 4, "z": 4}],
+        "data": [{"x": 1, "y": 2, "z": 3}, {"x": 2, "y": 3, "z": 1}, {"x": 3, "y": 1, "z": 2}, {"x": 4, "y": 4, "z": 4}],
         "sizes": [4, 6, 8, 10],
         "colors": ["#4c72b0", "#c44e52", "#55a868", "#c44e52"],
         "z_colormap": "plasma",
@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn scatter3d_without_finite_point_is_reported() {
         // 全 NaN 时 kuva 会跳过整张图，只留一个空坐标系 —— 看起来像「画不出来」。
-        let err = render_json(r#"{"series":[{"type":"scatter3d","data":[[1,2,3]],"colors":[]}]}"#)
+        let err = render_json(r#"{"series":[{"type":"scatter3d","data":[{"x":1,"y":2,"z":3}],"colors":[]}]}"#)
             .unwrap_err();
         assert!(err.contains("`colors` has 0 entries"), "unexpected message: {err}");
     }

@@ -624,7 +624,7 @@ mod tests {
         let json = serde_json::json!({
             "title": "Sales",
             "file": {"dir": dir_str},
-            "series": [{"type": "scatter", "data": [[1, 2], [3, 4]]}]
+            "series": [{"type": "scatter", "data": [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]
         })
         .to_string();
 
@@ -645,7 +645,7 @@ mod tests {
         let json = serde_json::json!({
             "title": "Sales",
             "file": {"dir": dir_str, "name": "chart.svg"},
-            "series": [{"type": "scatter", "data": [[1, 2], [3, 4]]}]
+            "series": [{"type": "scatter", "data": [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]
         })
         .to_string();
 

@@ -47,7 +47,7 @@ use super::spec;
 ///
 /// ```sql
 /// SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-///                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+///                          "series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}');
 /// ```
 ///
 /// Renders a JSON chart description to an SVG file and returns the path.
@@ -55,7 +55,7 @@ use super::spec;
     overloads_name = "kuva_render_file",
     description = "Renders a chart described by a JSON string to an SVG file and returns the file path; the JSON's own `file` object sets the directory, the file name and whether to open it in a browser",
     comment = "Native builds only: writes the SVG to disk (default: a file in the system temp directory, created if the directory is missing) and optionally opens it in the system default browser; `file: {dir, name, open}` rides along in the JSON, and an optional second argument supplies the data as a JSON dataset registry",
-    example = "SELECT kuva_render_file('{\"file\":{\"dir\":\"/tmp/charts\",\"name\":\"scatter.svg\",\"open\":true},\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}')"
+    example = "SELECT kuva_render_file('{\"file\":{\"dir\":\"/tmp/charts\",\"name\":\"scatter.svg\",\"open\":true},\"series\":[{\"type\":\"scatter\",\"data\":[{\"x\":1,\"y\":2},{\"x\":3,\"y\":4}]}]}')"
 )]
 fn kuva_render_file(spec_json: String) -> DuckOptionResult<String> {
     match spec::file::render(&spec_json, None) {

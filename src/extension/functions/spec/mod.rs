@@ -52,7 +52,7 @@ const DEFAULT_TERM_ROWS: usize = 30;
 /// 解析 JSON 并渲染成 SVG。所有失败都以 `Err(String)` 返回（由调用方转成 DuckDB 错误）。
 ///
 /// ```ignore
-/// let svg = render_json(r#"{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}"#)?;
+/// let svg = render_json(r#"{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}"#)?;
 /// ```
 ///
 /// **解析前先把值为 `null` 的键剔掉**（见 [`drop_null_object_keys`]）。
@@ -310,7 +310,7 @@ mod tests {
         let svg = render_svg_with(
             r#"{"series":[
                  {"type":"scatter","dataset":"d","encode":{"x":"a","y":"b"}},
-                 {"type":"line","data":[[0,0],[6,6]]}]}"#,
+                 {"type":"line","data":[{"x":0,"y":0},{"x":6,"y":6}]}]}"#,
             r#"{"d":[{"a":1,"b":2},{"a":3,"b":4}]}"#,
         );
         super::test_support::assert_renders(&svg, "DATASET_OVERLAY");
@@ -336,7 +336,7 @@ mod tests {
     #[test]
     fn a_dataset_outside_a_series_is_reported() {
         let message = super::render_json_with(
-            r#"{"dataset":"d","series":[{"type":"scatter","data":[[1,2]]}]}"#,
+            r#"{"dataset":"d","series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}"#,
             Some(r#"{"d":[]}"#),
         )
         .unwrap_err();

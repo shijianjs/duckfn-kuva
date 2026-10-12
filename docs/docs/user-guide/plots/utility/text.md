@@ -93,7 +93,7 @@ SELECT kuva_render(to_json({
         'title': 'Northern transect',
         'x_axis': {'name': 'x'},
         'y_axis': {'name': 'y'},
-        'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM d), 'color': 'steelblue'}]
+        'series': [{'type': 'scatter', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d), 'color': 'steelblue'}]
       },
       {
         'series': [{

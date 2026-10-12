@@ -38,7 +38,7 @@ use super::spec::TerminalRender;
 ///
 /// ```sql
 /// SELECT kuva_render_terminal('{"terminal":{"cols":100,"rows":30},
-///                              "series":[{"type":"line","data":[[1,2],[2,3]]}]}');
+///                              "series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}');
 /// ```
 ///
 /// Renders a JSON chart description as terminal text.
@@ -46,7 +46,7 @@ use super::spec::TerminalRender;
     overloads_name = "kuva_render_terminal",
     description = "Renders a chart described by a JSON string as terminal text (braille dots and ANSI colour); the JSON's own `terminal` object sets the character grid and whether to print straight to stdout",
     comment = "Same JSON as kuva_render, different backend: `terminal: {cols, rows, print}` — a braille cell is 2x4 dots, defaults are 100x30, and `print: true` writes to stdout and returns NULL; an optional second argument supplies the data as a JSON dataset registry",
-    example = "SELECT kuva_render_terminal('{\"terminal\":{\"cols\":100,\"rows\":30},\"series\":[{\"type\":\"line\",\"data\":[[1,2],[2,3]]}]}')"
+    example = "SELECT kuva_render_terminal('{\"terminal\":{\"cols\":100,\"rows\":30},\"series\":[{\"type\":\"line\",\"data\":[{\"x\":1,\"y\":2},{\"x\":2,\"y\":3}]}]}')"
 )]
 fn kuva_render_terminal(spec_json: String) -> DuckOptionResult<String> {
     match spec::render_terminal_json(&spec_json) {

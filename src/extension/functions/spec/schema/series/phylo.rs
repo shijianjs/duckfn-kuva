@@ -37,7 +37,7 @@ pub(crate) struct TreeInputSpec {
     pub edges: Vec<TreeEdgeSpec>,
     /// 距离矩阵（UPGMA 聚类）。
     pub distance_matrix: Option<DistanceMatrixSpec>,
-    /// linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
+    /// linkage 矩阵：每行 `{"left":…, "right":…, "distance":…, "count":…}`。
     pub linkage: Option<LinkageSpec>,
 }
 
@@ -62,27 +62,18 @@ pub(crate) struct PhyloSeries {
     pub clade_colors: Vec<CladeColorSpec>,
 }
 
-/// 一处子树着色：`[节点下标, 颜色]` 或 `{"node": …, "color": …}`。
-///
-/// 两种写法都收：数组写法更紧凑，对象写法在 SQL 里更好构造（`[[1, '#f00']]` 这种混合数组
-/// DuckDB 会把两个元素统一成同一种类型，`int` 与 `string` 是合不到一起的）。
+/// 一处子树着色：`{"node": …, "color": …}`。
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(untagged)]
-pub(crate) enum CladeColorSpec {
-    Tuple((usize, String)),
-    Full {
-        node: usize,
-        color: String,
-    },
+pub(crate) struct CladeColorSpec {
+    /// 节点下标。
+    pub node: usize,
+    pub color: String,
 }
 
 impl CladeColorSpec {
     pub(crate) fn parts(&self) -> (usize, &str) {
-        match self {
-            CladeColorSpec::Tuple((n, c)) => (*n, c.as_str()),
-            CladeColorSpec::Full { node, color } => (*node, color.as_str()),
-        }
+        (self.node, self.color.as_str())
     }
 }
 
@@ -103,10 +94,24 @@ pub(crate) struct DistanceMatrixSpec {
     pub dist: Vec<Vec<f64>>,
 }
 
-/// linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
+/// linkage 矩阵：`labels` 是叶子名，`linkage` 每行一次合并。
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct LinkageSpec {
     pub labels: Vec<String>,
-    pub linkage: Vec<[f64; 4]>,
+    pub linkage: Vec<LinkageRow>,
+}
+
+/// linkage 矩阵的一行：左右两个聚类下标、合并距离、聚类大小。
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub(crate) struct LinkageRow {
+    /// 左聚类下标。
+    pub left: f64,
+    /// 右聚类下标。
+    pub right: f64,
+    /// 合并距离。
+    pub distance: f64,
+    /// 合并后的聚类大小（叶子数）。
+    pub count: f64,
 }

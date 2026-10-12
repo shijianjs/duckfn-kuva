@@ -81,7 +81,7 @@ SELECT kuva_render(to_json({
   ]
 })) AS chart
 FROM (
-  SELECT array_agg([time, value] ORDER BY time) AS pts
+  SELECT array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );

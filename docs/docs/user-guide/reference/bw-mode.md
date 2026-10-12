@@ -24,7 +24,7 @@ SELECT kuva_render(to_json({
   'grid': {'bw_mode': true},
   'legend': {'position': 'outside_right_top'},
   'series': (SELECT list({'type': 'scatter', 'data': pts, 'legend': g} ORDER BY g)
-             FROM (SELECT g, array_agg([x, y] ORDER BY x) AS pts FROM d GROUP BY g))
+             FROM (SELECT g, array_agg({'x': x, 'y': y} ORDER BY x) AS pts FROM d GROUP BY g))
 })) AS chart;
 ```
 
@@ -70,7 +70,7 @@ SELECT kuva_render(to_json({
   'grid': {'bw_mode': true},
   'legend': {'position': 'outside_right_top'},
   'series': (SELECT list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
-             FROM (SELECT g, array_agg([t, expression] ORDER BY t) AS pts FROM d GROUP BY g))
+             FROM (SELECT g, array_agg({'x': t, 'y': expression} ORDER BY t) AS pts FROM d GROUP BY g))
 })) AS chart;
 ```
 

@@ -150,7 +150,7 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/bar.tsv');
 
 ## 误差棒
 
-`errors` 给每根柱子挂一条误差 —— 给**一个数**是对称的，给 **`[负臂, 正臂]` 对**是不对称的；`error_color` 与
+`errors` 给每根柱子挂一条误差 —— 给**一个数**是对称的，给 **`{"neg": …, "pos": …}` 对象**是不对称的；`error_color` 与
 `error_cap_width` 控制它的外观。
 
 ```sql {"type":"duckfn","show":"svg"}

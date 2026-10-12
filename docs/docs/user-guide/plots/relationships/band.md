@@ -24,7 +24,7 @@ FROM (
   SELECT list(time ORDER BY time) AS xs,
          list(value - 0.5 ORDER BY time) AS los,
          list(value + 0.5 ORDER BY time) AS ups,
-         array_agg([time, value] ORDER BY time) AS pts
+         array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );
@@ -47,7 +47,7 @@ SELECT kuva_render(to_json({
     'type': 'line',
     'color': 'firebrick',
     'stroke_width': 2,
-    'data': array_agg([time, value] ORDER BY time),
+    'data': array_agg({'x': time, 'y': value} ORDER BY time),
     'band': {
       'lower': array_agg(value - 0.5 ORDER BY time),
       'upper': array_agg(value + 0.5 ORDER BY time)
@@ -75,7 +75,7 @@ SELECT kuva_render(to_json({
     'type': 'scatter',
     'color': 'seagreen',
     'size': 5,
-    'data': (SELECT array_agg([x, y] ORDER BY x) FROM t),
+    'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY x) FROM t),
     'band': {
       'lower': (SELECT array_agg(y - 1.5 ORDER BY x) FROM t),
       'upper': (SELECT array_agg(y + 1.5 ORDER BY x) FROM t)
@@ -105,7 +105,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT "group" AS g,
-         array_agg([time, value] ORDER BY time) AS pts,
+         array_agg({'x': time, 'y': value} ORDER BY time) AS pts,
          array_agg(value - 0.25 ORDER BY time) AS los,
          array_agg(value + 0.25 ORDER BY time) AS ups
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')

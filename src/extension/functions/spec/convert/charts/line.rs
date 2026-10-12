@@ -67,7 +67,7 @@ mod tests {
       "legend": {"position": "inside_top_left"},
       "series": [{
         "type": "line",
-        "data": [[0, 1], [1, 2.5], [2, 2], [3, 4.5], [4, 6], [5, 5.5]],
+        "data": [{"x": 0, "y": 1}, {"x": 1, "y": 2.5}, {"x": 2, "y": 2}, {"x": 3, "y": 4.5}, {"x": 4, "y": 6}, {"x": 5, "y": 5.5}],
         "legend": "measured",
         "stroke_width": 3,
         "line_style": "6 3",
@@ -89,7 +89,7 @@ mod tests {
             r##"{
               "series": [{
                 "type": "line",
-                "data": [[0, 0], [1, 1], [2, 0.5]],
+                "data": [{"x": 0, "y": 0}, {"x": 1, "y": 1}, {"x": 2, "y": 0.5}],
                 "line_style": "6 3"
               }]
             }"##,

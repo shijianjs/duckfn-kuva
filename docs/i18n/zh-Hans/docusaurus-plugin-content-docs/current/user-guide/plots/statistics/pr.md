@@ -101,8 +101,8 @@ SELECT kuva_render(to_json({
     'type': 'pr',
     'groups': [{
       'label': 'external model',
-      'points': [[0, 1], [0.1, 0.91], [0.25, 0.84], [0.4, 0.76],
-                 [0.55, 0.67], [0.7, 0.55], [0.85, 0.42], [1, 0.1]],
+      'points': [{"recall": 0, "precision": 1}, {"recall": 0.1, "precision": 0.91}, {"recall": 0.25, "precision": 0.84}, {"recall": 0.4, "precision": 0.76},
+                 {"recall": 0.55, "precision": 0.67}, {"recall": 0.7, "precision": 0.55}, {"recall": 0.85, "precision": 0.42}, {"recall": 1, "precision": 0.1}],
       'prevalence': 0.1
     }]
   }]

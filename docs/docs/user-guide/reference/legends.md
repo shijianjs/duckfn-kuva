@@ -140,7 +140,7 @@ SELECT kuva_render(to_json({
   'series': list({'type': 'scatter', 'data': pts, 'legend': g} ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
+  SELECT "group" AS g, array_agg({'x': x, 'y': y} ORDER BY x) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv')
   GROUP BY "group"
 );

@@ -73,7 +73,7 @@ editor with a Run button, running in DuckDB-Wasm in the reader's browser.
 ````md
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```

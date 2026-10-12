@@ -4,17 +4,17 @@
 
 # Before the extension is loaded none of the functions exist.
 statement error
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2]]}]}');
+SELECT kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
 ----
 does not exist
 
 statement error
-SELECT kuva_render_terminal('{"series":[{"type":"scatter","data":[[1,2]]}]}');
+SELECT kuva_render_terminal('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
 ----
 does not exist
 
 statement error
-SELECT kuva_render_file('{"series":[{"type":"scatter","data":[[1,2]]}]}');
+SELECT kuva_render_file('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
 ----
 does not exist
 
@@ -22,12 +22,12 @@ require duckfn_kuva
 
 # The smallest useful spec: the result is an SVG document, start to finish.
 query I
-SELECT left(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}'), 4);
+SELECT left(kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}'), 4);
 ----
 <svg
 
 query I
-SELECT right(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}'), 6);
+SELECT right(kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}'), 6);
 ----
 </svg>
 
@@ -37,8 +37,8 @@ SELECT right(kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}')
 query I
 SELECT bool_and(length(svg) > 500)
 FROM (VALUES
-  (kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}')),
-  (kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}')),
+  (kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4},{"x":5,"y":3}]}]}')),
+  (kuva_render('{"series":[{"type":"line","data":[{"x":0,"y":1},{"x":1,"y":2},{"x":2,"y":1.5}]}]}')),
   (kuva_render('{"series":[{"type":"bar","categories":["a","b"],"values":[3,5]}]}')),
   (kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}')),
   (kuva_render('{"series":[{"type":"box","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
@@ -61,8 +61,8 @@ FROM (VALUES
   (kuva_render('{"series":[{"type":"ecdf","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
   (kuva_render('{"series":[{"type":"qq","groups":[{"label":"a","values":[1,2,3,4]}]}]}')),
   (kuva_render('{"series":[{"type":"forest","rows":[{"label":"a","estimate":1,"ci_lower":0,"ci_upper":2}]}]}')),
-  (kuva_render('{"series":[{"type":"pr","groups":[{"label":"a","points":[[1,1],[0.5,0.5]]}]}]}')),
-  (kuva_render('{"series":[{"type":"roc","groups":[{"label":"a","points":[[0,0],[1,1]]}]}]}')),
+  (kuva_render('{"series":[{"type":"pr","groups":[{"label":"a","points":[{"recall":1,"precision":1},{"recall":0.5,"precision":0.5}]}]}]}')),
+  (kuva_render('{"series":[{"type":"roc","groups":[{"label":"a","points":[{"fpr":0,"tpr":0},{"fpr":1,"tpr":1}]}]}]}')),
   (kuva_render('{"series":[{"type":"survival","groups":[{"label":"a","times":[1,2],"events":[true,false]}]}]}')),
   (kuva_render('{"series":[{"type":"volcano","points":[{"name":"g","log2fc":2,"pvalue":0.001}]}]}'))
 ) t(svg);
@@ -74,14 +74,14 @@ query I
 SELECT bool_and(length(svg) > 500)
 FROM (VALUES
   (kuva_render('{"series":[{"type":"heatmap","data":[[1,2],[3,4]]}]}')),
-  (kuva_render('{"series":[{"type":"histogram2d","data":[[0.1,0.2],[0.3,0.4]],"x_range":[0,1],"y_range":[0,1]}]}')),
+  (kuva_render('{"series":[{"type":"histogram2d","data":[{"x":0.1,"y":0.2},{"x":0.3,"y":0.4}],"x_range":[0,1],"y_range":[0,1]}]}')),
   (kuva_render('{"series":[{"type":"hexbin","x":[0.1,0.5],"y":[0.2,0.6]}]}')),
   (kuva_render('{"series":[{"type":"clustermap","data":[[1,2],[3,4]],"row_labels":["a","b"],"col_labels":["c","d"]}]}')),
   (kuva_render('{"series":[{"type":"contour","z":[[1,2],[3,4]],"x_coords":[0,1],"y_coords":[0,1]}]}')),
   (kuva_render('{"series":[{"type":"ternary","points":[{"a":0.5,"b":0.3,"c":0.2}]}]}')),
   (kuva_render('{"series":[{"type":"polar","series":[{"r":[1,2],"theta":[0,90]}]}]}')),
   (kuva_render('{"series":[{"type":"dice_plot","x_categories":["a"],"y_categories":["b"],"points":[{"x":"a","y":"b","present":[0]}]}]}')),
-  (kuva_render('{"series":[{"type":"scatter3d","data":[[1,2,3],[2,3,4]]}]}')),
+  (kuva_render('{"series":[{"type":"scatter3d","data":[{"x":1,"y":2,"z":3},{"x":2,"y":3,"z":4}]}]}')),
   (kuva_render('{"series":[{"type":"surface3d","z_data":[[1,2],[3,4]]}]}'))
 ) t(svg);
 ----
@@ -148,13 +148,13 @@ true
 
 # Composition: several series overlaid on one layout.
 query I
-SELECT length(kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2]],"legend":"s"},{"type":"scatter","data":[[0,1.2],[1,1.8]],"legend":"o"}]}')) > 500;
+SELECT length(kuva_render('{"series":[{"type":"line","data":[{"x":0,"y":1},{"x":1,"y":2}],"legend":"s"},{"type":"scatter","data":[{"x":0,"y":1.2},{"x":1,"y":1.8}],"legend":"o"}]}')) > 500;
 ----
 true
 
 # Composition: a multi-panel figure grid.
 query I
-SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 500;
+SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 500;
 ----
 true
 
@@ -184,7 +184,7 @@ but there are 2 categories
 
 # An unknown legend position is reported with the offending value.
 statement error
-SELECT kuva_render('{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[[1,2]]}]}');
+SELECT kuva_render('{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
 ----
 unknown legend.position
 
@@ -216,7 +216,7 @@ color template does not cover
 # The right-hand axis needs `secondary_series` to exist; its range is then inferred from that series'
 # data, so `y2_axis` only has to carry a `name` for the axis to be drawn.
 query I
-SELECT contains(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}],"secondary_series":[{"type":"line","data":[[1,10],[2,20]]}]}'), '>right<');
+SELECT contains(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}],"secondary_series":[{"type":"line","data":[{"x":1,"y":10},{"x":2,"y":20}]}]}'), '>right<');
 ----
 true
 
@@ -311,7 +311,7 @@ SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d","encode":{"z":"a"
 
 # Inline data for the same field a dataset would fill is rejected, rather than silently overriding.
 statement error
-SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d","data":[[1,2]]}]}', '{"d":[{"x":1,"y":2}]}');
+SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d","data":[{"x":1,"y":2}]}]}', '{"d":[{"x":1,"y":2}]}');
 ----
 cannot also be given inline
 
@@ -340,7 +340,7 @@ true
 
 # A multi-panel figure renders as one frame too (the grid rides along in the same JSON).
 query I
-SELECT length(kuva_render_terminal('{"terminal":{"cols":60,"rows":20},"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 0;
+SELECT length(kuva_render_terminal('{"terminal":{"cols":60,"rows":20},"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}')) > 0;
 ----
 true
 
@@ -371,7 +371,7 @@ SELECT kuva_render_terminal('{"series":[]}');
 # (Compare inside SQL rather than against a literal `__TEST_DIR__/…` expected value: the runner
 # substitutes the placeholder in the query, not in the expected result.)
 query I
-SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"chart.svg"},"series":[{"type":"scatter","data":[[1,2],[3,4]]}]}') = '__TEST_DIR__/chart.svg';
+SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"chart.svg"},"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}') = '__TEST_DIR__/chart.svg';
 ----
 true
 
@@ -382,27 +382,27 @@ SELECT left(content, 4) FROM read_text('__TEST_DIR__/chart.svg');
 
 # A name with no extension gets `.svg` appended, so the system renders it as an image.
 query I
-SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"plain"},"series":[{"type":"scatter","data":[[1,2]]}]}') = '__TEST_DIR__/plain.svg';
+SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"plain"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}') = '__TEST_DIR__/plain.svg';
 ----
 true
 
 # No file name: an auto-generated `kuva-<time>-<random>.svg` under the directory.
 query I
 SELECT starts_with(p, '__TEST_DIR__/kuva-') AND ends_with(p, '.svg')
-FROM (SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__"},"series":[{"type":"scatter","data":[[1,2]]}]}') AS p) t;
+FROM (SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}') AS p) t;
 ----
 true
 
 # The auto-name also carries the chart type and title when the spec has them.
 query I
 SELECT contains(p, '-scatter-') AND contains(p, 'Sales')
-FROM (SELECT kuva_render_file('{"title":"Sales","file":{"dir":"__TEST_DIR__"},"series":[{"type":"scatter","data":[[1,2]]}]}') AS p) t;
+FROM (SELECT kuva_render_file('{"title":"Sales","file":{"dir":"__TEST_DIR__"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}') AS p) t;
 ----
 true
 
 # No `file` object at all: the file lands in the system temp directory and still ends in `.svg`.
 query I
-SELECT ends_with(kuva_render_file('{"series":[{"type":"scatter","data":[[1,2]]}]}'), '.svg');
+SELECT ends_with(kuva_render_file('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}'), '.svg');
 ----
 true
 
@@ -420,6 +420,6 @@ SELECT kuva_render_file('{"series":[]}');
 # A file name that is not usable (it sanitizes down to nothing) is rejected instead of escaping the
 # directory.
 statement error
-SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"/"},"series":[{"type":"scatter","data":[[1,2]]}]}');
+SELECT kuva_render_file('{"file":{"dir":"__TEST_DIR__","name":"/"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
 ----
 `file.name`

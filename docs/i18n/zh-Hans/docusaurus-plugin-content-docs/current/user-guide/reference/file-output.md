@@ -19,7 +19,7 @@ description: 直接由 SQL 把渲染好的图表写成一份 SVG 文件，可选
 
 ```sql
 SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+                          "series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]}');
 -- /tmp/charts/scatter.svg
 ```
 
@@ -33,7 +33,7 @@ SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open
 
 ```sql
 SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg"},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}') AS path;
+                          "series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]}') AS path;
 -- /tmp/charts/scatter.svg
 
 SELECT left(content, 4) FROM read_text('/tmp/charts/scatter.svg');
@@ -58,7 +58,7 @@ SELECT left(content, 4) FROM read_text('/tmp/charts/scatter.svg');
 
 ```sql
 SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","open":true},
-                          "series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS path;
+                          "series":[{"type":"line","data":[{"x": 0, "y": 1}, {"x": 1, "y": 2}, {"x": 2, "y": 1.5}]}]}') AS path;
 ```
 
 相对的 `file.dir` 按进程的当前目录补成绝对路径 —— 与 `std::fs` 写它时用的是同一个当前目录。

@@ -11,8 +11,8 @@ description: 图表的 series 列表长什么样、每个 series 都能用的字
 ```json
 {
   "series": [
-    { "type": "scatter", "data": [[1, 2], [2, 3]] },
-    { "type": "line", "data": [[1, 2], [2, 3]], "legend": "trend" }
+    { "type": "scatter", "data": [{"x": 1, "y": 2}, {"x": 2, "y": 3}] },
+    { "type": "line", "data": [{"x": 1, "y": 2}, {"x": 2, "y": 3}], "legend": "trend" }
   ]
 }
 ```
@@ -65,19 +65,14 @@ kuva 的 64 种图型全部已实现。侧边栏按 [kuva 官方文档](https://
 
 ## 点
 
-`scatter`、`line`、`series` 与 `quiver` 接受点列表。一个点可以是一对数值，也可以是一个对象（可带逐点
-误差棒）：
+`scatter`、`line`、`series` 与 `quiver` 接受点列表。一个点是对象（可带逐点误差棒）：
 
 ```json
-[[1.0, 2.0], [2.0, 3.5]]
+{ "x": 1.0, "y": 2.0, "x_err": 0.2, "y_err": {"neg": 0.3, "pos": 0.8} }
 ```
 
-```json
-{ "x": 1.0, "y": 2.0, "x_err": 0.2, "y_err": [0.3, 0.8] }
-```
-
-`x_err` / `y_err` 要么是一个数（**对称**误差，即 ± 该值），要么是一个 `[下, 上]` 对（**不对称**误差，
-给出两条臂的长度）。
+`x_err` / `y_err` 要么是一个数（**对称**误差，即 ± 该值），要么是一个 `{"neg": …, "pos": …}` 对象
+（**不对称**误差，给出两条臂的长度）。
 
 ## 置信带
 
@@ -132,7 +127,7 @@ SELECT kuva_render(to_json({
   ]
 })) AS chart
 FROM (
-  SELECT array_agg([time, value] ORDER BY time) AS pts
+  SELECT array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );

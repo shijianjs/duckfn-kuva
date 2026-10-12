@@ -26,8 +26,8 @@ pub(crate) struct RocGroupSpec {
     pub label: String,
     /// 原始预测：`(score, is_positive)`。给了它就由 kuva 扫阈值。
     pub predictions: Option<Vec<PredictionSpec>>,
-    /// 预计算的曲线点 `(fpr, tpr)`；与 `predictions` 二选一，同时给时以 `predictions` 为准。
-    pub points: Option<Vec<[f64; 2]>>,
+    /// 预计算的曲线点 `{"fpr":…, "tpr":…}`；与 `predictions` 二选一，同时给时以 `predictions` 为准。
+    pub points: Option<Vec<RocPoint>>,
     pub color: Option<String>,
     /// 置信带。
     pub ci: Option<bool>,
@@ -42,4 +42,12 @@ pub(crate) struct RocGroupSpec {
     pub line_width: Option<f64>,
     /// 虚线样式，如 `"4 2"`。
     pub dasharray: Option<String>,
+}
+
+/// 预计算的曲线点：`{"fpr": …, "tpr": …}`。
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub(crate) struct RocPoint {
+    pub fpr: f64,
+    pub tpr: f64,
 }

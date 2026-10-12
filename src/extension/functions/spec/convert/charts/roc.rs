@@ -25,7 +25,7 @@ pub(super) fn build_roc(s: RocSeries) -> Result<Plot, String> {
             let raw: Vec<(f64, bool)> = preds.iter().map(|p| p.parts()).collect();
             group = group.with_raw(raw);
         } else if let Some(points) = &g.points {
-            let pts: Vec<(f64, f64)> = points.iter().map(|p| (p[0], p[1])).collect();
+            let pts: Vec<(f64, f64)> = points.iter().map(|p| (p.fpr, p.tpr)).collect();
             group = group.with_points(pts);
         }
         if let Some(v) = &g.color {
@@ -80,8 +80,8 @@ mod tests {
       "series": [{
         "type": "roc",
         "groups": [
-          {"label": "model A", "predictions": [{"score": 0.9, "label": true}, [0.8, false], [0.6, true], [0.4, true], [0.2, false]], "ci": true, "auc_label": true, "optimal_point": true, "pauc_range": [0, 0.3]},
-          {"label": "model B", "points": [[0, 0], [0.2, 0.7], [0.6, 0.9], [1, 1]], "dasharray": "4 2", "line_width": 2}
+          {"label": "model A", "predictions": [{"score": 0.9, "label": true}, {"score": 0.8, "label": false}, {"score": 0.6, "label": true}, {"score": 0.4, "label": true}, {"score": 0.2, "label": false}], "ci": true, "auc_label": true, "optimal_point": true, "pauc_range": [0, 0.3]},
+          {"label": "model B", "points": [{"fpr": 0, "tpr": 0}, {"fpr": 0.2, "tpr": 0.7}, {"fpr": 0.6, "tpr": 0.9}, {"fpr": 1, "tpr": 1}], "dasharray": "4 2", "line_width": 2}
         ],
         "show_diagonal": true,
         "diagonal_dasharray": "3 3",

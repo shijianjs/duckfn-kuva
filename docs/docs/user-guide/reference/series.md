@@ -11,8 +11,8 @@ Every chart is a JSON object whose `series` is a **list**. Each entry is one ser
 ```json
 {
   "series": [
-    { "type": "scatter", "data": [[1, 2], [2, 3]] },
-    { "type": "line", "data": [[1, 2], [2, 3]], "legend": "trend" }
+    { "type": "scatter", "data": [{"x": 1, "y": 2}, {"x": 2, "y": 3}] },
+    { "type": "line", "data": [{"x": 1, "y": 2}, {"x": 2, "y": 3}], "legend": "trend" }
   ]
 }
 ```
@@ -68,19 +68,15 @@ they take `color_map` instead. Each chart page's field table is authoritative.
 
 ## Points
 
-`scatter`, `line`, `series` and `quiver` take a list of points. A point is either a pair, or an object
-that may carry per-point error bars:
+`scatter`, `line`, `series` and `quiver` take a list of points. A point is an object, and may carry
+per-point error bars:
 
 ```json
-[[1.0, 2.0], [2.0, 3.5]]
-```
-
-```json
-{ "x": 1.0, "y": 2.0, "x_err": 0.2, "y_err": [0.3, 0.8] }
+{ "x": 1.0, "y": 2.0, "x_err": 0.2, "y_err": {"neg": 0.3, "pos": 0.8} }
 ```
 
 `x_err` / `y_err` are either a single number (a **symmetric** error bar, ± that much) or a
-`[lower, upper]` pair (an **asymmetric** one, giving the two arm lengths).
+`{"neg": …, "pos": …}` object (an **asymmetric** one, giving the two arm lengths).
 
 ## Bands
 
@@ -138,7 +134,7 @@ SELECT kuva_render(to_json({
   ]
 })) AS chart
 FROM (
-  SELECT array_agg([time, value] ORDER BY time) AS pts
+  SELECT array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );

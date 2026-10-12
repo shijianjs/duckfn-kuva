@@ -31,7 +31,7 @@ duckdb -unsigned
 
 ```sql
 LOAD './build/debug/duckfn_kuva.duckdb_extension';
-SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}');
+SELECT kuva_render('{"series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 3, "y": 4}, {"x": 5, "y": 3}]}]}');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
 
@@ -76,7 +76,7 @@ single-argument function:
 ```sql
 SELECT kuva_render_file({
   'file': {'open': true},
-  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+  'series': [{'type': 'scatter', 'data': [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]
 }::JSON);
 -- writes a kuva-<time>-<random>.svg under the system temp directory and opens it in your browser
 ```
@@ -106,7 +106,7 @@ kuva are implemented**, grouped below by what they draw; the exact fields of eac
 Two examples of what a `type` brings:
 
 ```json
-{"type": "scatter", "data": [[1, 2], {"x": 3, "y": 4, "y_err": [0.1, 0.3]}],
+{"type": "scatter", "data": [{"x": 1, "y": 2}, {"x": 3, "y": 4, "y_err": {"neg": 0.1, "pos": 0.3}}],
  "trend": {"type": "linear", "equation": true}, "legend": "samples"}
 {"type": "violin", "groups": [{"label": "control", "values": [1, 2, 2, 3]}], "strip": 0.15}
 ```
@@ -119,8 +119,8 @@ axes — a line with its scatter points on top:
 
 ```sql
 SELECT kuva_render('{"series":[
-  {"type":"line","data":[[0,1],[1,2],[2,1.5]],"legend":"signal"},
-  {"type":"scatter","data":[[0,1.2],[1,1.8],[2,1.6]],"legend":"observed"}
+  {"type":"line","data":[{"x": 0, "y": 1}, {"x": 1, "y": 2}, {"x": 2, "y": 1.5}],"legend":"signal"},
+  {"type":"scatter","data":[{"x": 0, "y": 1.2}, {"x": 1, "y": 1.8}, {"x": 2, "y": 1.6}],"legend":"observed"}
 ]}');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 ```
@@ -130,7 +130,7 @@ shared axes and an optional shared legend:
 
 ```sql
 SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[
-  {"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},
+  {"series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 2, "y": 3}]}]},
   {"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}
 ]}}');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
@@ -143,7 +143,7 @@ axis, which `y2_axis` then describes.
 SELECT kuva_render('{
   "y_axis":  {"name": "price",  "min": 0, "max": 100},
   "y2_axis": {"name": "volume", "min": 0, "max": 1000},
-  "series": [{"type":"line","data":[[0,20],[1,45]],"legend":"price"}],
+  "series": [{"type":"line","data":[{"x": 0, "y": 20}, {"x": 1, "y": 45}],"legend":"price"}],
   "secondary_series": [{"type":"bar","categories":["d1","d2"],"values":[300,700],"legend":"volume"}]
 }');
 -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>

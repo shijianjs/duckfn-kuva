@@ -17,7 +17,7 @@ SELECT kuva_render(to_json({
   'x_axis': {'name': 'x'},
   'y_axis': {'name': 'y'},
   'grid': {'interactive': true},
-  'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM d), 'tooltips': true}]
+  'series': [{'type': 'scatter', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d), 'tooltips': true}]
 })) AS chart;
 ```
 

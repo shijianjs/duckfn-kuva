@@ -67,7 +67,13 @@ pub(super) fn build_tree(input: &TreeInputSpec, what: &str) -> Result<PhyloTree,
             return Err(format!("{what}: `linkage.labels` must not be empty"));
         }
         let labels: Vec<&str> = lk.labels.iter().map(String::as_str).collect();
-        PhyloTree::from_linkage(&labels, &lk.linkage)
+        // kuva 的 `from_linkage` 收 `[左下标, 右下标, 距离, 叶子数]` 位置数组，这里把具名行转回去。
+        let rows: Vec<[f64; 4]> = lk
+            .linkage
+            .iter()
+            .map(|r| [r.left, r.right, r.distance, r.count])
+            .collect();
+        PhyloTree::from_linkage(&labels, &rows)
     };
     if tree.nodes.is_empty() {
         return Err(format!("{what}: the input produced a tree with no nodes"));

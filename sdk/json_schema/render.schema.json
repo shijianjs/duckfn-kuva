@@ -1606,40 +1606,22 @@
       ]
     },
     "CladeColorSpec": {
-      "description": "一处子树着色：`[节点下标, 颜色]` 或 `{\"node\": …, \"color\": …}`。\n\n两种写法都收：数组写法更紧凑，对象写法在 SQL 里更好构造（`[[1, '#f00']]` 这种混合数组\nDuckDB 会把两个元素统一成同一种类型，`int` 与 `string` 是合不到一起的）。",
-      "anyOf": [
-        {
-          "type": "array",
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
-            {
-              "type": "integer",
-              "format": "uint",
-              "minimum": 0
-            },
-            {
-              "type": "string"
-            }
-          ]
+      "description": "一处子树着色：`{\"node\": …, \"color\": …}`。",
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string"
         },
-        {
-          "type": "object",
-          "properties": {
-            "color": {
-              "type": "string"
-            },
-            "node": {
-              "type": "integer",
-              "format": "uint",
-              "minimum": 0
-            }
-          },
-          "required": [
-            "node",
-            "color"
-          ]
+        "node": {
+          "description": "节点下标。",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
         }
+      },
+      "required": [
+        "node",
+        "color"
       ]
     },
     "ClustermapNormKind": {
@@ -1876,19 +1858,13 @@
           "minimum": 0
         },
         "points": {
-          "description": "散点写法：`(x, y, z)` 三元组，kuva 自己三角剖分。与 `z` 二选一。",
+          "description": "散点写法：`{\"x\":…, \"y\":…, \"z\":…}`，kuva 自己三角剖分。与 `z` 二选一。",
           "type": [
             "array",
             "null"
           ],
           "items": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            },
-            "maxItems": 3,
-            "minItems": 3
+            "$ref": "#/$defs/PointSpec3"
           }
         },
         "type": {
@@ -2852,27 +2828,35 @@
         "type"
       ]
     },
+    "ErrArms": {
+      "description": "不对称误差棒的两个臂 —— 具名字段比 `[下, 上]` 这种位置数组更不容易写反。",
+      "type": "object",
+      "properties": {
+        "neg": {
+          "description": "负方向的臂。",
+          "type": "number",
+          "format": "double"
+        },
+        "pos": {
+          "description": "正方向的臂。",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "neg",
+        "pos"
+      ]
+    },
     "ErrSpec": {
-      "description": "误差棒：一个数是对称的，`[下, 上]` 是不对称的两个臂。",
+      "description": "误差棒：一个数是对称的，`{\"neg\":…, \"pos\":…}` 是不对称的两个臂。",
       "anyOf": [
         {
           "type": "number",
           "format": "double"
         },
         {
-          "type": "array",
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
-            {
-              "type": "number",
-              "format": "double"
-            },
-            {
-              "type": "number",
-              "format": "double"
-            }
-          ]
+          "$ref": "#/$defs/ErrArms"
         }
       ]
     },
@@ -5257,8 +5241,40 @@
         }
       ]
     },
+    "LinkageRow": {
+      "description": "linkage 矩阵的一行：左右两个聚类下标、合并距离、聚类大小。",
+      "type": "object",
+      "properties": {
+        "count": {
+          "description": "合并后的聚类大小（叶子数）。",
+          "type": "number",
+          "format": "double"
+        },
+        "distance": {
+          "description": "合并距离。",
+          "type": "number",
+          "format": "double"
+        },
+        "left": {
+          "description": "左聚类下标。",
+          "type": "number",
+          "format": "double"
+        },
+        "right": {
+          "description": "右聚类下标。",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "left",
+        "right",
+        "distance",
+        "count"
+      ]
+    },
     "LinkageSpec": {
-      "description": "linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。",
+      "description": "linkage 矩阵：`labels` 是叶子名，`linkage` 每行一次合并。",
       "type": "object",
       "properties": {
         "labels": {
@@ -5270,13 +5286,7 @@
         "linkage": {
           "type": "array",
           "items": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            },
-            "maxItems": 4,
-            "minItems": 4
+            "$ref": "#/$defs/LinkageRow"
           }
         }
       },
@@ -6588,7 +6598,7 @@
           ]
         },
         "linkage": {
-          "description": "linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。",
+          "description": "linkage 矩阵：每行 `{\"left\":…, \"right\":…, \"distance\":…, \"count\":…}`。",
           "anyOf": [
             {
               "$ref": "#/$defs/LinkageSpec"
@@ -6731,8 +6741,8 @@
         "type"
       ]
     },
-    "PointFull": {
-      "description": "一个点的完整写法。",
+    "PointSpec": {
+      "description": "一个点：`{\"x\":…, \"y\":…}`，可带 `x_err` / `y_err`。",
       "type": "object",
       "properties": {
         "x": {
@@ -6769,57 +6779,27 @@
         "y"
       ]
     },
-    "PointSpec": {
-      "description": "一个点：可以是 `[x, y]` 数组，也可以是 `{\"x\":…, \"y\":…}` 对象（带可选误差）。",
-      "anyOf": [
-        {
-          "type": "array",
-          "items": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxItems": 2,
-          "minItems": 2
-        },
-        {
-          "$ref": "#/$defs/PointFull"
-        }
-      ]
-    },
     "PointSpec3": {
-      "description": "一个三维点：`[x, y, z]` 或 `{\"x\":…, \"y\":…, \"z\":…}`。",
-      "anyOf": [
-        {
-          "type": "array",
-          "items": {
-            "type": "number",
-            "format": "double"
-          },
-          "maxItems": 3,
-          "minItems": 3
+      "description": "一个三维点：`{\"x\":…, \"y\":…, \"z\":…}`。",
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "double"
         },
-        {
-          "type": "object",
-          "properties": {
-            "x": {
-              "type": "number",
-              "format": "double"
-            },
-            "y": {
-              "type": "number",
-              "format": "double"
-            },
-            "z": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          "required": [
-            "x",
-            "y",
-            "z"
-          ]
+        "y": {
+          "type": "number",
+          "format": "double"
+        },
+        "z": {
+          "type": "number",
+          "format": "double"
         }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
       ]
     },
     "PolarModeKind": {
@@ -7058,19 +7038,13 @@
           ]
         },
         "points": {
-          "description": "预计算的曲线点 `(recall, precision)`；与 `predictions` 二选一，同时给时以\n`predictions` 为准。",
+          "description": "预计算的曲线点 `{\"recall\":…, \"precision\":…}`；与 `predictions` 二选一，同时给时以\n`predictions` 为准。",
           "type": [
             "array",
             "null"
           ],
           "items": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            },
-            "maxItems": 2,
-            "minItems": 2
+            "$ref": "#/$defs/PrPoint"
           }
         },
         "predictions": {
@@ -7094,6 +7068,24 @@
       },
       "required": [
         "label"
+      ]
+    },
+    "PrPoint": {
+      "description": "预计算的曲线点：`{\"recall\": …, \"precision\": …}`。",
+      "type": "object",
+      "properties": {
+        "precision": {
+          "type": "number",
+          "format": "double"
+        },
+        "recall": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "recall",
+        "precision"
       ]
     },
     "PrSeries": {
@@ -7168,39 +7160,21 @@
       ]
     },
     "PredictionSpec": {
-      "description": "一条原始预测：`[score, is_positive]` 或 `{\"score\": …, \"label\": …}`。",
-      "anyOf": [
-        {
-          "type": "array",
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
-            {
-              "type": "number",
-              "format": "double"
-            },
-            {
-              "type": "boolean"
-            }
-          ]
+      "description": "一条原始预测：`{\"score\": …, \"label\": …}`。",
+      "type": "object",
+      "properties": {
+        "label": {
+          "description": "是否为正类。",
+          "type": "boolean"
         },
-        {
-          "type": "object",
-          "properties": {
-            "label": {
-              "description": "是否为正类。",
-              "type": "boolean"
-            },
-            "score": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          "required": [
-            "score",
-            "label"
-          ]
+        "score": {
+          "type": "number",
+          "format": "double"
         }
+      },
+      "required": [
+        "score",
+        "label"
       ]
     },
     "PyramidGroupSpec": {
@@ -8342,19 +8316,13 @@
           ]
         },
         "points": {
-          "description": "预计算的曲线点 `(fpr, tpr)`；与 `predictions` 二选一，同时给时以 `predictions` 为准。",
+          "description": "预计算的曲线点 `{\"fpr\":…, \"tpr\":…}`；与 `predictions` 二选一，同时给时以 `predictions` 为准。",
           "type": [
             "array",
             "null"
           ],
           "items": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            },
-            "maxItems": 2,
-            "minItems": 2
+            "$ref": "#/$defs/RocPoint"
           }
         },
         "predictions": {
@@ -8370,6 +8338,24 @@
       },
       "required": [
         "label"
+      ]
+    },
+    "RocPoint": {
+      "description": "预计算的曲线点：`{\"fpr\": …, \"tpr\": …}`。",
+      "type": "object",
+      "properties": {
+        "fpr": {
+          "type": "number",
+          "format": "double"
+        },
+        "tpr": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "fpr",
+        "tpr"
       ]
     },
     "RocSeries": {
@@ -11429,7 +11415,7 @@
           }
         },
         "linkage": {
-          "description": "linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。",
+          "description": "linkage 矩阵：每行 `{\"left\":…, \"right\":…, \"distance\":…, \"count\":…}`。",
           "anyOf": [
             {
               "$ref": "#/$defs/LinkageSpec"

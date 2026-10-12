@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn phylo_clade_color_index_is_reported() {
         let err = render_json(
-            r##"{"series":[{"type":"phylo","newick":"(A,B);","clade_colors":[[99,"#fff"]]}]}"##,
+            r##"{"series":[{"type":"phylo","newick":"(A,B);","clade_colors":[{"node":99,"color":"#fff"}]}]}"##,
         )
         .unwrap_err();
         assert!(err.contains("refers to node 99"), "unexpected message: {err}");

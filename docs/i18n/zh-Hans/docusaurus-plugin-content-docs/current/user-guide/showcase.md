@@ -87,11 +87,11 @@ SELECT kuva_render(to_json({
         'y2_axis': {'name': 'conversion (%)', 'min': 0, 'max': 4},
         'series': [{
           'type': 'line', 'color': 'steelblue', 'legend': 'Site visits',
-          'data': (SELECT array_agg([month, visits] ORDER BY month) FROM d)
+          'data': (SELECT array_agg({'x': month, 'y': visits} ORDER BY month) FROM d)
         }],
         'secondary_series': [{
           'type': 'line', 'color': 'crimson', 'legend': 'Conversion rate (%)',
-          'data': (SELECT array_agg([month, conversion] ORDER BY month) FROM d)
+          'data': (SELECT array_agg({'x': month, 'y': conversion} ORDER BY month) FROM d)
         }]
       },
       {
@@ -100,7 +100,7 @@ SELECT kuva_render(to_json({
         'y_axis': {'name': 'revenue (k)'},
         'series': [{
           'type': 'scatter', 'color': 'seagreen', 'legend': 'Campaigns', 'size': 7,
-          'data': (SELECT array_agg([spend, revenue] ORDER BY spend) FROM campaigns),
+          'data': (SELECT array_agg({'x': spend, 'y': revenue} ORDER BY spend) FROM campaigns),
           'trend': {'type': 'linear', 'color': 'crimson'}
         }]
       }
@@ -202,7 +202,7 @@ SELECT kuva_render(to_json({
       'trend': {'type': 'linear'}
     } ORDER BY species)
     FROM (
-      SELECT species, color, marker, array_agg([petal_length, petal_width]) AS pts
+      SELECT species, color, marker, array_agg({'x': petal_length, 'y': petal_width}) AS pts
       FROM iris GROUP BY ALL
     )
   )
@@ -242,9 +242,9 @@ SELECT kuva_render(to_json({
   },
   'series': [
     {'type': 'scatter', 'size': 3, 'color': '#999999', 'legend': 'measured',
-     'data': (SELECT array_agg([time, value] ORDER BY time) FROM d)},
+     'data': (SELECT array_agg({'x': time, 'y': value} ORDER BY time) FROM d)},
     {'type': 'line', 'width': 2.5, 'color': 'crimson', 'legend': 'smoothed',
-     'data': (SELECT array_agg([time, value] ORDER BY time) FROM smooth)}
+     'data': (SELECT array_agg({'x': time, 'y': value} ORDER BY time) FROM smooth)}
   ]
 })) AS chart;
 ```

@@ -20,7 +20,7 @@ holding the output settings:
 
 ```sql
 SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg","open":true},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}');
+                          "series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]}');
 -- /tmp/charts/scatter.svg
 ```
 
@@ -34,7 +34,7 @@ What comes back is the path that was actually written, so it is ready to feed in
 
 ```sql
 SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","name":"scatter.svg"},
-                          "series":[{"type":"scatter","data":[[1,2],[3,4]]}]}') AS path;
+                          "series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]}') AS path;
 -- /tmp/charts/scatter.svg
 
 SELECT left(content, 4) FROM read_text('/tmp/charts/scatter.svg');
@@ -64,7 +64,7 @@ statement:
 
 ```sql
 SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","open":true},
-                          "series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]]}]}') AS path;
+                          "series":[{"type":"line","data":[{"x": 0, "y": 1}, {"x": 1, "y": 2}, {"x": 2, "y": 1.5}]}]}') AS path;
 ```
 
 A relative `file.dir` is resolved against the process's current directory, the same directory `std::fs`

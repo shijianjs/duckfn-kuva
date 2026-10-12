@@ -19,7 +19,7 @@ description: 把一张图渲染成终端文本 —— 盲文点阵、整块填�
 ```sql {"type":"duckfn","show":"terminal"}
 SELECT kuva_render_terminal(to_json({
   'terminal': {'cols': 100, 'rows': 24},
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS frame
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
@@ -41,7 +41,7 @@ kuva 的 CLI 用 `ioctl(TIOCGWINSZ)` 探测终端尺寸、失败时退回 `100 �
 ```sql {"type":"duckfn"}
 SELECT kuva_render_terminal(to_json({
   'terminal': {'cols': 100, 'rows': 24, 'print': true},
-  'series': [{'type': 'line', 'data': array_agg([time, value] ORDER BY time)}]
+  'series': [{'type': 'line', 'data': array_agg({'x': time, 'y': value} ORDER BY time)}]
 })) AS frame   -- 这一帧打到 stdout，这一列是 NULL
 FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
 WHERE "group" = 'Condition_A';

@@ -38,7 +38,7 @@ SELECT kuva_render(to_json({
     'panels': [
       {'title': 'scatter', 'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
        'series': [{'type': 'scatter',
-                   'data': (SELECT array_agg([x, y]) FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv'))}]},
+                   'data': (SELECT array_agg({'x': x, 'y': y}) FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv'))}]},
       {'title': 'y distribution', 'x_axis': {'name': 'y'}, 'y_axis': {'name': 'count'},
        'series': [{'type': 'histogram', 'bins': 20,
                    'values': (SELECT list(y) FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv'))}]}
@@ -64,13 +64,13 @@ SELECT kuva_render(to_json({
     'structure': [[0], [1], [2], [3, 4, 5]],
     'panels': [
       {'title': 'scatter', 'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM d)}]},
+       'series': [{'type': 'scatter', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d)}]},
       {'title': 'y distribution', 'x_axis': {'name': 'y'}, 'y_axis': {'name': 'count'},
        'series': [{'type': 'histogram', 'values': (SELECT list(y) FROM d), 'bins': 20}]},
       {'title': 'x distribution', 'x_axis': {'name': 'x'}, 'y_axis': {'name': 'count'},
        'series': [{'type': 'histogram', 'values': (SELECT list(x) FROM d), 'bins': 20}]},
       {'title': 'y over x, joined', 'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'line', 'data': (SELECT array_agg([x, y] ORDER BY x) FROM d)}]}
+       'series': [{'type': 'line', 'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY x) FROM d)}]}
     ]
   }
 })) AS chart;
@@ -92,9 +92,9 @@ SELECT kuva_render(to_json({
     'shared_y_all': true,
     'panels': [
       {'title': 'all points', 'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM d)}]},
+       'series': [{'type': 'scatter', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d)}]},
       {'title': 'upper half', 'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'scatter', 'data': (SELECT array_agg([x, y]) FROM d WHERE y > 4)}]}
+       'series': [{'type': 'scatter', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d WHERE y > 4)}]}
     ]
   }
 })) AS chart;
@@ -131,10 +131,10 @@ SELECT kuva_render(to_json({
     'shared_legend': 'right_top',
     'panels': [
       {'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'scatter', 'legend': 'measured', 'data': (SELECT array_agg([x, y]) FROM d)}]},
+       'series': [{'type': 'scatter', 'legend': 'measured', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d)}]},
       {'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
        'series': [{'type': 'line', 'legend': 'smoothed',
-                   'data': (SELECT array_agg([x, y] ORDER BY x) FROM d)}]}
+                   'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY x) FROM d)}]}
     ]
   }
 })) AS chart;
@@ -158,9 +158,9 @@ SELECT kuva_render(to_json({
     ],
     'panels': [
       {'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'scatter', 'legend': 'measured', 'data': (SELECT array_agg([x, y]) FROM d)}]},
+       'series': [{'type': 'scatter', 'legend': 'measured', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d)}]},
       {'x_axis': {'name': 'x'}, 'y_axis': {'name': 'y'},
-       'series': [{'type': 'line', 'legend': 'trend', 'data': (SELECT array_agg([x, y] ORDER BY x) FROM d)}]}
+       'series': [{'type': 'line', 'legend': 'trend', 'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY x) FROM d)}]}
     ]
   }
 })) AS chart;

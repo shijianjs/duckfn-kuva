@@ -62,7 +62,7 @@ SELECT kuva_render(to_json({
     'position': 'inside_bottom_right',
     'border': false
   },
-  'series': [{'type': 'scatter', 'data': array_agg([x, y]), 'color': 'steelblue'}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y}), 'color': 'steelblue'}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
@@ -80,7 +80,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'legend': {'position': 'inside_top_right'},
   'stats_box': {'entries': ['n = 300'], 'position': 'inside_top_right'},
-  'series': [{'type': 'scatter', 'legend': 'measured', 'data': (SELECT array_agg([x, y]) FROM d)}]
+  'series': [{'type': 'scatter', 'legend': 'measured', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d)}]
 })) AS chart;
 ```
 
@@ -99,7 +99,7 @@ SELECT kuva_render(to_json({
     'entries': ['n = 300', 'R² = 0.38'],
     'position': 'inside_top_right'
   },
-  'series': [{'type': 'scatter', 'color': 'steelblue', 'data': (SELECT array_agg([x, y]) FROM d),
+  'series': [{'type': 'scatter', 'color': 'steelblue', 'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
               'trend': 'linear'}]
 })) AS chart;
 ```

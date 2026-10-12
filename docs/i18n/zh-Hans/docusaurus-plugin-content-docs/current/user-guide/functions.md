@@ -32,7 +32,7 @@ matplotlib / ggplot2。
 ```sql {"type":"duckfn","show":"svg"}
 -- 点一下 Run：结果是一整份 SVG 文档，直接画在这里
 SELECT kuva_render(to_json({
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
@@ -104,7 +104,7 @@ kuva_render_file(spec_json VARCHAR) -> VARCHAR
 -- 在你的浏览器里打开这张图，并返回它写出的路径
 SELECT kuva_render_file({
   'file': {'open': true},
-  'series': [{'type': 'scatter', 'data': [[1, 2], [3, 4]]}]
+  'series': [{'type': 'scatter', 'data': [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}]
 }::JSON);
 ```
 

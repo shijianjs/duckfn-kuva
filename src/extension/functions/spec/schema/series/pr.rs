@@ -25,9 +25,9 @@ pub(crate) struct PrGroupSpec {
     pub label: String,
     /// 原始预测：`(score, is_positive)`。给了它就由 kuva 扫阈值。
     pub predictions: Option<Vec<PredictionSpec>>,
-    /// 预计算的曲线点 `(recall, precision)`；与 `predictions` 二选一，同时给时以
+    /// 预计算的曲线点 `{"recall":…, "precision":…}`；与 `predictions` 二选一，同时给时以
     /// `predictions` 为准。
-    pub points: Option<Vec<[f64; 2]>>,
+    pub points: Option<Vec<PrPoint>>,
     /// 类别先验 prevalence；`points` 模式下用它定基线，缺省 0.5。
     pub prevalence: Option<f64>,
     pub color: Option<String>,
@@ -40,24 +40,25 @@ pub(crate) struct PrGroupSpec {
     pub dasharray: Option<String>,
 }
 
-/// 一条原始预测：`[score, is_positive]` 或 `{"score": …, "label": …}`。
+/// 预计算的曲线点：`{"recall": …, "precision": …}`。
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(untagged)]
-pub(crate) enum PredictionSpec {
-    Tuple((f64, bool)),
-    Full {
-        score: f64,
-        /// 是否为正类。
-        label: bool,
-    },
+pub(crate) struct PrPoint {
+    pub recall: f64,
+    pub precision: f64,
+}
+
+/// 一条原始预测：`{"score": …, "label": …}`。
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub(crate) struct PredictionSpec {
+    pub score: f64,
+    /// 是否为正类。
+    pub label: bool,
 }
 
 impl PredictionSpec {
     pub fn parts(self) -> (f64, bool) {
-        match self {
-            PredictionSpec::Tuple(pair) => pair,
-            PredictionSpec::Full { score, label } => (score, label),
-        }
+        (self.score, self.label)
     }
 }

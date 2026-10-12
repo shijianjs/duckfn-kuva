@@ -18,7 +18,7 @@ SELECT kuva_render(to_json({
     'type': 'scatter',
     'color': 'steelblue',
     'size': 5,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
@@ -53,7 +53,7 @@ SELECT kuva_render(to_json({
   } ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  SELECT "group" AS g, array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   GROUP BY "group"
 );
@@ -80,7 +80,7 @@ SELECT kuva_render(to_json({
     'type': 'scatter',
     'color': 'steelblue',
     'size': 5,
-    'data': (SELECT array_agg([x, y] ORDER BY x) FROM t),
+    'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY x) FROM t),
     'band': {
       'lower': (SELECT array_agg(y - 1.2 ORDER BY x) FROM t),
       'upper': (SELECT array_agg(y + 1.2 ORDER BY x) FROM t)
@@ -91,9 +91,8 @@ SELECT kuva_render(to_json({
 
 ## Error bars
 
-Per-point errors live in the point itself, so a point that carries them is written as an object rather
-than an `[x, y]` pair. `x_err` / `y_err` take a **number** for a symmetric bar, or a
-**`[negative, positive]` pair** for an asymmetric one.
+Per-point errors live in the point itself. `x_err` / `y_err` take a **number** for a symmetric bar, or a
+**`{"neg": …, "pos": …}` object** for an asymmetric one.
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -116,7 +115,7 @@ SELECT kuva_render(to_json({
 
 ### Asymmetric errors
 
-Give the pair as `[negative, positive]` — the two arms do not have to match.
+Give the object as `{"neg": …, "pos": …}` — the two arms do not have to match.
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -127,9 +126,9 @@ SELECT kuva_render(to_json({
     'color': 'steelblue',
     'size': 6,
     'data': [
-      {'x': 1.0, 'y': 5.0, 'y_err': [0.3, 0.8]},
-      {'x': 2.0, 'y': 6.0, 'y_err': [0.5, 1.2]},
-      {'x': 3.0, 'y': 7.5, 'y_err': [0.2, 1.6]}
+      {'x': 1.0, 'y': 5.0, 'y_err': {"neg": 0.3, "pos": 0.8}},
+      {'x': 2.0, 'y': 6.0, 'y_err': {"neg": 0.5, "pos": 1.2}},
+      {'x': 3.0, 'y': 7.5, 'y_err': {"neg": 0.2, "pos": 1.6}}
     ]
   }]
 })) AS chart;
@@ -152,7 +151,7 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({
     'type': 'scatter',
-    'data': [[1.0, y], [2.0, y], [3.0, y]],
+    'data': [{"x": 1.0, "y": y}, {"x": 2.0, "y": y}, {"x": 3.0, "y": y}],
     'color': color,
     'size': 7,
     'marker': marker,
@@ -182,7 +181,7 @@ SELECT kuva_render(to_json({
   'series': [{
     'type': 'scatter',
     'color': 'steelblue',
-    'data': [[1.0, 3.0], [2.5, 6.5], [4.0, 4.0], [5.5, 8.0], [7.0, 5.5], [8.5, 9.0]],
+    'data': [{"x": 1.0, "y": 3.0}, {"x": 2.5, "y": 6.5}, {"x": 4.0, "y": 4.0}, {"x": 5.5, "y": 8.0}, {"x": 7.0, "y": 5.5}, {"x": 8.5, "y": 9.0}],
     'sizes': [5.0, 14.0, 9.0, 18.0, 11.0, 7.0]
   }]
 })) AS chart;
@@ -209,7 +208,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT
-    array_agg([x, y] ORDER BY x) AS pts,
+    array_agg({'x': x, 'y': y} ORDER BY x) AS pts,
     array_agg(CASE "group"
       WHEN 'Group_A' THEN '#4c72b0'
       WHEN 'Group_B' THEN '#c44e52'
@@ -247,7 +246,7 @@ SELECT kuva_render(to_json({
     'size': 5,
     'marker_opacity': 0.25,
     'marker_stroke_width': 0.7,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv');
@@ -269,7 +268,7 @@ SELECT kuva_render(to_json({
     'size': 4,
     'marker_opacity': 0,
     'marker_stroke_width': 1,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv');
@@ -288,7 +287,7 @@ SELECT kuva_render(to_json({
   'series': list({'type': 'scatter', 'size': 5, 'data': pts, 'legend': g} ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
+  SELECT "group" AS g, array_agg({'x': x, 'y': y} ORDER BY x) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv')
   GROUP BY "group"
 );
@@ -298,7 +297,7 @@ FROM (
 
 | Field | Type | What it sets |
 | --- | --- | --- |
-| `data` | point[] | **Required.** The points, as `[x, y]` pairs or `{x, y, x_err?, y_err?}` objects. |
+| `data` | point[] | **Required.** The points, as `{x, y, x_err?, y_err?}` objects. |
 | `size` | number | Uniform point radius (default 3). |
 | `sizes` | number[] | Per-point radii (a bubble plot); overrides `size`. |
 | `colors` | string[] | Per-point colours; falls back to `color` past the end. |
@@ -319,7 +318,7 @@ FROM (
   shorter one falls back to `size` / `color`.
 - Per-point colours do **not** update the legend — use one series per group when you want a labelled
   legend.
-- `x_err` / `y_err` take a number (symmetric) or a `[lower, upper]` pair (asymmetric).
+- `x_err` / `y_err` take a number (symmetric) or a `{"neg": …, "pos": …}` object (asymmetric).
 - `band.lower` and `band.upper` must each be the same length as `data`, in the same order.
 
 ## See also

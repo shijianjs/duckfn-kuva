@@ -25,7 +25,7 @@ pub(super) fn build_pr(s: PrSeries) -> Result<Plot, String> {
             let raw: Vec<(f64, bool)> = preds.iter().map(|p| p.parts()).collect();
             group = group.with_raw(raw);
         } else if let Some(points) = &g.points {
-            let pts: Vec<(f64, f64)> = points.iter().map(|p| (p[0], p[1])).collect();
+            let pts: Vec<(f64, f64)> = points.iter().map(|p| (p.recall, p.precision)).collect();
             group = group.with_points(pts);
         }
         if let Some(v) = g.prevalence {
@@ -74,8 +74,8 @@ mod tests {
       "series": [{
         "type": "pr",
         "groups": [
-          {"label": "model A", "predictions": [[0.9, true], [0.8, false], [0.6, true], [0.4, true], [0.2, false]], "auc_label": true, "optimal_point": true},
-          {"label": "model B", "points": [[1, 1], [0.8, 0.7], [0.5, 0.4], [0, 0]], "prevalence": 0.4, "dasharray": "4 2", "line_width": 2}
+          {"label": "model A", "predictions": [{"score": 0.9, "label": true}, {"score": 0.8, "label": false}, {"score": 0.6, "label": true}, {"score": 0.4, "label": true}, {"score": 0.2, "label": false}], "auc_label": true, "optimal_point": true},
+          {"label": "model B", "points": [{"recall": 1, "precision": 1}, {"recall": 0.8, "precision": 0.7}, {"recall": 0.5, "precision": 0.4}, {"recall": 0, "precision": 0}], "prevalence": 0.4, "dasharray": "4 2", "line_width": 2}
         ],
         "show_baseline": true,
         "baseline_dasharray": "2 2",

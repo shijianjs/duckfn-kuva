@@ -117,13 +117,9 @@ export type SeriesSpec =
   | RoseSpec
   | JointSpec;
 /**
- * 一个点：可以是 `[x, y]` 数组，也可以是 `{"x":…, "y":…}` 对象（带可选误差）。
+ * 误差棒：一个数是对称的，`{"neg":…, "pos":…}` 是不对称的两个臂。
  */
-export type PointSpec = [number, number] | PointFull;
-/**
- * 误差棒：一个数是对称的，`[下, 上]` 是不对称的两个臂。
- */
-export type ErrSpec = number | [unknown, unknown];
+export type ErrSpec = number | ErrArms;
 /**
  * 趋势线：`"linear"`，或带样式/统计量的对象。
  */
@@ -150,19 +146,6 @@ export type ColorMapSpec = string;
  */
 export type LollipopXSpec = number | string;
 export type QqModeKind = "normal" | "genomic";
-/**
- * 一条原始预测：`[score, is_positive]` 或 `{"score": …, "label": …}`。
- */
-export type PredictionSpec =
-  | [unknown, unknown]
-  | {
-      /**
-       * 是否为正类。
-       */
-      label: boolean;
-      score: number;
-      [k: string]: unknown;
-    };
 export type VolcanoLabelSpec =
   | VolcanoLabelKind
   | {
@@ -174,17 +157,6 @@ export type VolcanoLabelKind = "exact" | "nudge";
 export type ZReduceKind = "count" | "mean" | "sum" | "median" | "min" | "max";
 export type ClustermapNormKind = "none" | "row_z_score" | "col_z_score";
 export type PolarModeKind = "scatter" | "line";
-/**
- * 一个三维点：`[x, y, z]` 或 `{"x":…, "y":…, "z":…}`。
- */
-export type PointSpec3 =
-  | [number, number, number]
-  | {
-      x: number;
-      y: number;
-      z: number;
-      [k: string]: unknown;
-    };
 /**
  * 连边着色：`"source"`（取源节点色）/ `"gradient"` / `"per_link"`（用 `links[].color`）。
  */
@@ -236,19 +208,6 @@ export type CellShapeKind = "square" | "circle";
  * 树枝的画法。
  */
 export type TreeBranchStyleKind = "rectangular" | "slanted" | "circular";
-/**
- * 一处子树着色：`[节点下标, 颜色]` 或 `{"node": …, "color": …}`。
- *
- * 两种写法都收：数组写法更紧凑，对象写法在 SQL 里更好构造（`[[1, '#f00']]` 这种混合数组
- * DuckDB 会把两个元素统一成同一种类型，`int` 与 `string` 是合不到一起的）。
- */
-export type CladeColorSpec =
-  | [unknown, unknown]
-  | {
-      color: string;
-      node: number;
-      [k: string]: unknown;
-    };
 /**
  * 树的方向。
  */
@@ -820,13 +779,27 @@ export interface BandSpec {
   [k: string]: unknown;
 }
 /**
- * 一个点的完整写法。
+ * 一个点：`{"x":…, "y":…}`，可带 `x_err` / `y_err`。
  */
-export interface PointFull {
+export interface PointSpec {
   x: number;
   x_err?: ErrSpec | null;
   y: number;
   y_err?: ErrSpec | null;
+  [k: string]: unknown;
+}
+/**
+ * 不对称误差棒的两个臂 —— 具名字段比 `[下, 上]` 这种位置数组更不容易写反。
+ */
+export interface ErrArms {
+  /**
+   * 负方向的臂。
+   */
+  neg: number;
+  /**
+   * 正方向的臂。
+   */
+  pos: number;
   [k: string]: unknown;
 }
 export interface TrendDetailed {
@@ -1838,10 +1811,10 @@ export interface PrGroupSpec {
    */
   optimal_point?: boolean | null;
   /**
-   * 预计算的曲线点 `(recall, precision)`；与 `predictions` 二选一，同时给时以
+   * 预计算的曲线点 `{"recall":…, "precision":…}`；与 `predictions` 二选一，同时给时以
    * `predictions` 为准。
    */
-  points?: [number, number][] | null;
+  points?: PrPoint[] | null;
   /**
    * 原始预测：`(score, is_positive)`。给了它就由 kuva 扫阈值。
    */
@@ -1850,6 +1823,25 @@ export interface PrGroupSpec {
    * 类别先验 prevalence；`points` 模式下用它定基线，缺省 0.5。
    */
   prevalence?: number | null;
+  [k: string]: unknown;
+}
+/**
+ * 预计算的曲线点：`{"recall": …, "precision": …}`。
+ */
+export interface PrPoint {
+  precision: number;
+  recall: number;
+  [k: string]: unknown;
+}
+/**
+ * 一条原始预测：`{"score": …, "label": …}`。
+ */
+export interface PredictionSpec {
+  /**
+   * 是否为正类。
+   */
+  label: boolean;
+  score: number;
   [k: string]: unknown;
 }
 /**
@@ -1920,13 +1912,21 @@ export interface RocGroupSpec {
    */
   pauc_range?: [unknown, unknown] | null;
   /**
-   * 预计算的曲线点 `(fpr, tpr)`；与 `predictions` 二选一，同时给时以 `predictions` 为准。
+   * 预计算的曲线点 `{"fpr":…, "tpr":…}`；与 `predictions` 二选一，同时给时以 `predictions` 为准。
    */
-  points?: [number, number][] | null;
+  points?: RocPoint[] | null;
   /**
    * 原始预测：`(score, is_positive)`。给了它就由 kuva 扫阈值。
    */
   predictions?: PredictionSpec[] | null;
+  [k: string]: unknown;
+}
+/**
+ * 预计算的曲线点：`{"fpr": …, "tpr": …}`。
+ */
+export interface RocPoint {
+  fpr: number;
+  tpr: number;
   [k: string]: unknown;
 }
 /**
@@ -2339,7 +2339,7 @@ export interface TreeInputSpec {
    */
   edges?: TreeEdgeSpec[];
   /**
-   * linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
+   * linkage 矩阵：每行 `{"left":…, "right":…, "distance":…, "count":…}`。
    */
   linkage?: LinkageSpec | null;
   /**
@@ -2366,11 +2366,33 @@ export interface TreeEdgeSpec {
   [k: string]: unknown;
 }
 /**
- * linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
+ * linkage 矩阵：`labels` 是叶子名，`linkage` 每行一次合并。
  */
 export interface LinkageSpec {
   labels: string[];
-  linkage: [number, number, number, number][];
+  linkage: LinkageRow[];
+  [k: string]: unknown;
+}
+/**
+ * linkage 矩阵的一行：左右两个聚类下标、合并距离、聚类大小。
+ */
+export interface LinkageRow {
+  /**
+   * 合并后的聚类大小（叶子数）。
+   */
+  count: number;
+  /**
+   * 合并距离。
+   */
+  distance: number;
+  /**
+   * 左聚类下标。
+   */
+  left: number;
+  /**
+   * 右聚类下标。
+   */
+  right: number;
   [k: string]: unknown;
 }
 /**
@@ -2400,9 +2422,9 @@ export interface ContourSeries {
    */
   n_levels?: number | null;
   /**
-   * 散点写法：`(x, y, z)` 三元组，kuva 自己三角剖分。与 `z` 二选一。
+   * 散点写法：`{"x":…, "y":…, "z":…}`，kuva 自己三角剖分。与 `z` 二选一。
    */
-  points?: [number, number, number][] | null;
+  points?: PointSpec3[] | null;
   type: "contour";
   x_coords?: number[] | null;
   y_coords?: number[] | null;
@@ -2411,6 +2433,15 @@ export interface ContourSeries {
    * 与 `points` 二选一。
    */
   z?: number[][] | null;
+  [k: string]: unknown;
+}
+/**
+ * 一个三维点：`{"x":…, "y":…, "z":…}`。
+ */
+export interface PointSpec3 {
+  x: number;
+  y: number;
+  z: number;
   [k: string]: unknown;
 }
 /**
@@ -3434,7 +3465,7 @@ export interface PhyloSeries {
    */
   legend?: string | null;
   /**
-   * linkage 矩阵：每行 `[左下标, 右下标, 距离, 叶子数]`。
+   * linkage 矩阵：每行 `{"left":…, "right":…, "distance":…, "count":…}`。
    */
   linkage?: LinkageSpec | null;
   /**
@@ -3451,6 +3482,17 @@ export interface PhyloSeries {
    */
   support_threshold?: number | null;
   type: "phylo";
+  [k: string]: unknown;
+}
+/**
+ * 一处子树着色：`{"node": …, "color": …}`。
+ */
+export interface CladeColorSpec {
+  color: string;
+  /**
+   * 节点下标。
+   */
+  node: number;
   [k: string]: unknown;
 }
 /**

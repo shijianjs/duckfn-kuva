@@ -2,6 +2,7 @@
 
 use serde::Deserialize;
 
+use super::common::PointSpec3;
 use super::super::style::ColorMapSpec;
 
 /// 等高线图：网格值 -> 等值线（或填色）。
@@ -15,8 +16,8 @@ pub(crate) struct ContourSeries {
     pub z: Option<Vec<Vec<f64>>>,
     pub x_coords: Option<Vec<f64>>,
     pub y_coords: Option<Vec<f64>>,
-    /// 散点写法：`(x, y, z)` 三元组，kuva 自己三角剖分。与 `z` 二选一。
-    pub points: Option<Vec<[f64; 3]>>,
+    /// 散点写法：`{"x":…, "y":…, "z":…}`，kuva 自己三角剖分。与 `z` 二选一。
+    pub points: Option<Vec<PointSpec3>>,
     /// 显式的等值线数值（给了它就覆盖 `n_levels`）。
     pub levels: Option<Vec<f64>>,
     /// 等值线条数，默认 8。

@@ -39,7 +39,7 @@ Then call the function in any query:
 ```sql {"type":"duckfn","show":"svg"}
 -- press Run: the chart is drawn right here
 SELECT kuva_render(to_json({
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```

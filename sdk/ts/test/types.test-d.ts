@@ -44,7 +44,7 @@ test('RenderSpec 的顶层字段形状', () => {
 });
 
 test('判别联合按 type 收窄', () => {
-  const s: SeriesSpec = { type: 'scatter', data: [[1, 2]], legend: 'a' };
+  const s: SeriesSpec = { type: 'scatter', data: [{ x: 1, y: 2 }], legend: 'a' };
 
   if (s.type === 'scatter') {
     expectTypeOf(s).toEqualTypeOf<ScatterSeries>();

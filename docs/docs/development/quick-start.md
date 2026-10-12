@@ -72,7 +72,7 @@ live, and the `Table` tab always holds the raw SVG.
 ```sql {"type":"duckfn","show":"svg"}
 -- a scatter plot
 SELECT kuva_render(to_json({
-  'series': [{'type': 'scatter', 'data': array_agg([x, y])}]
+  'series': [{'type': 'scatter', 'data': array_agg({'x': x, 'y': y})}]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 ```
@@ -83,7 +83,7 @@ SELECT kuva_render(to_json({
   'series': list({'type': 'line', 'data': pts, 'legend': g} ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  SELECT "group" AS g, array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   GROUP BY "group"
 );
@@ -98,7 +98,7 @@ SELECT kuva_render('{"series":[]}');    -- error: a chart needs at least one ser
 A single query from the command line, without a REPL:
 
 ```shell
-just sql "SELECT left(kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}'), 4)"
+just sql "SELECT left(kuva_render('{\"series\":[{\"type\":\"scatter\",\"data\":[{\"x\":1,\"y\":2},{\"x\":3,\"y\":4}]}]}'), 4)"
 ```
 
 ## 4. Run the tests

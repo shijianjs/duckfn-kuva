@@ -88,7 +88,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, density]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': density}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv')
 );
 ```

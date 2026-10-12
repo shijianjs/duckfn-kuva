@@ -140,7 +140,7 @@ SELECT kuva_render(to_json({
     'type': 'phylo',
     'linkage': {
       'labels': ['A', 'B', 'C', 'D'],
-      'linkage': [[0, 1, 0.5, 2], [2, 3, 0.7, 2], [4, 5, 1.2, 4]]
+      'linkage': [{"left": 0, "right": 1, "distance": 0.5, "count": 2}, {"left": 2, "right": 3, "distance": 0.7, "count": 2}, {"left": 4, "right": 5, "distance": 1.2, "count": 4}]
     },
     'phylogram': true
   }]

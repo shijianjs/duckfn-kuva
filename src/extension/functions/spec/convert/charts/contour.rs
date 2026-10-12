@@ -41,8 +41,7 @@ pub(super) fn build_contour(s: ContourSeries) -> Result<Plot, String> {
             if points.is_empty() {
                 return Err("contour: `points` must not be empty".into());
             }
-            let pts: Vec<(f64, f64, f64)> =
-                points.iter().map(|p| (p[0], p[1], p[2])).collect();
+            let pts: Vec<(f64, f64, f64)> = points.iter().map(|p| p.xyz()).collect();
             ContourPlot::new().with_points(pts)
         }
         (None, None) => {
@@ -100,7 +99,7 @@ mod tests {
     const CONTOUR_POINTS: &str = r##"{
       "series": [{
         "type": "contour",
-        "points": [[0, 0, 1], [1, 0, 2], [0, 1, 2], [1, 1, 4], [0.5, 0.5, 3]],
+        "points": [{"x": 0, "y": 0, "z": 1}, {"x": 1, "y": 0, "z": 2}, {"x": 0, "y": 1, "z": 2}, {"x": 1, "y": 1, "z": 4}, {"x": 0.5, "y": 0.5, "z": 3}],
         "levels": [1, 2, 3],
         "line_color": "#222222"
       }]

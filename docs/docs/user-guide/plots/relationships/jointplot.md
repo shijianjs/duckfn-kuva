@@ -131,8 +131,8 @@ FROM (
 
 ## Error bars
 
-A group takes per-point `x_err` / `y_err` — a **number** for a symmetric bar, a **`[negative, positive]`
-pair** for an asymmetric one — just like a [scatter](./scatter.md) series. Each list must be the same
+A group takes per-point `x_err` / `y_err` — a **number** for a symmetric bar, a **`{"neg": …, "pos": …}`
+object** for an asymmetric one — just like a [scatter](./scatter.md) series. Each list must be the same
 length as the group's `x` / `y`.
 
 ```sql {"type":"duckfn","show":"svg"}

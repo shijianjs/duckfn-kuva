@@ -256,7 +256,7 @@ mod tests {
         "labels": "uppercase",
         "shared_legend": "right_top",
         "panels": [
-          {"title": "left panel", "series": [{"type": "scatter", "data": [[1, 2], [2, 3]], "legend": "s1"}]},
+          {"title": "left panel", "series": [{"type": "scatter", "data": [{"x":1,"y":2},{"x":2,"y":3}], "legend": "s1"}]},
           {"title": "right panel", "series": [{"type": "histogram", "values": [1, 2, 2, 3, 3, 3, 4], "bins": 5, "legend": "h1"}]}
         ]
       }
@@ -276,8 +276,8 @@ mod tests {
         "shaded_regions": [{"orientation": "horizontal", "min": 0.8, "max": 1.4, "opacity": 0.3}]
       },
       "series": [
-        {"type": "line", "data": [[0, 1], [1, 2], [2, 1.5], [3, 2.8]], "legend": "signal", "fill": true},
-        {"type": "scatter", "data": [[0, 1.1], [1, 1.9], [2, 1.6], [3, 2.7]], "legend": "observed"}
+        {"type": "line", "data": [{"x":0,"y":1},{"x":1,"y":2},{"x":2,"y":1.5},{"x":3,"y":2.8}], "legend": "signal", "fill": true},
+        {"type": "scatter", "data": [{"x":0,"y":1.1},{"x":1,"y":1.9},{"x":2,"y":1.6},{"x":3,"y":2.7}], "legend": "observed"}
       ]
     }"#;
 
@@ -305,9 +305,9 @@ mod tests {
         "row_heights": {"1": 200},
         "col_widths": {"1": 300},
         "panels": [
-          {"title": "tall", "series": [{"type": "scatter", "data": [[1, 2], [2, 3]], "legend": "a"}]},
-          {"title": "top right", "series": [{"type": "line", "data": [[0, 1], [1, 2]], "legend": "b"}]},
-          {"title": "bottom right", "series": [{"type": "line", "data": [[0, 2], [1, 1]], "legend": "c"}]}
+          {"title": "tall", "series": [{"type": "scatter", "data": [{"x":1,"y":2},{"x":2,"y":3}], "legend": "a"}]},
+          {"title": "top right", "series": [{"type": "line", "data": [{"x":0,"y":1},{"x":1,"y":2}], "legend": "b"}]},
+          {"title": "bottom right", "series": [{"type": "line", "data": [{"x":0,"y":2},{"x":1,"y":1}], "legend": "c"}]}
         ]
       }
     }"#;
@@ -322,7 +322,7 @@ mod tests {
     fn figure_structure_panel_count_is_reported() {
         let err = render_json(
             r#"{"figure":{"rows":2,"cols":2,"structure":[[0,1],[2,3]],
-                 "panels":[{"series":[{"type":"scatter","data":[[1,2]]}]}]}}"#,
+                 "panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}]}}"#,
         )
         .unwrap_err();
         assert!(
@@ -336,8 +336,8 @@ mod tests {
     fn figure_structure_must_be_rectangular() {
         let err = render_json(
             r#"{"figure":{"rows":2,"cols":2,"structure":[[0,1,2],[3]],
-                 "panels":[{"series":[{"type":"scatter","data":[[1,2]]}]},
-                           {"series":[{"type":"scatter","data":[[1,2]]}]}]}}"#,
+                 "panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]},
+                           {"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}]}}"#,
         )
         .unwrap_err();
         assert!(
@@ -350,7 +350,7 @@ mod tests {
     const DATETIME_AUTO: &str = r#"{
       "x_axis": {"min": 1704067200, "max": 1735689600},
       "x_datetime": {"unit": "auto"},
-      "series": [{"type": "line", "data": [[1704067200, 3], [1711929600, 5], [1719792000, 8], [1735689600, 2]]}]
+      "series": [{"type": "line", "data": [{"x":1704067200,"y":3},{"x":1711929600,"y":5},{"x":1719792000,"y":8},{"x":1735689600,"y":2}]}]
     }"#;
 
     #[test]
@@ -362,7 +362,7 @@ mod tests {
     fn datetime_without_format_is_reported() {
         let err = render_json(
             r#"{"x_datetime": {"unit": "month"},
-                "series": [{"type": "line", "data": [[1, 2], [2, 3]]}]}"#,
+                "series": [{"type": "line", "data": [{"x":1,"y":2},{"x":2,"y":3}]}]}"#,
         )
         .unwrap_err();
         assert!(
@@ -399,7 +399,7 @@ mod tests {
           {"title": "Cases", "entries": [{"label": "T1", "color": "tomato", "shape": "circle"}]}
         ]
       },
-      "series": [{"type": "scatter", "data": [[1, 2], [2, 3]], "legend": "raw"}]
+      "series": [{"type": "scatter", "data": [{"x":1,"y":2},{"x":2,"y":3}], "legend": "raw"}]
     }"#;
 
     #[test]
@@ -413,7 +413,7 @@ mod tests {
       "y_axis": {"name": "price", "min": 0, "max": 100},
       "y2_axis": {"name": "volume", "min": 0, "max": 1000, "log": false, "tick_format": "sci"},
       "x_axis": {"tick_step": 1, "label_offset": [0, 4]},
-      "series": [{"type": "line", "data": [[0, 20], [1, 45], [2, 60]], "legend": "price", "color": "#4c72b0"}],
+      "series": [{"type": "line", "data": [{"x":0,"y":20},{"x":1,"y":45},{"x":2,"y":60}], "legend": "price", "color": "#4c72b0"}],
       "secondary_series": [{"type": "bar", "categories": ["a", "b", "c"], "values": [300, 700, 500], "legend": "volume", "color": "#c44e52"}]
     }"##;
 
@@ -429,8 +429,8 @@ mod tests {
     fn twin_y_axis_range_is_inferred_from_secondary_series() {
         let svg = render_svg(
             r#"{"y2_axis": {"name": "volume"},
-                "series": [{"type": "line", "data": [[0, 20], [1, 45], [2, 60]]}],
-                "secondary_series": [{"type": "line", "data": [[0, 300], [1, 700], [2, 500]]}]}"#,
+                "series": [{"type": "line", "data": [{"x":0,"y":20},{"x":1,"y":45},{"x":2,"y":60}]}],
+                "secondary_series": [{"type": "line", "data": [{"x":0,"y":300},{"x":1,"y":700},{"x":2,"y":500}]}]}"#,
         );
         assert_renders(&svg, "TWIN_Y_AUTO_RANGE");
         assert!(
@@ -444,7 +444,7 @@ mod tests {
     /// 同一段 JSON 也能交给终端后端：输出不再是 SVG，而是盲文点阵 + ANSI 色的文本。
     #[test]
     fn renders_terminal_from_the_same_json() {
-        let text = render_terminal(r#"{"series":[{"type":"line","data":[[1,2],[2,3],[3,1]]}]}"#);
+        let text = render_terminal(r#"{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3},{"x":3,"y":1}]}]}"#);
         assert!(!text.is_empty(), "the terminal backend should produce text");
         // 默认网格 30 行，标题/坐标轴标签可能再多一两行。
         assert!(
@@ -493,7 +493,7 @@ mod tests {
     #[test]
     fn terminal_print_mode_gives_no_value_back() {
         let out = crate::extension::functions::spec::render_terminal_json(
-            r#"{"terminal":{"print":true},"series":[{"type":"line","data":[[1,2],[2,3]]}]}"#,
+            r#"{"terminal":{"print":true},"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}"#,
         )
         .unwrap();
         assert!(
@@ -514,10 +514,10 @@ mod tests {
         "rows": 1, "cols": 2,
         "panels": [
           {"y2_axis": {"name": "right", "min": 0, "max": 30},
-           "series": [{"type": "line", "data": [[0, 1], [1, 2]], "size": null, "trend": null}],
-           "secondary_series": [{"type": "line", "data": [[0, 10], [1, 20]]}]},
+           "series": [{"type": "line", "data": [{"x":0,"y":1},{"x":1,"y":2}], "size": null, "trend": null}],
+           "secondary_series": [{"type": "line", "data": [{"x":0,"y":10},{"x":1,"y":20}]}]},
           {"y2_axis": null,
-           "series": [{"type": "line", "data": [[0, 3], [1, 4]]}],
+           "series": [{"type": "line", "data": [{"x":0,"y":3},{"x":1,"y":4}]}],
            "secondary_series": null}
         ]
       }
@@ -559,7 +559,7 @@ mod tests {
         "position": "inside_top_right",
         "border": true
       },
-      "series": [{"type": "scatter", "data": [[1704067200, 2], [1706745600, 5], [1709251200, 3]], "legend": "y"}]
+      "series": [{"type": "scatter", "data": [{"x":1704067200,"y":2},{"x":1706745600,"y":5},{"x":1709251200,"y":3}], "legend": "y"}]
     }"##;
 
     #[test]
@@ -587,7 +587,7 @@ mod tests {
     #[test]
     fn figure_panel_count_mismatch_is_reported() {
         let err = render_json(
-            r#"{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2]]}]}]}}"#,
+            r#"{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}]}}"#,
         )
         .unwrap_err();
         assert!(err.contains("panels were given"), "unexpected message: {err}");
@@ -597,7 +597,7 @@ mod tests {
     fn secondary_x_axis_needs_both_ends() {
         // kuva 的第二根 x 轴只有 `with_x2_range(min, max)`，没有单端 setter。
         let err = render_json(
-            r#"{"x2_axis":{"min":0},"series":[{"type":"scatter","data":[[1,2]]}]}"#,
+            r#"{"x2_axis":{"min":0},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}"#,
         )
         .unwrap_err();
         assert!(err.contains("`min` and `max` together"), "unexpected message: {err}");
@@ -607,7 +607,7 @@ mod tests {
     fn secondary_axis_without_secondary_series_renders_a_normal_chart() {
         // 第二根轴只在 `render_twin_y` 下才画，所以只给 y2_axis 而没有 secondary_series 时
         // 就是一张普通的单轴图（不报错，只是那根轴不出现）。
-        let svg = render_svg(r#"{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[[1,2],[2,3]]}]}"#);
+        let svg = render_svg(r#"{"y2_axis":{"name":"right"},"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}"#);
         assert!(svg.starts_with("<svg"));
         assert!(!svg.contains(">right<"), "the second axis should not be drawn without secondary_series");
     }

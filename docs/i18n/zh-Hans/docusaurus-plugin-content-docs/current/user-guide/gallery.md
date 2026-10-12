@@ -57,7 +57,7 @@ INSERT INTO full_featured_panels SELECT 0, to_json({
   }]
 }) AS chart
 FROM (
-  SELECT list([x, y, z]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': z}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter3d.tsv')
 );
 WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/surface3d.tsv')),
@@ -376,7 +376,7 @@ INSERT INTO full_featured_panels SELECT 23, to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 30,
@@ -590,7 +590,7 @@ FROM (
   SELECT list(time ORDER BY time) AS xs,
          list(value - 0.5 ORDER BY time) AS los,
          list(value + 0.5 ORDER BY time) AS ups,
-         array_agg([time, value] ORDER BY time) AS pts
+         array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );
@@ -636,7 +636,7 @@ INSERT INTO full_featured_panels SELECT 39, to_json({
     'type': 'line',
     'color': 'steelblue',
     'stroke_width': 2,
-    'data': array_agg([time, value] ORDER BY time)
+    'data': array_agg({'x': time, 'y': value} ORDER BY time)
   }]
 }) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
@@ -697,7 +697,7 @@ INSERT INTO full_featured_panels SELECT 43, to_json({
     'type': 'scatter',
     'color': 'steelblue',
     'size': 5,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 }) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
@@ -1023,7 +1023,7 @@ SELECT kuva_render(to_json({
   'y_axis': {'name': 'y'},
   'series': [{
     'type': 'histogram2d',
-    'data': (SELECT array_agg([x, y]) FROM d),
+    'data': (SELECT array_agg({'x': x, 'y': y}) FROM d),
     'x_range': [(SELECT min(x) FROM d), (SELECT max(x) FROM d)],
     'y_range': [(SELECT min(y) FROM d), (SELECT max(y) FROM d)],
     'bins_x': 30,
@@ -1283,7 +1283,7 @@ SELECT kuva_render(to_json({
     'type': 'scatter',
     'color': 'steelblue',
     'size': 5,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
@@ -1302,7 +1302,7 @@ SELECT kuva_render(to_json({
     'type': 'line',
     'color': 'steelblue',
     'stroke_width': 2,
-    'data': array_agg([time, value] ORDER BY time)
+    'data': array_agg({'x': time, 'y': value} ORDER BY time)
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
@@ -1350,7 +1350,7 @@ FROM (
   SELECT list(time ORDER BY time) AS xs,
          list(value - 0.5 ORDER BY time) AS los,
          list(value + 0.5 ORDER BY time) AS ups,
-         array_agg([time, value] ORDER BY time) AS pts
+         array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   WHERE "group" = 'Condition_A'
 );
@@ -2282,7 +2282,7 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart
 FROM (
-  SELECT list([x, y, z]) AS pts
+  SELECT list({'x': x, 'y': y, 'z': z}) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter3d.tsv')
 );
 ```

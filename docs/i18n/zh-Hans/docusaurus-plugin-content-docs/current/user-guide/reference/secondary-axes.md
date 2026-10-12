@@ -52,8 +52,8 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT
-    array_agg([epoch(CAST(date AS DATE)), close] ORDER BY date) AS price,
-    array_agg([epoch(CAST(date AS DATE)), volume] ORDER BY date) AS vol
+    array_agg({'x': epoch(CAST(date AS DATE)), 'y': close} ORDER BY date) AS price,
+    array_agg({'x': epoch(CAST(date AS DATE)), 'y': volume} ORDER BY date) AS vol
   FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
 );
 ```

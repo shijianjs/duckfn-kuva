@@ -54,7 +54,7 @@ SELECT kuva_render(to_json({
   'series': [{'type': 'line', 'data': pts, 'color': '#4c72b0', 'fill': true, 'fill_opacity': 0.1}]
 })) AS chart
 FROM (
-  SELECT array_agg([epoch(CAST(date AS DATE)), close] ORDER BY date) AS pts
+  SELECT array_agg({'x': epoch(CAST(date AS DATE)), 'y': close} ORDER BY date) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
 );
 ```
@@ -71,7 +71,7 @@ SELECT kuva_render(to_json({
   'series': [{'type': 'line', 'data': pts, 'color': '#4c72b0'}]
 })) AS chart
 FROM (
-  SELECT array_agg([epoch(CAST(date AS DATE)), close] ORDER BY date) AS pts
+  SELECT array_agg({'x': epoch(CAST(date AS DATE)), 'y': close} ORDER BY date) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/candlestick.tsv')
 );
 ```

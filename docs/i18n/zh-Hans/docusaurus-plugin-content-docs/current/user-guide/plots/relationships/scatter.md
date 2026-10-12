@@ -17,7 +17,7 @@ SELECT kuva_render(to_json({
     'type': 'scatter',
     'color': 'steelblue',
     'size': 5,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
@@ -50,7 +50,7 @@ SELECT kuva_render(to_json({
   } ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([time, value] ORDER BY time) AS pts
+  SELECT "group" AS g, array_agg({'x': time, 'y': value} ORDER BY time) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/measurements.tsv')
   GROUP BY "group"
 );
@@ -76,7 +76,7 @@ SELECT kuva_render(to_json({
     'type': 'scatter',
     'color': 'steelblue',
     'size': 5,
-    'data': (SELECT array_agg([x, y] ORDER BY x) FROM t),
+    'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY x) FROM t),
     'band': {
       'lower': (SELECT array_agg(y - 1.2 ORDER BY x) FROM t),
       'upper': (SELECT array_agg(y + 1.2 ORDER BY x) FROM t)
@@ -87,8 +87,8 @@ SELECT kuva_render(to_json({
 
 ## 误差棒
 
-逐点误差写在点自己身上，所以带误差的点要写成对象，而不是 `[x, y]` 数组。`x_err` / `y_err` 给**一个数**就是
-对称的两臂，给 **`[负臂, 正臂]` 对**就是不对称的。
+逐点误差写在点自己身上。`x_err` / `y_err` 给**一个数**就是对称的两臂，给
+**`{"neg": …, "pos": …}` 对象**就是不对称的。
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -111,7 +111,7 @@ SELECT kuva_render(to_json({
 
 ### 不对称误差
 
-写成 `[负臂, 正臂]` —— 两臂长度不必相等。
+写成 `{"neg": …, "pos": …}` 对象 —— 两臂长度不必相等。
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -122,9 +122,9 @@ SELECT kuva_render(to_json({
     'color': 'steelblue',
     'size': 6,
     'data': [
-      {'x': 1.0, 'y': 5.0, 'y_err': [0.3, 0.8]},
-      {'x': 2.0, 'y': 6.0, 'y_err': [0.5, 1.2]},
-      {'x': 3.0, 'y': 7.5, 'y_err': [0.2, 1.6]}
+      {'x': 1.0, 'y': 5.0, 'y_err': {"neg": 0.3, "pos": 0.8}},
+      {'x': 2.0, 'y': 6.0, 'y_err': {"neg": 0.5, "pos": 1.2}},
+      {'x': 3.0, 'y': 7.5, 'y_err': {"neg": 0.2, "pos": 1.6}}
     ]
   }]
 })) AS chart;
@@ -146,7 +146,7 @@ SELECT kuva_render(to_json({
 FROM (
   SELECT list({
     'type': 'scatter',
-    'data': [[1.0, y], [2.0, y], [3.0, y]],
+    'data': [{"x": 1.0, "y": y}, {"x": 2.0, "y": y}, {"x": 3.0, "y": y}],
     'color': color,
     'size': 7,
     'marker': marker,
@@ -176,7 +176,7 @@ SELECT kuva_render(to_json({
   'series': [{
     'type': 'scatter',
     'color': 'steelblue',
-    'data': [[1.0, 3.0], [2.5, 6.5], [4.0, 4.0], [5.5, 8.0], [7.0, 5.5], [8.5, 9.0]],
+    'data': [{"x": 1.0, "y": 3.0}, {"x": 2.5, "y": 6.5}, {"x": 4.0, "y": 4.0}, {"x": 5.5, "y": 8.0}, {"x": 7.0, "y": 5.5}, {"x": 8.5, "y": 9.0}],
     'sizes': [5.0, 14.0, 9.0, 18.0, 11.0, 7.0]
   }]
 })) AS chart;
@@ -202,7 +202,7 @@ SELECT kuva_render(to_json({
 })) AS chart
 FROM (
   SELECT
-    array_agg([x, y] ORDER BY x) AS pts,
+    array_agg({'x': x, 'y': y} ORDER BY x) AS pts,
     array_agg(CASE "group"
       WHEN 'Group_A' THEN '#4c72b0'
       WHEN 'Group_B' THEN '#c44e52'
@@ -239,7 +239,7 @@ SELECT kuva_render(to_json({
     'size': 5,
     'marker_opacity': 0.25,
     'marker_stroke_width': 0.7,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv');
@@ -260,7 +260,7 @@ SELECT kuva_render(to_json({
     'size': 4,
     'marker_opacity': 0,
     'marker_stroke_width': 1,
-    'data': array_agg([x, y])
+    'data': array_agg({'x': x, 'y': y})
   }]
 })) AS chart
 FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv');
@@ -279,7 +279,7 @@ SELECT kuva_render(to_json({
   'series': list({'type': 'scatter', 'size': 5, 'data': pts, 'legend': g} ORDER BY g)
 })) AS chart
 FROM (
-  SELECT "group" AS g, array_agg([x, y] ORDER BY x) AS pts
+  SELECT "group" AS g, array_agg({'x': x, 'y': y} ORDER BY x) AS pts
   FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv')
   GROUP BY "group"
 );
@@ -289,7 +289,7 @@ FROM (
 
 | 字段 | 类型 | 设置什么 |
 | --- | --- | --- |
-| `data` | point[] | **必填。** 点，`[x, y]` 数组或 `{x, y, x_err?, y_err?}` 对象。 |
+| `data` | point[] | **必填。** 点，对象 `{x, y, x_err?, y_err?}`。 |
 | `size` | number | 统一的点半径（默认 3）。 |
 | `sizes` | number[] | 逐点半径（气泡图）；会覆盖 `size`。 |
 | `colors` | string[] | 逐点颜色；超出列表长度就回退到 `color`。 |
@@ -307,7 +307,7 @@ FROM (
 
 - **`data` 不能为空。** `sizes` / `colors` 比数据长没关系；比数据短就回退到 `size` / `color`。
 - 逐点颜色**不会**更新图例 —— 要带标签的图例就一个分组一个 series。
-- `x_err` / `y_err` 给一个数是对称的，给 `[下, 上]` 对是不对称的。
+- `x_err` / `y_err` 给一个数是对称的，给 `{"neg": …, "pos": …}` 对象是不对称的。
 - `band.lower` 与 `band.upper` 必须各自与 `data` 等长、且顺序一致。
 
 ## 另见

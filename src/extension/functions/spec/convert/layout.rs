@@ -519,7 +519,7 @@ mod tests {
     #[test]
     fn unknown_legend_position_is_reported() {
         let err = render_json(
-            r#"{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[[1,2]]}]}"#,
+            r#"{"legend":{"position":"middle_of_nowhere"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}"#,
         )
         .unwrap_err();
         assert!(err.contains("unknown legend.position"), "unexpected message: {err}");

@@ -86,14 +86,14 @@ describe.skipIf(!haveExtension)('kuva_render —— 真实 DuckDB + 本地扩展
 
   test('scatter：最小 spec 产出一张 SVG', async () => {
     const svg = await render({
-      series: [{ type: 'scatter', data: [[1, 2], [3, 4], [5, 3]] }],
+      series: [{ type: 'scatter', data: [{ x: 1, y: 2 }, { x: 3, y: 4 }, { x: 5, y: 3 }] }],
     });
     expectSvg(svg, 'scatter');
   });
 
   test('line：折线图也能渲染', async () => {
     const svg = await render({
-      series: [{ type: 'line', data: [[0, 1], [1, 2], [2, 1.5]] }],
+      series: [{ type: 'line', data: [{ x: 0, y: 1 }, { x: 1, y: 2 }, { x: 2, y: 1.5 }] }],
     });
     expectSvg(svg, 'line');
   });
@@ -164,7 +164,7 @@ FROM (VALUES (10, 3), (12, 5), (8, 2)) AS sales(revenue, profit)`;
   test('title 真的进了 SVG 文本', async () => {
     const svg = await render({
       title: { text: 'Quarterly Sales' },
-      series: [{ type: 'scatter', data: [[1, 2], [3, 4]] }],
+      series: [{ type: 'scatter', data: [{ x: 1, y: 2 }, { x: 3, y: 4 }] }],
     });
     expectSvg(svg, 'title');
     expect(svg.includes('Quarterly Sales'), 'title 文本应出现在 SVG 里').toBe(true);

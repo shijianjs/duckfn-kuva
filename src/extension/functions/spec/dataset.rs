@@ -640,22 +640,17 @@ fn points(ctx: &Ctx, three_d: bool) -> Result<Option<Value>, String> {
 
     let mut out = Vec::with_capacity(ctx.rows.len());
     for index in 0..ctx.rows.len() {
-        let xv = ctx.number(&x, index)?;
-        let yv = ctx.number(&y, index)?;
-
+        // 点一律写成对象行（`{"x":…, "y":…}`）：位置数组 `[x, y]` 已不再接受。
+        let mut point = Map::new();
+        point.insert("x".into(), ctx.number(&x, index)?);
+        point.insert("y".into(), ctx.number(&y, index)?);
         if let Some(z) = &z {
-            out.push(Value::Array(vec![xv, yv, ctx.number(z, index)?]));
-        } else if x_err.is_none() && y_err.is_none() {
-            // 没有误差就写成 `[x, y]`，与内联数据的短写法一致。
-            out.push(Value::Array(vec![xv, yv]));
+            point.insert("z".into(), ctx.number(z, index)?);
         } else {
-            let mut point = Map::new();
-            point.insert("x".into(), xv);
-            point.insert("y".into(), yv);
             insert_cell(&mut point, "x_err", ctx, x_err.as_deref(), index);
             insert_cell(&mut point, "y_err", ctx, y_err.as_deref(), index);
-            out.push(Value::Object(point));
         }
+        out.push(Value::Object(point));
     }
 
     Ok(Some(Value::Array(out)))
@@ -780,7 +775,10 @@ mod tests {
         )
         .expect("bind");
 
-        assert_eq!(out["series"][0]["data"], serde_json::json!([[1, 2], [3, 4]]));
+        assert_eq!(
+            out["series"][0]["data"],
+            serde_json::json!([{"x": 1, "y": 2}, {"x": 3, "y": 4}])
+        );
         assert!(out["series"][0].get("dataset").is_none());
         assert!(out["series"][0].get("encode").is_none());
     }
@@ -793,7 +791,10 @@ mod tests {
         )
         .expect("bind");
 
-        assert_eq!(out["series"][0]["data"], serde_json::json!([[1, 2], [3, 4]]));
+        assert_eq!(
+            out["series"][0]["data"],
+            serde_json::json!([{"x": 1, "y": 2}, {"x": 3, "y": 4}])
+        );
     }
 
     #[test]
@@ -902,7 +903,7 @@ mod tests {
     #[test]
     fn inline_data_beside_a_dataset_is_reported() {
         let err = bind_json(
-            r#"{"series":[{"type":"scatter","dataset":"d","data":[[1,2]]}]}"#,
+            r#"{"series":[{"type":"scatter","dataset":"d","data":[{"x":1,"y":2}]}]}"#,
             r#"{"d":[{"x":1,"y":2}]}"#,
         )
         .unwrap_err();
@@ -943,7 +944,10 @@ mod tests {
             r#"{"d":[{"a":"1.5","b":"2"}]}"#,
         )
         .expect("bind");
-        assert_eq!(out["series"][0]["data"], serde_json::json!([[1.5, 2.0]]));
+        assert_eq!(
+            out["series"][0]["data"],
+            serde_json::json!([{"x": 1.5, "y": 2.0}])
+        );
     }
 
     #[test]

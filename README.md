@@ -79,14 +79,14 @@ kuva are implemented**, grouped below by what they draw; the exact fields of eac
 
 | Group | `type` values |
 | --- | --- |
-| Basic | `scatter` `line` `bar` `histogram` `box` `pie` |
-| Distributions | `violin` `ridgeline` `raincloud` `strip` `dot_plot` `lollipop` `density` `ecdf` `qq` |
-| Test & model diagnostics | `forest` `pr` `roc` `survival` `volcano` `manhattan` `qq` |
-| Matrices & grids | `heatmap` `histogram2d` `hexbin` `clustermap` `contour` `dice_plot` `ternary` `polar` |
+| Distributions | `histogram` `histogram2d` `density` `ridgeline` `ecdf` `qq` `box` `violin` `strip` `raincloud` `hexbin` `heatmap` |
+| Relationships & correlation | `scatter` `line` `series` `band` `jointplot` `contour` `parallel` `polar` `ternary` `quiver` |
+| Categorical & comparison | `bar` `pie` `waffle` `funnel` `pareto` `pyramid` `lollipop` `slope` `dot_plot` `dice_plot` `venn` `mosaic` `rose` `radar` `upset` |
+| Time series | `stacked_area` `streamgraph` `candlestick` `waterfall` `horizon` `calendar` `gantt` `bump` |
+| Statistical & model evaluation | `roc` `pr` `survival` `forest` `volcano` `manhattan` |
+| Hierarchical & network | `treemap` `sunburst` `network` `sankey` `chord` `phylo` `clustermap` |
 | 3D | `scatter3d` `surface3d` |
-| Relationships & hierarchies | `sankey` `chord` `network` `treemap` `sunburst` `venn` `upset` `waffle` `mosaic` `phylo` `synteny` |
-| Time, finance, ranking | `candlestick` `calendar` `gantt` `horizon` `waterfall` `bump` `pareto` `funnel` `slope` `pyramid` `brick` |
-| Series, fields, text | `series` `radar` `parallel` `stacked_area` `streamgraph` `band` `quiver` `jointplot` `text` `legend_plot` `rose` |
+| Composite & utility | `brick` `synteny` `text` `legend_plot` |
 
 Two examples of what a `type` brings:
 

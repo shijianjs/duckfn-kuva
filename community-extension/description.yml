@@ -45,12 +45,22 @@ docs:
 
     The JSON spec uses snake_case keys and describes the drawing rather than one particular chart. The
     top-level keys are `title`, `x_axis`, `y_axis`, `grid`, `legend`, `theme`, `palette`, `font`,
-    `annotations`, `width`, `height` and `series`. Every `series` entry carries a `type` - currently
-    `scatter`, `line`, `bar`, `histogram`, `box` or `pie` - and declares only the fields that type
-    needs, so a scatter takes `data` as `[x, y]` pairs or objects with optional `x_err` / `y_err`,
-    a bar takes `categories` plus `values` (or several named `series` for grouped and stacked bars),
-    a histogram takes `values` with optional `bins` and a `kde` overlay, a box takes `groups` of raw
-    values, and a pie takes `slices`.
+    `annotations`, `width`, `height` and `series`. Every `series` entry carries a `type` from the table
+    below and declares only the fields that type needs, so a scatter takes `data` as `[x, y]` pairs or
+    objects with optional `x_err` / `y_err`, a bar takes `categories` plus `values` (or several named
+    `series` for grouped and stacked bars), a histogram takes `values` with optional `bins` and a `kde`
+    overlay, a box takes `groups` of raw values, and a pie takes `slices`.
+
+    | Group | `type` values |
+    | --- | --- |
+    | Distributions | `histogram` `histogram2d` `density` `ridgeline` `ecdf` `qq` `box` `violin` `strip` `raincloud` `hexbin` `heatmap` |
+    | Relationships & correlation | `scatter` `line` `series` `band` `jointplot` `contour` `parallel` `polar` `ternary` `quiver` |
+    | Categorical & comparison | `bar` `pie` `waffle` `funnel` `pareto` `pyramid` `lollipop` `slope` `dot_plot` `dice_plot` `venn` `mosaic` `rose` `radar` `upset` |
+    | Time series | `stacked_area` `streamgraph` `candlestick` `waterfall` `horizon` `calendar` `gantt` `bump` |
+    | Statistical & model evaluation | `roc` `pr` `survival` `forest` `volcano` `manhattan` |
+    | Hierarchical & network | `treemap` `sunburst` `network` `sankey` `chord` `phylo` `clustermap` |
+    | 3D | `scatter3d` `surface3d` |
+    | Composite & utility | `brick` `synteny` `text` `legend_plot` |
 
     JSON rather than a STRUCT is deliberate: the series of one figure are heterogeneous, and a STRUCT
     list cannot hold a mix of them.

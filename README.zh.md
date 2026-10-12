@@ -72,14 +72,14 @@ SELECT kuva_render_file({
 
 | 分组 | `type` |
 | --- | --- |
-| 基础 | `scatter` `line` `bar` `histogram` `box` `pie` |
-| 分布 | `violin` `ridgeline` `raincloud` `strip` `dot_plot` `lollipop` `density` `ecdf` `qq` |
-| 检验与模型诊断 | `forest` `pr` `roc` `survival` `volcano` `manhattan` |
-| 矩阵与网格 | `heatmap` `histogram2d` `hexbin` `clustermap` `contour` `dice_plot` `ternary` `polar` |
-| 三维 | `scatter3d` `surface3d` |
-| 关系与层级 | `sankey` `chord` `network` `treemap` `sunburst` `venn` `upset` `waffle` `mosaic` `phylo` `synteny` |
-| 时间、金融、排名 | `candlestick` `calendar` `gantt` `horizon` `waterfall` `bump` `pareto` `funnel` `slope` `pyramid` `brick` |
-| 序列、场、文字 | `series` `radar` `parallel` `stacked_area` `streamgraph` `band` `quiver` `jointplot` `text` `legend_plot` `rose` |
+| 分布 | `histogram` `histogram2d` `density` `ridgeline` `ecdf` `qq` `box` `violin` `strip` `raincloud` `hexbin` `heatmap` |
+| 关系与相关 | `scatter` `line` `series` `band` `jointplot` `contour` `parallel` `polar` `ternary` `quiver` |
+| 分类与对比 | `bar` `pie` `waffle` `funnel` `pareto` `pyramid` `lollipop` `slope` `dot_plot` `dice_plot` `venn` `mosaic` `rose` `radar` `upset` |
+| 时间序列 | `stacked_area` `streamgraph` `candlestick` `waterfall` `horizon` `calendar` `gantt` `bump` |
+| 统计与模型评估 | `roc` `pr` `survival` `forest` `volcano` `manhattan` |
+| 层级与网络 | `treemap` `sunburst` `network` `sankey` `chord` `phylo` `clustermap` |
+| 3D | `scatter3d` `surface3d` |
+| 组合与工具 | `brick` `synteny` `text` `legend_plot` |
 
 两个例子，看一个 `type` 能带多少东西：
 

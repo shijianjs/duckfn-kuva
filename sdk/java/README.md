@@ -58,9 +58,30 @@ cd sdk/java && mvn package   # 打成 jar
 前置：JDK 17+ 与 Maven。改 Rust 类型后的完整链路：
 `just json_schema`（重生成 schema）→ `just java_sdk`。
 
+## 真·集成测试（加载本地扩展）
+
+`src/test/java/…/RenderIntegrationTest.java` 用 DuckDB 的 JDBC 驱动（`org.duckdb:duckdb_jdbc`，
+test 作用域）加载**本地编译好的**扩展 `build/debug/duckfn_kuva.duckdb_extension`（配
+`allow_unsigned_extensions`），真正调一遍 `kuva_render`：
+
+- 一参形式：Java 拼好的 spec 序列化后交给 `kuva_render(?)`；
+- 两参形式：配置在 Java 里类型安全地拼（`dataset` + `encode`，走 `putAdditionalProperty`），数据那一项
+  交给 SQL 的 `to_json + array_agg` 折叠、只把 SVG 取回 —— 百万行也不回传客户端。
+
+跑之前先编扩展；扩展不存在时整段 skip（与 `sdk/ts` 的集成测试同一套规则）。
+
+```shell
+just build
+cd sdk/java && mvn test
+```
+
 ## 已知边界
 
 - `SeriesSpec` 是包装类而非常量联合；变体类型（`ScatterSeries` 等）是普通 POJO。
 - `const` 字段（如每个变体的 `type`）openapi-generator 生成为 `Object`，设值时给字符串即可。
+- `dataset` / `encode` 不在 schema 里（扩展在反序列化**之前**消费它们），图型模型因此开了
+  `additionalProperties`，用 `putAdditionalProperty("dataset", …)` 写入。
+- 未设的集合字段会被生成成空列表（`= new ArrayList<>()`），序列化出 `"data":[]`。扩展把「空的 inline 值」
+  视同没给，所以 `dataset` / `encode` 形式不受影响；配 `NON_NULL` 的 `ObjectMapper` 能让 JSON 更干净。
 - 生成物带 `@javax.annotation.Generated` / `@javax.annotation.Nonnull`，所以运行期依赖里带了
   `javax.annotation-api` 与 findbugs `jsr305`（见 `pom.xml`）。

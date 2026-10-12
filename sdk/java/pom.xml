@@ -47,6 +47,14 @@
       <version>3.0.2</version>
     </dependency>
 
+    <!-- 集成测试用 DuckDB 的 JDBC 驱动真加载本地扩展（扩展不存在时该测试 skip）。 -->
+    <dependency>
+      <groupId>org.duckdb</groupId>
+      <artifactId>duckdb_jdbc</artifactId>
+      <version>1.4.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>

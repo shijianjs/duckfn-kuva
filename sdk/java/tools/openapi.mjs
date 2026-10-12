@@ -117,6 +117,28 @@ function hoistInlineMembers() {
 
 hoistInlineMembers();
 
+// 去掉 `default`：schemars 给带 `#[serde(default)]` 的字段写了初值（如 `data` 的 `[]`），openapi-generator
+// 会照抄成 Java 字段的初值，于是「没设的字段」也会被序列化出去 —— `data: []` 与 `dataset` 冲突就是活例。
+// 默认值由扩展在运行期决定，模型这边不该预填（TS 模型同样没有默认值）。
+schemasStripDefaults();
+
+/** 递归删掉 `default` 键。 */
+function schemasStripDefaults() {
+  const strip = (node) => {
+    if (Array.isArray(node)) return node.map(strip);
+    if (node && typeof node === 'object') {
+      const out = {};
+      for (const [k, v] of Object.entries(node)) {
+        if (k === 'default') continue;
+        out[k] = strip(v);
+      }
+      return out;
+    }
+    return node;
+  };
+  for (const name of Object.keys(schemas)) schemas[name] = strip(schemas[name]);
+}
+
 // `SeriesSpec` 的判别信息：每个 oneOf 成员的 `properties.type.const` 就是它的标签。
 const seriesSpec = schemas.SeriesSpec;
 if (seriesSpec && Array.isArray(seriesSpec.oneOf)) {
@@ -129,6 +151,16 @@ if (seriesSpec && Array.isArray(seriesSpec.oneOf)) {
     if (typeof tag === 'string') mapping[tag] = ref;
   }
   seriesSpec.discriminator = { propertyName: 'type', mapping };
+
+  // 让每个图型变体都能带上扩展在反序列化**之前**消费的键（`dataset` / `encode`，见 spec/dataset.rs）：
+  // 给它们开 `additionalProperties`，openapi-generator 就会生成 `@JsonAnySetter`，宿主用
+  // `putAdditionalProperty(…)` 写入即可（TS 那边靠接口的索引签名达到同一目的）。
+  for (const member of seriesSpec.oneOf) {
+    const ref = member?.$ref;
+    if (typeof ref !== 'string') continue;
+    const target = schemas[ref.slice(ref.lastIndexOf('/') + 1)];
+    if (target && target.type === 'object') target.additionalProperties = true;
+  }
 }
 
 const doc = {

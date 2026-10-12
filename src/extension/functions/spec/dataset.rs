@@ -213,10 +213,18 @@ fn bind_series(series: &mut Map<String, Value>, registry: &Registry) -> Result<(
 
     // 同一个字段不能既有内联数据又由数据集填 —— 报错，不静默覆盖。
     //
+    // 但「空的 inline 值」（`null` 或 `[]`）视同没给：某些宿主 SDK 会把未设的集合字段预填成空数组
+    // （Java 的生成模型就是），那不是「用户同时给了两份数据」。
+    //
     // The same field cannot be given inline and filled from a dataset — that is an error, not a
-    // silent override.
+    // silent override. An **empty** inline value (`null` / `[]`) counts as not given, though: some
+    // host SDKs pre-fill unset collection fields with an empty list.
     for binding in bindings {
-        if series.contains_key(binding.field()) {
+        let Some(inline) = series.get(binding.field()) else {
+            continue;
+        };
+        let empty = inline.is_null() || inline.as_array().is_some_and(|a| a.is_empty());
+        if !empty {
             return Err(format!(
                 "{kind}: `dataset` fills `{}`, so `{}` cannot also be given inline",
                 binding.field(),

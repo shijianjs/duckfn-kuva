@@ -136,37 +136,6 @@ describe.skipIf(!haveExtension)('kuva_render —— 真实 DuckDB + 本地扩展
     expectSvg(svg, 'two-arg');
   });
 
-  test('data 由 SQL 查出：先查表、再把结果行喂给 render 的 dataset', async () => {
-    // 真实用法：数据来自一条 SQL 查询，宿主把结果行组装成数据集注册表、喂给两参 render —— 这正是
-    // 「配置类型安全、数据交给 SQL」的端到端形态。dataset 形式下 `data` 不写、由 Rust 端 bind 注入，
-    // 所以类型里它是可选的、这里直接按 RenderSpec 写。
-    // Real usage: data comes from a SQL query; the host assembles the result rows into the dataset
-    // registry and feeds them to the two-argument render — the end-to-end form of "config type-safe,
-    // data from SQL". The `dataset` form writes no inline `data` (injected by the Rust side), so the
-    // type keeps it optional and this is written as a plain RenderSpec.
-    await new Promise<void>((resolve, reject) => {
-      con.exec('CREATE TABLE sales(revenue INTEGER, profit INTEGER)', (err) =>
-        err ? reject(err) : resolve(),
-      );
-    });
-    await new Promise<void>((resolve, reject) => {
-      con.exec('INSERT INTO sales VALUES (10,3),(12,5),(8,2)', (err) =>
-        err ? reject(err) : resolve(),
-      );
-    });
-    const rows = await new Promise<Row[]>((resolve, reject) => {
-      const all = con.all.bind(con) as unknown as (...args: unknown[]) => void;
-      all('SELECT revenue, profit FROM sales', (err: Error | null, r: Row[]) =>
-        err ? reject(err) : resolve(r),
-      );
-    });
-    const spec: RenderSpec = {
-      series: [{ type: 'scatter', dataset: 'sales', encode: { x: 'revenue', y: 'profit' } }],
-    };
-    const svg = await render(spec, { sales: rows });
-    expectSvg(svg, 'sql-data');
-  });
-
   test('title 真的进了 SVG 文本', async () => {
     const svg = await render({
       title: { text: 'Quarterly Sales' },

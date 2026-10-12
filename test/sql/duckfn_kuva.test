@@ -266,13 +266,17 @@ SELECT left(kuva_render(
 ----
 <svg
 
-# The data argument comes straight from SQL: to_json + array_agg over a table.
+# The data argument can be built entirely in SQL — no round-trip to the client. With a million-row
+# table this is the only sane shape: array_agg + to_json collapse the rows into one JSON value inside
+# DuckDB and only the SVG string comes back. (The table below is tiny; the point is the form.)
+# data 参数可以在 SQL 内直接造出来，不回传客户端：百万行时也只靠 SQL 把行折叠成单个 JSON 值、只把
+# SVG 字符串取回。下面的表很小，重点在这个形态。
 query I
 SELECT left(kuva_render(
   '{"series":[{"type":"bar","dataset":"t","encode":{"name":"k","value":"v"}}]}',
   to_json({'t': array_agg({'k': k, 'v': v} ORDER BY k)})
 ), 4)
-FROM (VALUES ('a', 3), ('b', 5)) AS t(k, v);
+FROM (VALUES ('a', 3), ('b', 5), ('c', 7)) AS t(k, v);
 ----
 <svg
 

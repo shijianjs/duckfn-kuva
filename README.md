@@ -8,10 +8,13 @@ description of a chart into an SVG document. It wraps the Rust plotting library
 [kuva](https://crates.io/crates/kuva) (SVG backend only) and is written with
 [duckfn](https://crates.io/crates/duckfn), so no C++ build is involved.
 
-The point is reach: one `.duckdb_extension` file draws charts wherever DuckDB runs — the CLI, a Python
-or R session, the JVM, or the browser build (DuckDB-Wasm) — with no matplotlib, no ggplot2 and no
-plotting environment to install. The semantics follow seaborn and ggplot2: you describe the figure and
-the extension works out the axes, the bins and the layout.
+What makes it unusual is the combination: **statistical-semantics plotting that runs anywhere DuckDB
+does**. The semantics follow seaborn and ggplot2 — you describe what the figure *means* and the
+extension works out the axes, the bins, the scales and the layout — with no Python or R environment
+behind it. One `.duckdb_extension` file draws the same chart in the DuckDB CLI, a Python or R session,
+the JVM, or the browser build (DuckDB-Wasm): no matplotlib, no ggplot2, nothing else to install. Plots
+with those semantics are rare on any one platform; here it is the same code on every platform DuckDB
+runs.
 
 ## Quick start
 

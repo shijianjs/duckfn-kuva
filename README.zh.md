@@ -7,9 +7,11 @@
 JSON，还你一份 SVG 文档。它把 Rust 绘图库 [kuva](https://crates.io/crates/kuva)（只用 SVG 后端）包起来，
 用 [duckfn](https://crates.io/crates/duckfn) 写成，全程不碰 C++ 构建。
 
-它的价值在于**覆盖面**：同一份 `.duckdb_extension`，只要 DuckDB 能跑就能画 —— CLI、Python / R 会话、
-JVM、浏览器里的 DuckDB-Wasm —— 不需要 matplotlib、不需要 ggplot2，也不用装任何绘图环境。语义对标
-seaborn 与 ggplot2：你只描述这张图要什么，坐标轴、分箱、排版交给扩展。
+它难得的地方在于**组合**：跨平台的统计语义绘图。语义对标 seaborn 与 ggplot2 —— 你只描述这张图
+*要什么*，坐标轴、分箱、刻度、排版都交给扩展 —— 而背后没有 Python / R 环境。同一份
+`.duckdb_extension`，在 DuckDB CLI、Python / R 会话、JVM、浏览器里的 DuckDB-Wasm 里画出同一张图：
+不需要 matplotlib、不需要 ggplot2，也不用装任何别的东西。统计语义的绘图，哪怕放眼所有平台也相当
+少见；在这里，它就是 DuckDB 能跑的每个平台上的同一份代码。
 
 ## 快速上手
 

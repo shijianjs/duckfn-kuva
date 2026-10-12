@@ -205,21 +205,77 @@ function featuresContent(): FeaturesContent {
     sectionTitle: translate({
       id: 'homepage.features.title',
       description: 'Home page section title above the feature cards',
-      message: 'What duckfn_kuva gives you',
+      message: 'Built for statistical charts',
     }),
     items: [
+      {
+        icon: 'lucide:sigma',
+        title: translate({
+          id: 'homepage.features.semantics.title',
+          description: 'Home page feature card title',
+          message: 'Statistical semantics, not just shapes',
+        }),
+        details: translate({
+          id: 'homepage.features.semantics.details',
+          description: 'Home page feature card description',
+          message:
+            'The model is seaborn and ggplot2: you say what the figure means and the extension works out the axes, the bins, the scales and the layout \u2014 the part that makes a chart statistical rather than decorative.',
+        }),
+      },
+      {
+        icon: 'lucide:shapes',
+        title: translate({
+          id: 'homepage.features.types.title',
+          description: 'Home page feature card title',
+          message: '64 chart types, composable',
+        }),
+        details: translate({
+          id: 'homepage.features.types.details',
+          description: 'Home page feature card description',
+          message:
+            'Scatter, histogram and box through violin, sankey, candlestick and heatmap. Overlay several series on one set of axes, or lay them out as a multi-panel figure with a shared legend and a second y-axis.',
+        }),
+      },
       {
         icon: 'lucide:braces',
         title: translate({
           id: 'homepage.features.sql.title',
           description: 'Home page feature card title',
-          message: 'Call it from SQL',
+          message: 'One function: JSON in, SVG out',
         }),
         details: translate({
           id: 'homepage.features.sql.details',
           description: 'Home page feature card description',
           message:
-            "kuva_render is an ordinary DuckDB function: call it in any query, alongside DuckDB's own, with nothing to import. Hand it a JSON chart spec and it returns an SVG.",
+            'kuva_render is an ordinary DuckDB function: hand it a JSON chart spec and it returns a complete SVG document, with nothing to import and no host plotting library in the loop.',
+        }),
+      },
+      {
+        icon: 'lucide:monitor-down',
+        title: translate({
+          id: 'homepage.features.platforms.title',
+          description: 'Home page feature card title',
+          message: 'The same chart on every platform',
+        }),
+        details: translate({
+          id: 'homepage.features.platforms.details',
+          description: 'Home page feature card description',
+          message:
+            'One .duckdb_extension draws it in the CLI, a Python or R session, the JVM, or the browser (DuckDB-Wasm) \u2014 no matplotlib, no ggplot2, nothing to install on the host.',
+        }),
+      },
+      {
+        icon: 'lucide:play',
+        title: translate({
+          id: 'homepage.features.examples.title',
+          description: 'Home page feature card title',
+          message: 'Examples that run here',
+        }),
+        details: translate({
+          id: 'homepage.features.examples.details',
+          description: 'Home page feature card description',
+          message:
+            'Every example on this site runs in your browser through DuckDB-Wasm \u2014 click Run on the gallery or the function reference and see the real chart.',
         }),
       },
       {
@@ -234,62 +290,6 @@ function featuresContent(): FeaturesContent {
           description: 'Home page feature card description',
           message:
             'INSTALL duckfn_kuva FROM community; then LOAD duckfn_kuva; \u2014 signed builds matched to your DuckDB version and platform, so no -unsigned flag is needed.',
-        }),
-      },
-      {
-        icon: 'lucide:monitor-down',
-        title: translate({
-          id: 'homepage.features.platforms.title',
-          description: 'Home page feature card title',
-          message: 'Every platform, on every release',
-        }),
-        details: translate({
-          id: 'homepage.features.platforms.details',
-          description: 'Home page feature card description',
-          message:
-            'Each version attaches one .duckdb_extension per platform to a GitHub Release, and LOAD takes a file straight from its URL \u2014 no download step in between.',
-        }),
-      },
-      {
-        icon: 'lucide:shield-check',
-        title: translate({
-          id: 'homepage.features.versions.title',
-          description: 'Home page feature card title',
-          message: 'DuckDB 1.3 or newer',
-        }),
-        details: translate({
-          id: 'homepage.features.versions.details',
-          description: 'Home page feature card description',
-          message:
-            "Built against DuckDB's C extension API, so one binary loads into DuckDB 1.3 and later without a recompile.",
-        }),
-      },
-      {
-        icon: 'lucide:play',
-        title: translate({
-          id: 'homepage.features.examples.title',
-          description: 'Home page feature card title',
-          message: 'Examples that run here',
-        }),
-        details: translate({
-          id: 'homepage.features.examples.details',
-          description: 'Home page feature card description',
-          message:
-            'Every example on this site runs in your browser through DuckDB-Wasm \u2014 click Run on the function reference and see the real result.',
-        }),
-      },
-      {
-        icon: 'lucide:scale',
-        title: translate({
-          id: 'homepage.features.license.title',
-          description: 'Home page feature card title',
-          message: 'MIT licensed',
-        }),
-        details: translate({
-          id: 'homepage.features.license.details',
-          description: 'Home page feature card description',
-          message:
-            'Open source under the MIT license: the source, the tests and these pages all live in the repository.',
         }),
       },
     ],
@@ -379,8 +379,8 @@ function CodeShowcase(): ReactNode {
             id="homepage.showcase.lead"
             description="Home page paragraph introducing the SQL code blocks">
             The extension adds ordinary SQL functions, with nothing to import at
-            the call site. Install it once (left), then use the functions
-            anywhere a DuckDB function is allowed (right).
+            the call site. Install it once (left), then hand any query's data to
+            kuva_render and get an SVG chart back (right).
           </Translate>
         </p>
         <div className={styles.codeGrid}>
@@ -445,7 +445,12 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="How to install and use this DuckDB extension, the functions it adds, and where its development guide lives.">
+      description={translate({
+        id: 'homepage.meta.description',
+        description: 'Home page meta description for search engines and link previews',
+        message:
+          'Statistical plotting in SQL: install the DuckDB extension, call kuva_render, and browse all 64 chart types.',
+      })}>
       {/* Layout renders no <main> of its own: this is the page's only one. */}
       <main>
         {dfk(

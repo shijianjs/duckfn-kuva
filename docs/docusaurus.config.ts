@@ -75,7 +75,7 @@ const baseUrl = process.env.DOCS_BASE_URL ?? '/duckfn-kuva/';
 
 const config: Config = {
   title: 'duckfn_kuva',
-  tagline: 'Extra SQL functions for DuckDB',
+  tagline: 'Statistical plotting in SQL',
   favicon: 'img/logo.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future

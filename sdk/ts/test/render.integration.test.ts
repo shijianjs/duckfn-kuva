@@ -136,6 +136,31 @@ describe.skipIf(!haveExtension)('kuva_render —— 真实 DuckDB + 本地扩展
     expectSvg(svg, 'two-arg');
   });
 
+  test('spec 类型安全拼接、批量数据在 DuckDB 内 to_json+array_agg 不离开客户端', async () => {
+    // 这正是 kuva_render 做两个参数的用意：图表配置用 SDK 类型（RenderSpec）在宿主里安全地拼出来，
+    // 而批量数据交给 DuckDB 自己用 to_json + array_agg 折叠成单个 JSON 值、只把 SVG 取回 —— 百万行也
+    // 不回传客户端。第二个参数是一条 SQL 表达式，不是从查询结果里拉回来的 JS 对象。
+    // This is exactly why kuva_render takes two arguments: the chart config is assembled type-safely in
+    // the host via the SDK type (RenderSpec), while the bulk data is collapsed inside DuckDB by
+    // to_json + array_agg into a single JSON value and only the SVG comes back — even a million rows
+    // never round-trip to the client. The second argument is a SQL expression, not a JS object pulled
+    // from a query result.
+    const spec: RenderSpec = {
+      series: [{ type: 'scatter', dataset: 'sales', encode: { x: 'revenue', y: 'profit' } }],
+    };
+    const specJson = JSON.stringify(spec);
+    const sql =
+      'SELECT kuva_render(?, to_json({\'sales\': array_agg({\'revenue\': revenue, \'profit\': profit} ORDER BY revenue)})) AS svg ' +
+      'FROM (VALUES (10,3),(12,5),(8,2)) AS sales(revenue, profit)';
+    const svg = await new Promise<string>((resolve, reject) => {
+      const all = con.all.bind(con) as unknown as (...args: unknown[]) => void;
+      all(sql, specJson, (err: Error | null, rows: Row[]) =>
+        err ? reject(err) : resolve((rows[0]?.svg as string) ?? ''),
+      );
+    });
+    expectSvg(svg, 'sql-array-agg');
+  });
+
   test('title 真的进了 SVG 文本', async () => {
     const svg = await render({
       title: { text: 'Quarterly Sales' },

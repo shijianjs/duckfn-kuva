@@ -150,8 +150,8 @@ describe.skipIf(!haveExtension)('kuva_render —— 真实 DuckDB + 本地扩展
     };
     const specJson = JSON.stringify(spec);
     const sql =
-      'SELECT kuva_render(?, to_json({\'sales\': array_agg({\'revenue\': revenue, \'profit\': profit} ORDER BY revenue)})) AS svg ' +
-      'FROM (VALUES (10,3),(12,5),(8,2)) AS sales(revenue, profit)';
+      `SELECT kuva_render(?, to_json({'sales': array_agg({'revenue': revenue, 'profit': profit} ORDER BY revenue)})) AS svg
+FROM (VALUES (10, 3), (12, 5), (8, 2)) AS sales(revenue, profit)`;
     const svg = await new Promise<string>((resolve, reject) => {
       const all = con.all.bind(con) as unknown as (...args: unknown[]) => void;
       all(sql, specJson, (err: Error | null, rows: Row[]) =>

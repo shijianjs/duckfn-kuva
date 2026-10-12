@@ -42,13 +42,18 @@
     "gen": "json2ts -i ../json_schema/render.schema.json -o src/render.ts && json2ts -i ../json_schema/datasets.schema.json -o src/datasets.ts",
     "check": "tsc --noEmit",
     "test": "vitest run --typecheck",
+    "test:integration": "vitest run test/render.integration.test.ts",
     "build": "tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run check && npm run test && npm run build"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "duckdb": "1.4.2",
     "json-schema-to-typescript": "15.0.4",
     "typescript": "^5.9.0",
     "vitest": "^5.0.4"
+  },
+  "allowScripts": {
+    "duckdb@1.4.2": true
   }
 }

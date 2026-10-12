@@ -341,7 +341,8 @@ just release_dev 0.1.1-dev.0
 
 ## 相关文档
 
-- [`DEVELOPMENT.zh.md`](DEVELOPMENT.zh.md)（[英文](DEVELOPMENT.md)）：目录结构、骨架取舍、构建与测试。
+- [`docs/docs/development/`](docs/docs/development/quick-start.md)：开发指南 —— 目录结构、写函数、测试、
+  构建与发版（中文在 `docs/i18n/zh-Hans/docusaurus-plugin-content-docs/current/development/`）。
 - [`docs/README.md`](docs/README.md)：文档站的布局、命令、翻译流程与部署。
 - [`docs/AGENTS.md`](docs/AGENTS.md)：图型页怎么写、可运行 SQL 块与示例数据、页面互链、收尾自检。
 - [`README.zh.md`](README.zh.md)（[英文](README.md)）：SQL 接口与使用说明。

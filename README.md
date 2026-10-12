@@ -181,7 +181,8 @@ string and asserts the result, including that the SVG parses as well-formed XML.
 [SQLLogicTest](https://duckdb.org/docs/stable/dev/sqllogictest/intro) files that load the built
 extension and exercise it through SQL.
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for the iteration loop and what each test covers.
+See the [development guide](docs/docs/development/testing.md) for the iteration loop and what each test
+covers.
 
 ## WebAssembly
 
@@ -228,7 +229,6 @@ makes it `INSTALL duckfn_kuva FROM community` instead; the two files that requir
 | File | What is in it |
 | --- | --- |
 | [AGENTS.md](AGENTS.md) | conventions, the duckfn knowledge map, the release flow |
-| [DEVELOPMENT.md](DEVELOPMENT.md) | directory layout, skeleton trade-offs, build & test, docs export |
 | [docs/README.md](docs/README.md) | the documentation site: layout, commands, translations, deployment |
-| [DEVELOPMENT.zh.md](DEVELOPMENT.zh.md) | the same, in Chinese |
+| [docs/docs/development/quick-start.md](docs/docs/development/quick-start.md) | the development guide: structure, writing functions, testing, build & release |
 | [README.zh.md](README.zh.md) | this file, in Chinese |

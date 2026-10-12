@@ -168,7 +168,7 @@ Rust 单测是**内联**的 `#[cfg(test)] mod tests`，贴在被测文件末尾 
 [SQLLogicTest](https://duckdb.org/docs/stable/dev/sqllogictest/intro) 用例，加载构建好的产物、从 SQL
 侧走一遍。
 
-迭代方式与各用例覆盖的内容见 [DEVELOPMENT.zh.md](DEVELOPMENT.zh.md)。
+迭代方式与各用例覆盖的内容见[开发指南](docs/docs/development/testing.md)。
 
 ## WebAssembly
 
@@ -212,7 +212,6 @@ LOAD 'https://github.com/shijianjs/duckfn-kuva/releases/latest/download/duckfn_k
 | 文件 | 内容 |
 | --- | --- |
 | [AGENTS.md](AGENTS.md) | 约定、duckfn 知识地图、发版流程 |
-| [DEVELOPMENT.zh.md](DEVELOPMENT.zh.md) | 目录结构、骨架取舍、构建与测试、函数描述导出 |
 | [docs/README.md](docs/README.md) | 文档站：目录、命令、翻译、部署 |
-| [DEVELOPMENT.md](DEVELOPMENT.md) | 同上，英文 |
+| [docs/docs/development/quick-start.md](docs/docs/development/quick-start.md) | 开发指南：目录结构、写函数、测试、构建与发版 |
 | [README.md](README.md) | 本文件，英文 |

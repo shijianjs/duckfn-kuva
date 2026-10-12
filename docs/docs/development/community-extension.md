@@ -47,6 +47,10 @@ just docs_csv
 cp target/function_descriptions.csv community-extension/docs/function_descriptions.csv
 ```
 
+Neither command loads the extension, queries a catalog or needs DuckDB around: they read what was
+recorded at compile time, into the project's `target/`. `cargo run --bin duckfn --
+function_descriptions --all` also lists functions that carry no description.
+
 From the attribute to the page:
 
 ```mermaid

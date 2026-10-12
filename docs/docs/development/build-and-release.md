@@ -66,6 +66,11 @@ comments, syncs `Cargo.lock` and fixes `docs/extension-version.ts`, which is whe
 site gets the version number it prints. The tag has to match `Cargo.toml`, because cargo writes the
 version into the built extension — a mismatch would publish a release claiming another version.
 
+The documentation site is versioned from the same number: its pages carry the `{{EXTENSION_VERSION}}`
+placeholder (inside a code block or inline code), and `scripts/release.sh` writes the new value into
+`docs/extension-version.ts` during the bump — so a release never edits markdown by hand. The script's
+bulk replacement skips `docs/package-lock.json`, `docs/docs` and `docs/i18n` for exactly that reason.
+
 Only real releases get a tag. A version like `0.1.1-dev.0` stays on the branch: no tag, no release, no
 site deployment.
 

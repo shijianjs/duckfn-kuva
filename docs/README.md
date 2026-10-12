@@ -4,8 +4,8 @@ Static site for this extension's documentation, built with
 [Docusaurus](https://docusaurus.io/) and deployed by
 [`.github/workflows/DeployDocs.yml`](../.github/workflows/DeployDocs.yml) to GitHub Pages.
 
-The site is bilingual (English and Simplified Chinese) and documents the extension's one function,
-`kuva_render`, and the JSON chart spec it accepts. The pages under `docs/docs/` are yours to rewrite —
+The site is bilingual (English and Simplified Chinese) and documents the functions the extension
+registers and the JSON chart spec they accept. The pages under `docs/docs/` are yours to rewrite —
 or delete the whole directory if you would rather not have a site (nothing else in the repository
 depends on it).
 

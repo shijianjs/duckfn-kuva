@@ -4,7 +4,7 @@
 #
 # 它改的是「扩展名」这一个字符串：Cargo.toml（crate 名与 [[example]] 名）、Makefile 的 EXTENSION_NAME、
 # src/extension/mod.rs 的 duckfn_entrypoint!、Justfile 的 extension_name、CI 工作流的 extension_name，
-# 以及 README / DEVELOPMENT 里出现的那些（加载路径、示例命令）。这些地方必须处处一致，漏一处就是
+# 以及 README 与文档站里出现的那些（加载路径、示例命令）。这些地方必须处处一致，漏一处就是
 # `LOAD` 失败或 CI 构建出的产物名字对不上。
 #
 # 它**不**动注册到 SQL 的函数名：那是你的域代码，不是扩展名的一部分。函数名前缀的约定见 AGENTS.md
@@ -110,7 +110,7 @@ echo "  2. docs/docusaurus.config.ts 的 REPO_URL —— 改成你的仓库地�
 echo "     它同时是首页徽章与可运行 SQL 预加载的来源，不换会去模板仓库找 Release）"
 echo "  3. community-extension/description.yml —— extension.name / description / maintainers / repo"
 echo "  4. AGENTS.md 的 {{PROJECT_GOAL}} 占位符"
-echo "  5. README / DEVELOPMENT 的说明文字（模板的来历、示例用法）"
+echo "  5. README 与文档站的说明文字（模板的来历、示例用法）"
 echo "  6. LICENSE 的版权人、Cargo.toml 的 duckfn 版本"
 echo
 git --no-pager diff --stat

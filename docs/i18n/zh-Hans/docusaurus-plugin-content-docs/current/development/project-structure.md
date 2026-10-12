@@ -13,13 +13,16 @@ src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; m
 src/bin/duckfn.rs      duckfn CLI 入口  ->  #[path] mod extension; + duckfn::cli::run(...)
 
 src/extension/functions/
-    mod.rs             mod kuva_render; mod spec;
-    kuva_render.rs     kuva_render(json) -> SVG：JSON 入口
+    mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_file; mod spec;
+    kuva_render.rs     kuva_render(json[, data]) -> SVG：JSON 入口
+    kuva_render_terminal.rs  同一段规格渲染成终端文本
+    kuva_render_file.rs      同一段规格写成 SVG 文件（仅原生构建）
     spec/mod.rs        render_json：解析 JSON 并渲染
     spec/schema/       JSON 的 schema，一组 serde 类型（面板 / 外观 / series）
-    spec/schema/series/  每种图型一个文件（scatter、line、bar、histogram、boxplot、pie）
+    spec/schema/series/  每种图型一个文件 —— kuva 的全部 64 种图型
     spec/convert/      spec -> kuva 的翻译（布局、枚举、每型一个 build 函数）
-                       每个文件末尾都是内联的 `#[cfg(test)] mod tests`：JSON 进、SVG 出，并验证是合法 XML
+                       charts/ 与 spec/schema/series/ 一一对应；每个文件末尾都是内联的
+                       `#[cfg(test)] mod tests`：JSON 进、SVG 出，并验证是合法 XML
                        （两个共用小工具在 spec/mod.rs）
 src/extension/types/
     mod.rs             空的槽：面向 SQL 的类型放这一层（目前为空）
@@ -60,6 +63,37 @@ flowchart LR
 只有**真正被链接进最终二进制**的目标文件才会生效。写成 `use duckfn_kuva::…` 时，链接器可能把这些模块
 整块丢掉，导出的 CSV 就会静默变空。
 
+## 每种图型一个文件
+
+`spec/schema/series/` 与 `spec/convert/charts/` 一一对应，两边都是**每种图型一个文件**。正是这一点
+让补齐剩下的图型很便宜：每加一种就是「一个 `mod`、一个 `SeriesSpec` 变体、一个 `build_*`」，已有的
+文件一个都不用动。各图型共用的部分 —— 外观字段、点、误差棒、趋势线、区间带 —— 都在
+`series/common.rs` 里，所以没有哪个文件会随着图型数量一起变长。等某个文件真的到了几百行，再按形态
+把它自己拆开。
+
+文件名是 `boxplot.rs` 而不是 `box.rs`：`box` 是 Rust 关键字，`mod box;` 编不过。
+
+## 依赖
+
+`Cargo.toml` 里每个 crate 都写了一句它负责什么、为什么选它。决定构建形态的是这几个：
+
+- **[duckfn](https://crates.io/crates/duckfn)** —— 把普通 Rust 函数注册进 DuckDB 的属性宏。只开了
+  `cli` 这一个 feature（`src/bin/duckfn.rs` 要用）；刻意不开 `all`，因为它会一起打开 `duckdb-1-5`，
+  也就是 DuckDB C API 的**不稳定区**（copy 函数、宿主 VFS、标量的 bind/init 槽位）。留在稳定区，
+  才有一份二进制跨 DuckDB 版本通用。
+- **[kuva](https://crates.io/crates/kuva)** —— 这个扩展要暴露的绘图库，**只用它的默认 feature 集**
+  （是空的），也就是只有 SVG 后端：它的依赖只有 chrono、colorous、ryu，纯 Rust、可编到 wasm。
+  `png` / `pdf` / `full` / `cli` / `parquet` 会带进 fontdue、png、krilla、arrow 之类（`pdf` 还要求
+  Rust ≥ 1.92）；一个都没开。
+- **[quick-xml](https://crates.io/crates/quick-xml)** —— **只作 dev-dependency**，单测用它确认渲染出的
+  SVG 是合法 XML。它不会进扩展二进制。
+
+[serde](https://crates.io/crates/serde) / [serde_json](https://crates.io/crates/serde_json) 是 JSON 入口的
+地基：规格是被反序列化成有类型的 struct，而不是从 Map 里逐键读。
+[quack-rs](https://crates.io/crates/quack-rs) 与
+[libduckdb-sys](https://crates.io/crates/libduckdb-sys) 是宏展开直接引用的 DuckDB C API 绑定；
+`libduckdb-sys` 只有头文件（`loadable-extension`），所以本地不需要编译 DuckDB。
+
 ## 命名规则
 
 | 规则 | 为什么 |
@@ -72,9 +106,9 @@ flowchart LR
 
 ## 开发笔记在哪
 
-仓库自己的 `DEVELOPMENT.zh.md`（英文版 `DEVELOPMENT.md`）收着文档站不写的设计说明：为什么是两个
-crate root、JSON 规格是怎么翻译成 kuva 的、每个依赖为什么被选进来。`AGENTS.md` 里是约定、发版流程，以及
-一份「duckfn 自己的文档按主题在哪儿」的对照表 —— 属性宏能做的所有事都在那边，不在本仓库里。
+设计说明就在这份指南里：上面的模块结构、[写函数](./writing-functions.md)、[测试](./testing.md) 与
+[构建与发布](./build-and-release.md)。`AGENTS.md` 里是仓库的约定、发版流程，以及一份「duckfn 自己的
+文档按主题在哪儿」的对照表 —— 属性宏能做的所有事都在那边，不在本仓库里。
 
 duckfn 0.0.11 起，那份指南连同**可运行的示例扩展**与它的 SQLLogicTest 用例都随 crate 一起发布，
 所以它们始终与 `Cargo.toml` 里的版本一致，也不需要 clone duckfn 的 git 仓库：

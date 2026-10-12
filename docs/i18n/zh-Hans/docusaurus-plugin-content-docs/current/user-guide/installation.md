@@ -72,4 +72,4 @@ FROM duckdb_functions()
 WHERE function_name = 'kuva_render';
 ```
 
-一个函数就是一行；如果一行都没有，说明你查的这个会话里没有加载这个扩展。
+每个函数一行；如果一行都没有，说明你查的这个会话里没有加载这个扩展。

@@ -1,7 +1,7 @@
 ---
 title: 编写函数
 sidebar_position: 3
-description: 本仓库里唯一的标量函数逐行拆解、duckfn 对入参与返回值的规则，以及新增函数时该抄哪一段。
+description: 本仓库注册的几个标量函数、duckfn 对入参与返回值的规则，以及新增函数时该抄哪一段。
 ---
 
 # 编写函数
@@ -19,15 +19,24 @@ flowchart LR
     cdylib --> load["在 DuckDB 里 LOAD"]
 ```
 
-## 这个函数
+## 这几个函数
 
-| 函数 | 类别 | 签名 | 行为 |
-| --- | --- | --- | --- |
-| `kuva_render` | 标量 | `VARCHAR -> VARCHAR` | 解析一段 JSON 图表规格并返回 SVG 文档；永不为 NULL，任何失败都是报错。 |
+三个标量函数，各占 `src/extension/functions/` 下的一个文件。它们收的是同一段 JSON 规格，区别只在拿到
+渲染结果之后做什么：
 
-它在 `src/extension/functions/kuva_render.rs` 里，只做一件事：把入参交给 `spec` 模块
-（`spec::render_json`）—— 由后者解析 JSON 并渲染。图表的 schema 与到 kuva 的翻译都在
-`src/extension/functions/spec/` 下。
+| 函数 | 签名 | 行为 |
+| --- | --- | --- |
+| `kuva_render` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 解析一段 JSON 图表规格并返回 SVG 文档；永不为 NULL，任何失败都是报错。 |
+| `kuva_render_terminal` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 同一段规格渲染成终端文本（盲文点阵 + ANSI 色）。 |
+| `kuva_render_file` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 同一段规格写成 SVG 文件并返回路径；仅原生构建。 |
+
+每个都是一层薄壳：把入参交给 `spec` 模块，由后者解析 JSON 并渲染。图表的 schema 与到 kuva 的翻译都在
+`src/extension/functions/spec/` 下，三个函数共用。
+
+每个名字下的第二个签名来自 `overloads_name`（见下面的[命名](#命名)）：两参数那种把一份 JSON **数据集
+注册表**当作第二个字符串收进来，这样宿主 SDK 造图表配置、SQL 造数据，两边都不必知道对方的形状。
+`kuva_render_file` 背后的两个文件在 `functions/mod.rs` 的模块声明处被 `#[cfg]` 掉（浏览器没有本地文件
+系统），所以那个函数在 wasm 构建里干脆不注册。
 
 ## 标量：三种返回形状
 

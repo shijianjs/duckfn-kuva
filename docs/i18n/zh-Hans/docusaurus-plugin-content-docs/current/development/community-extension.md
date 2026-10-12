@@ -45,6 +45,9 @@ just docs_csv
 cp target/function_descriptions.csv community-extension/docs/function_descriptions.csv
 ```
 
+这两条命令都不加载扩展、不查 catalog，也不需要 DuckDB 在旁边：它们读的是编译期记录下来的内容，写进项目的
+`target/`。`cargo run --bin duckfn -- function_descriptions --all` 还会把没写描述的函数一并列出。
+
 从属性到页面：
 
 ```mermaid

@@ -64,6 +64,10 @@ flowchart LR
 就是从那里来的）。tag 必须与 `Cargo.toml` 一致 —— cargo 会把版本号写进构建出的扩展二进制，对不上就会发出
 一个自称别的版本的 Release。
 
+文档站用的是同一个版本号：页面里写的是 `{{EXTENSION_VERSION}}` 占位符（放在围栏代码块或行内代码里），
+`scripts/release.sh` 在提版本号时把新值写进 `docs/extension-version.ts` —— 所以发版从不用手改 markdown。
+那个脚本的批量替换正是因此跳过 `docs/package-lock.json`、`docs/docs` 与 `docs/i18n`。
+
 只有正式版本才打 tag。`0.1.1-dev.0` 这类版本留在分支上：不打 tag、不发布、也不部署站点。
 
 ### 推一个 tag 会触发什么

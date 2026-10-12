@@ -13,14 +13,17 @@ src/extension/mod.rs   ->  duckfn_entrypoint!("duckfn_kuva"); + mod functions; m
 src/bin/duckfn.rs      duckfn CLI entry   ->  #[path] mod extension; + duckfn::cli::run(...)
 
 src/extension/functions/
-    mod.rs             mod kuva_render; mod spec;
-    kuva_render.rs     kuva_render(json) -> SVG: the JSON entry point
+    mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_file; mod spec;
+    kuva_render.rs     kuva_render(json[, data]) -> SVG: the JSON entry point
+    kuva_render_terminal.rs  the same spec rendered as terminal text
+    kuva_render_file.rs      the same spec written to an SVG file (native builds only)
     spec/mod.rs        render_json: parse the JSON and render it
     spec/schema/       the JSON schema as serde types (panel / style / series)
-    spec/schema/series/  one file per chart type (scatter, line, bar, histogram, boxplot, pie)
+    spec/schema/series/  one file per chart type — all 64 of kuva's plot types
     spec/convert/      spec -> kuva translation (layout, enums, one build fn per chart)
-                       every file ends with an inline `#[cfg(test)] mod tests`: JSON in, SVG out,
-                       validated as XML (the two shared helpers are in spec/mod.rs)
+                       charts/ mirrors spec/schema/series/; every file ends with an inline
+                       `#[cfg(test)] mod tests`: JSON in, SVG out, validated as XML
+                       (the two shared helpers are in spec/mod.rs)
 src/extension/types/
     mod.rs             an empty slot: SQL-facing types go here (none yet)
 
@@ -66,6 +69,41 @@ The `#[path]` attribute is not a shortcut, it is necessary: the documentation me
 are really linked into the final binary. With `use duckfn_kuva::…` the linker may drop those modules
 and the exported CSV comes out empty — silently.
 
+## One chart type per file
+
+`spec/schema/series/` and `spec/convert/charts/` mirror each other, and both hold **one chart type per
+file**. That is what keeps adding the remaining types cheap: each one is "a `mod`, a `SeriesSpec`
+variant and a `build_*`", with every existing file left untouched. What the types share — the style
+fields, points, error bars, trend lines, bands — lives in `series/common.rs`, so no single file grows
+with the number of chart types. Once one does reach a few hundred lines, split that type's file further
+by shape.
+
+The file is `boxplot.rs`, not `box.rs`: `box` is a Rust keyword, so `mod box;` does not compile.
+
+## Dependencies
+
+`Cargo.toml` carries a comment per crate saying what it is for and why it was picked. The choices that
+shape the build:
+
+- **[duckfn](https://crates.io/crates/duckfn)** — the attribute macros that register ordinary Rust
+  functions with DuckDB. Only the `cli` feature is on (it is what `src/bin/duckfn.rs` drives); `all` is
+  avoided on purpose, because it also turns on `duckdb-1-5`, the **unstable region** of DuckDB's C API
+  (copy functions, the host VFS, the scalar bind/init slots). Staying in the stable region is what makes
+  one binary portable across DuckDB releases.
+- **[kuva](https://crates.io/crates/kuva)** — the plotting library this extension exists to expose, with
+  **only its default feature set** (which is empty), i.e. the SVG backend alone: its dependencies are
+  just chrono, colorous and ryu, pure Rust and wasm-buildable. `png` / `pdf` / `full` / `cli` / `parquet`
+  pull in fontdue, png, krilla, arrow and the like (and `pdf` needs Rust ≥ 1.92); none is enabled.
+- **[quick-xml](https://crates.io/crates/quick-xml)** — a **dev-dependency only**, used by the unit tests
+  to prove the rendered SVG is well-formed XML. It never lands in the extension binary.
+
+[serde](https://crates.io/crates/serde) / [serde_json](https://crates.io/crates/serde_json) are the
+foundation of the JSON entry point: a spec is deserialized into typed structs rather than read key by
+key. [quack-rs](https://crates.io/crates/quack-rs) and
+[libduckdb-sys](https://crates.io/crates/libduckdb-sys) are the DuckDB C API bindings the macro
+expansion refers to; `libduckdb-sys` is headers only (`loadable-extension`), which is what keeps a local
+DuckDB build unnecessary.
+
 ## Naming rules
 
 | Rule | Why |
@@ -78,10 +116,11 @@ and the exported CSV comes out empty — silently.
 
 ## Where the development notes are
 
-The repository's own `DEVELOPMENT.md` (and `DEVELOPMENT.zh.md`) carries the design notes the docs site
-does not: why there are two crate roots, how the JSON spec is translated into kuva, which dependencies
-were chosen and why. `AGENTS.md` holds the conventions, the release flow and a topic-by-topic map of
-duckfn's own documentation — everything the attribute macros can do lives there, not in this repository.
+The design notes live in this guide: the module layout above, [writing
+functions](./writing-functions.md), [testing](./testing.md) and [build and
+release](./build-and-release.md). `AGENTS.md` holds the repository's conventions, the release flow and a
+topic-by-topic map of duckfn's own documentation — everything the attribute macros can do lives there,
+not in this repository.
 
 Since duckfn 0.0.11 that documentation, plus a runnable example extension and its SQLLogicTest files,
 ship **inside the crate package**, so they always match the version in `Cargo.toml` and need no clone of

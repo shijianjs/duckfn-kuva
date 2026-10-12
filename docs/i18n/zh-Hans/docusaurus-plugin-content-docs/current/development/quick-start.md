@@ -1,23 +1,23 @@
 ---
 title: 快速开始
 sidebar_position: 1
-description: 改扩展名、用官方 make 工具链构建出 .duckdb_extension、加载进 DuckDB，然后调用 kuva_render。
+description: 拉源码、用官方 make 工具链构建出 .duckdb_extension、加载进 DuckDB，然后调用 kuva_render。
 ---
 
 # 快速开始
 
-整页就是四步：
+整个流程，从头到尾：
 
 ```mermaid
 flowchart LR
-    rename["just rename"] --> build["just build"]
+    clone["git clone"] --> build["just build"]
     build --> load["用 -unsigned<br/>LOAD 产物"]
     load --> call["在 SQL 里<br/>调用函数"]
 ```
 
 ## 前置条件
 
-- **Rust** 1.86 或更新（`Cargo.toml` 里的 `rust-version`）。
+- **Rust** 1.87 或更新（`Cargo.toml` 里的 `rust-version`）。
 - **[just](https://github.com/casey/just)** —— recipe 会调用它：
 
   ```shell
@@ -30,16 +30,17 @@ flowchart LR
 - 一个 **DuckDB** 1.3 或更新的可执行文件（`duckdb` 在 `PATH` 里，或者用
   `just DUCKDB=/path/to/duckdb …` 指定）。
 
-## 1. 改扩展名
+## 1. 拉源码
 
 ```shell
-just rename csv_stats
+git clone https://github.com/shijianjs/duckfn-kuva
+cd duckfn-kuva
 ```
 
-`scripts/rename.sh` 会把扩展名必须一致的五处一次改齐 —— `Cargo.toml`（`[package] name` 与
-`[[example]] name`）、Makefile 的 `EXTENSION_NAME`、`src/extension/mod.rs` 里的入口点符号、Justfile、
-CI 工作流 —— 以及文档里出现的每一处，并按新包名重写 `Cargo.lock`。它最后会打印还需要人工过一遍的清单，
-函数名不在其中，因为那是项目自己的 API。
+这里扩展名是固定的：`duckfn_kuva` 既是入口点符号、也是产物文件名，所以 `Cargo.toml`、Makefile、
+`src/extension/mod.rs`、Justfile 与 CI 工作流里的写法必须逐字一致。只有从
+[duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template) 起的新项目才需要
+改它，用 `just rename <名字>`；那五处位置与规则见 `AGENTS.md`。
 
 ## 2. 构建
 

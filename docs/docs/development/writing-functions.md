@@ -1,7 +1,7 @@
 ---
 title: Writing functions
 sidebar_position: 3
-description: The one scalar function in this repository line by line, the rules duckfn applies to arguments and return values, and what to copy when you add your own.
+description: The scalar functions this repository registers, the rules duckfn applies to arguments and return values, and what to copy when you add your own.
 ---
 
 # Writing functions
@@ -20,15 +20,26 @@ flowchart LR
     cdylib --> load["LOAD in DuckDB"]
 ```
 
-## The function
+## The functions
 
-| Function | Kind | Signature | Behaviour |
-| --- | --- | --- | --- |
-| `kuva_render` | scalar | `VARCHAR -> VARCHAR` | Parses a JSON chart spec and returns an SVG document; never NULL, and any failure is an error. |
+Three scalar functions, one file each under `src/extension/functions/`. All of them take the same JSON
+spec and differ only in what they do with the rendered scene:
 
-It lives in `src/extension/functions/kuva_render.rs` and does nothing but hand its argument to the
-`spec` module (`spec::render_json`), which parses the JSON and renders it. The chart schema and the
-translation into kuva live under `src/extension/functions/spec/`.
+| Function | Signature | Behaviour |
+| --- | --- | --- |
+| `kuva_render` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Parses a JSON chart spec and returns an SVG document; never NULL, and any failure is an error. |
+| `kuva_render_terminal` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | The same spec rendered as terminal text (braille dots and ANSI colour). |
+| `kuva_render_file` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | The same spec written to an SVG file, returning the path. Native builds only. |
+
+Each is a thin shell: it hands its arguments to the `spec` module, which parses the JSON and renders
+it. The chart schema and the translation into kuva live under `src/extension/functions/spec/` and are
+shared by all three.
+
+The second signature under each name comes from `overloads_name` (see [Names](#names)): the
+two-argument form takes a JSON **dataset registry** as a second string, so a host SDK can build the
+chart config while SQL builds the data, neither knowing the other's shape. The two files behind
+`kuva_render_file` are `#[cfg]`'d out of a wasm build at the module declaration in `functions/mod.rs`
+— a browser has no local file system — so that function is simply not registered there.
 
 ## Scalars: three return shapes
 

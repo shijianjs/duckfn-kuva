@@ -12,11 +12,13 @@ adds SQL functions to DuckDB, and once it is loaded they behave like DuckDB's ow
 how it was written or to compile anything — the CLI, a Python or R session and the browser build all take
 the same `.duckdb_extension` file.
 
-It adds one function:
+It adds three functions:
 
 | Function | Kind | What it does |
 | --- | --- | --- |
 | [`kuva_render(json)`](./functions.md#kuva_render) | scalar | Renders a chart described by a JSON string and returns it as an SVG document. |
+| [`kuva_render_terminal(json)`](./functions.md#kuva_render_terminal) | scalar | Renders the same JSON as terminal text (braille dots and ANSI colour). |
+| [`kuva_render_file(json)`](./functions.md#kuva_render_file) | scalar | Renders the same JSON to an SVG file and returns its path. Native builds only. |
 
 `kuva_render` wraps [kuva](https://crates.io/crates/kuva), a pure-Rust statistical plotting library: you
 describe one figure — any of **64 chart types**, from a scatter or histogram to a violin, sankey,

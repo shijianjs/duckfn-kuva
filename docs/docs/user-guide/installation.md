@@ -76,5 +76,5 @@ FROM duckdb_functions()
 WHERE function_name = 'kuva_render';
 ```
 
-One row for the one function; if the list is empty, the extension is not loaded in the session you are
+One row per function; if the list is empty, the extension is not loaded in the session you are
 querying.

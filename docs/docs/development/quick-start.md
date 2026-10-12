@@ -1,23 +1,23 @@
 ---
 title: Quick start
 sidebar_position: 1
-description: Rename the extension, build the .duckdb_extension with the official make toolchain, load it into DuckDB and call kuva_render.
+description: Clone the source, build the .duckdb_extension with the official make toolchain, load it into DuckDB and call kuva_render.
 ---
 
 # Quick start
 
-The whole page in four steps:
+The whole loop, end to end:
 
 ```mermaid
 flowchart LR
-    rename["just rename"] --> build["just build"]
+    clone["git clone"] --> build["just build"]
     build --> load["LOAD the artifact<br/>with -unsigned"]
     load --> call["Call the functions<br/>from SQL"]
 ```
 
 ## Prerequisites
 
-- **Rust** 1.86 or newer (`rust-version` in `Cargo.toml`).
+- **Rust** 1.87 or newer (`rust-version` in `Cargo.toml`).
 - **[just](https://github.com/casey/just)** — the tool the recipes call:
 
   ```shell
@@ -30,17 +30,18 @@ flowchart LR
 - A **DuckDB** binary 1.3 or newer (`duckdb` on `PATH`, or point at it with
   `just DUCKDB=/path/to/duckdb …`).
 
-## 1. Rename the extension
+## 1. Get the source
 
 ```shell
-just rename csv_stats
+git clone https://github.com/shijianjs/duckfn-kuva
+cd duckfn-kuva
 ```
 
-`scripts/rename.sh` rewrites the five places the extension name has to match — `Cargo.toml`
-(`[package] name` and `[[example]] name`), `EXTENSION_NAME` in the Makefile, the entry-point symbol in
-`src/extension/mod.rs`, the Justfile and the CI workflow — plus every occurrence in the docs, and
-regenerates the `Cargo.lock` entry. It finishes by printing what still needs a human pass; the function
-names are not part of it, since they are the project's own API.
+The extension name is fixed here: `duckfn_kuva` is the entry-point symbol and the artifact file name, so
+it has to read identically in `Cargo.toml`, the Makefile, `src/extension/mod.rs`, the Justfile and the CI
+workflow. Only a project that starts from
+[duckfn-extension-template](https://github.com/shijianjs/duckfn-extension-template) changes it, with
+`just rename <name>`; the five places and the rules are in `AGENTS.md`.
 
 ## 2. Build
 

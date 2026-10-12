@@ -11,14 +11,15 @@ DuckDB 自带的函数一样用：可以放进投影、`WHERE` 条件或 `GROUP 
 
 | 函数 | 类别 | 签名 | 说明 |
 | --- | --- | --- | --- |
-| `kuva_render` | 标量 | `VARCHAR -> VARCHAR` | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
-| `kuva_render_terminal` | 标量 | `VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色；网格与 `print` 开关都在 JSON 里带着。 |
-| `kuva_render_file` | 标量 | `VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成一份 SVG **文件**并返回它的路径，可选用浏览器打开。只有原生构建支持；目录、文件名与 `open` 开关都在 JSON 里带着。 |
+| `kuva_render` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把一段 JSON 描述的图表渲染成一份 SVG 文档。可选的第二个参数是一份 JSON 数据集注册表。 |
+| `kuva_render_terminal` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色；网格与 `print` 开关都在 JSON 里带着。 |
+| `kuva_render_file` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成一份 SVG **文件**并返回它的路径，可选用浏览器打开。只有原生构建支持；目录、文件名与 `open` 开关都在 JSON 里带着。 |
 
 ## kuva_render
 
 ```text
 kuva_render(spec_json VARCHAR) -> VARCHAR
+kuva_render(spec_json VARCHAR, data_json VARCHAR) -> VARCHAR
 ```
 
 `kuva_render` 包装了 [kuva](https://crates.io/crates/kuva) —— 一个纯 Rust 的统计绘图库。它的入参是一段
@@ -40,6 +41,21 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
 
 为什么是 JSON 而不是 DuckDB 的 `STRUCT`：一张图里的 `series` 是异构的（`scatter` 与 `bar` 的字段各不
 相同），而 `STRUCT` 的 LIST 要求元素同型，表达不了 `[StructA, StructB]`。键名一律 snake_case。
+
+### 图表配置与数据分离
+
+第二个参数是一个 JSON 对象，把**数据集名**映射到行数组。系列用 `dataset` 挑一个、用 `encode` 把列接过来：
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(
+  '{"series":[{"type":"scatter","dataset":"sales","encode":{"x":"revenue","y":"profit"}}]}',
+  to_json({'sales': array_agg({'revenue': revenue, 'profit': profit} ORDER BY month)})
+) AS chart
+FROM (VALUES (1, 10, 3), (2, 12, 5), (3, 9, 4), (4, 15, 8)) AS t(month, revenue, profit);
+```
+
+它存在的意义，是让图表配置与数据可以由不同的东西来构造 —— 配置交给宿主 SDK、数据交给 SQL —— 两边都
+不必知道对方的形状。单参数写法完全没变。详见[数据集](./reference/datasets.md)。
 
 ## kuva_render_terminal
 

@@ -1,5 +1,5 @@
 // ============================================================================
-// `kuva_render_file(json)` -> 文件路径（原生构建专用）
+// `kuva_render_file(json)` / `kuva_render_file(json, data)` -> 文件路径（原生构建专用）
 //
 // 与 `kuva_render` 同一段 JSON、同一个 SVG 后端，区别只在**结果去了哪**：不是把 SVG 交回 SQL，而是
 // 写到磁盘上的一个文件，函数返回那个路径。要落盘就得有文件名与目录，所以这是一个「便捷函数」——
@@ -52,12 +52,32 @@ use super::spec;
 ///
 /// Renders a JSON chart description to an SVG file and returns the path.
 #[duck_scalar_function(
+    overloads_name = "kuva_render_file",
     description = "Renders a chart described by a JSON string to an SVG file and returns the file path; the JSON's own `file` object sets the directory, the file name and whether to open it in a browser",
-    comment = "Native builds only: writes the SVG to disk (default: a file in the system temp directory, created if the directory is missing) and optionally opens it in the system default browser; `file: {dir, name, open}` rides along in the JSON",
+    comment = "Native builds only: writes the SVG to disk (default: a file in the system temp directory, created if the directory is missing) and optionally opens it in the system default browser; `file: {dir, name, open}` rides along in the JSON, and an optional second argument supplies the data as a JSON dataset registry",
     example = "SELECT kuva_render_file('{\"file\":{\"dir\":\"/tmp/charts\",\"name\":\"scatter.svg\",\"open\":true},\"series\":[{\"type\":\"scatter\",\"data\":[[1,2],[3,4]]}]}')"
 )]
 fn kuva_render_file(spec_json: String) -> DuckOptionResult<String> {
-    match spec::file::render(&spec_json) {
+    match spec::file::render(&spec_json, None) {
+        Ok(path) => Ok(Some(path)),
+        Err(e) => Err(duck_error(format!("kuva_render_file: {e}"))),
+    }
+}
+
+/// 同上，但把数据放进第二个参数（数据集注册表）—— 与 `kuva_render(json, data)` 同一套规则。
+///
+/// The same, but with the data in the second argument (the dataset registry) — the same rules as
+/// `kuva_render(json, data)`.
+///
+/// This overload carries only an `example`: `just docs_csv` merges the overloads into one row per
+/// function set and keeps the **first non-empty** description / comment, so the one above is the one
+/// that reaches the community-extension docs page.
+#[duck_scalar_function(
+    overloads_name = "kuva_render_file",
+    example = "SELECT kuva_render_file('{\"series\":[{\"type\":\"scatter\",\"dataset\":\"d\",\"encode\":{\"x\":\"a\",\"y\":\"b\"}}]}', '{\"d\":[{\"a\":1,\"b\":2},{\"a\":3,\"b\":4}]}')"
+)]
+fn kuva_render_file_with_data(spec_json: String, data_json: String) -> DuckOptionResult<String> {
+    match spec::file::render(&spec_json, Some(&data_json)) {
         Ok(path) => Ok(Some(path)),
         Err(e) => Err(duck_error(format!("kuva_render_file: {e}"))),
     }

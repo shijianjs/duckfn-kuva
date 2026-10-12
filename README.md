@@ -47,6 +47,18 @@ extension already loaded).
 | `kuva_render_terminal(spec)` | scalar | `VARCHAR` → `VARCHAR` (terminal text: braille dots and ANSI colour) |
 | `kuva_render_file(spec)` | scalar | `VARCHAR` → `VARCHAR` (the path of the SVG file it wrote; native builds only) |
 
+Each of them also takes an **optional second argument**: a JSON object mapping dataset names to arrays of
+rows, so the chart *config* and the *data* can be built by different things — the config by a host SDK,
+the data by SQL. A series names a dataset with `dataset` and maps its columns with `encode`; the
+one-argument form is unchanged.
+
+```sql
+SELECT kuva_render(
+  '{"series":[{"type":"scatter","dataset":"sales","encode":{"x":"revenue","y":"profit"}}]}',
+  to_json({'sales': array_agg({'revenue': revenue, 'profit': profit})})
+) FROM sales;
+```
+
 DuckDB's JSON type reaches the extension as a plain `VARCHAR`, so the argument is just the spec text.
 Anything malformed — bad JSON, a wrong field type, an empty `series`, a `values` array that does not
 match its `categories` — fails the query with a message that says what is wrong, rather than quietly

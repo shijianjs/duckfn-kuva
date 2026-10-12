@@ -26,6 +26,11 @@ docs:
     -- Or a multi-panel figure grid
     SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}]}}');
     -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
+
+    -- The chart config and the data can be separate: pass a dataset registry as the second argument
+    SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d","encode":{"x":"a","y":"b"}}]}',
+                       '{"d":[{"a":1,"b":2},{"a":3,"b":4}]}');
+    -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
   extended_description: |
     Renders statistical charts from SQL. The extension wraps the Rust plotting library kuva (SVG backend
     only) and exposes it through three scalar functions, so charts work anywhere DuckDB runs - the CLI, a
@@ -38,10 +43,15 @@ docs:
     | `kuva_render_terminal(spec)` | scalar | `VARCHAR` -> `VARCHAR` (terminal text: braille dots and ANSI colour) |
     | `kuva_render_file(spec)` | scalar | `VARCHAR` -> `VARCHAR` (the path of the SVG file it wrote; native builds only) |
 
-    All three take the same JSON spec and keep their own options in it, so each stays a single-argument
-    function: `kuva_render_terminal` reads a top-level `terminal` object (`cols` / `rows` / `print`) and
-    `kuva_render_file` reads a top-level `file` object (`dir` / `name` / `open`), which is what lets one
-    statement write a chart to disk and optionally open it in a browser.
+    All three take the same JSON spec, and all three also take an optional second argument: a JSON
+    object mapping dataset names to arrays of rows, so the chart config and the data can be built by
+    different things - the config by a host SDK, the data by SQL. A series names a dataset with
+    `dataset` and maps its columns with `encode` (roles like `x`, `y`, `value`, `name`, `group`); the
+    one-argument form is unchanged.
+
+    Their own options stay in the JSON: `kuva_render_terminal` reads a top-level `terminal` object
+    (`cols` / `rows` / `print`) and `kuva_render_file` reads a top-level `file` object (`dir` / `name` /
+    `open`), which is what lets one statement write a chart to disk and optionally open it in a browser.
 
     The JSON spec uses snake_case keys and describes the drawing rather than one particular chart. The
     top-level keys are `title`, `x_axis`, `y_axis`, `grid`, `legend`, `theme`, `palette`, `font`,

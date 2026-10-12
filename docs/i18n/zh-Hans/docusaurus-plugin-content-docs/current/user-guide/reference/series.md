@@ -42,7 +42,7 @@ kuva 的 64 种图型全部已实现。侧边栏按 [kuva 官方文档](https://
 
 ## 每个 series 都能用的字段
 
-下面四个字段（几乎）每种图型都接受；各图型页面不再重复它们：
+下面这些字段（几乎）每种图型都接受；各图型页面不再重复它们：
 
 | 字段 | 类型 | 设置什么 |
 | --- | --- | --- |
@@ -50,6 +50,11 @@ kuva 的 64 种图型全部已实现。侧边栏按 [kuva 官方文档](https://
 | `legend` | string | 这个 series 的图例文字。**只有设了它，series 才会出现在图例里。** |
 | `tooltips` | boolean | 往 SVG 里注入悬停提示。`line` 未实现。 |
 | `tooltip_labels` | string[] | 每个数据点一条提示文字，按数据顺序。 |
+| `dataset` | string | 这个 series 改从具名数据集取数，而不是内联数据。需要 `kuva_render` 的第二个参数；见[数据集](./datasets.md)。 |
+| `encode` | object | 角色 → 字段名：数据集的哪一列喂给哪个数据字段。省略时按名自动映射。 |
+
+`dataset` / `encode` 是 series 从第二个参数取数的方式 —— 它们取代该 series 的内联数据字段，不能与内联
+数据同时给。两者都不给的 series 照旧从内联数据画。
 
 :::note[用色图编码的图型]
 

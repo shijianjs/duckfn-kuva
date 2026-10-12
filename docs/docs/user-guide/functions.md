@@ -12,14 +12,15 @@ projection, a `WHERE` clause or a `GROUP BY`, and they combine with built-in fun
 
 | Function | Kind | Signature | Summary |
 | --- | --- | --- | --- |
-| `kuva_render` | scalar | `VARCHAR -> VARCHAR` | Renders a chart described by a JSON string and returns it as an SVG document. |
-| `kuva_render_terminal` | scalar | `VARCHAR -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour. The grid and the `print` switch ride along in the JSON. |
-| `kuva_render_file` | scalar | `VARCHAR -> VARCHAR` | Renders the same JSON to an SVG **file** and returns its path, optionally opening it in a browser. Native builds only; the directory, file name and `open` switch ride along in the JSON. |
+| `kuva_render` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders a chart described by a JSON string and returns it as an SVG document. The optional second argument is a JSON dataset registry. |
+| `kuva_render_terminal` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour. The grid and the `print` switch ride along in the JSON. |
+| `kuva_render_file` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders the same JSON to an SVG **file** and returns its path, optionally opening it in a browser. Native builds only; the directory, file name and `open` switch ride along in the JSON. |
 
 ## kuva_render
 
 ```text
 kuva_render(spec_json VARCHAR) -> VARCHAR
+kuva_render(spec_json VARCHAR, data_json VARCHAR) -> VARCHAR
 ```
 
 `kuva_render` wraps [kuva](https://crates.io/crates/kuva), a pure-Rust statistical plotting library. Its
@@ -44,6 +45,23 @@ area — fullscreen is where zoom and pan live.
 JSON rather than a DuckDB `STRUCT`: one figure's `series` are heterogeneous (a `scatter` and a `bar`
 carry different fields), and a `STRUCT` list is homogeneous, so it cannot express `[StructA, StructB]`.
 Key names are snake_case throughout.
+
+### Chart config and data apart
+
+The second argument is a JSON object mapping **dataset names** to arrays of rows. A series names one with
+`dataset` and maps its columns with `encode`:
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(
+  '{"series":[{"type":"scatter","dataset":"sales","encode":{"x":"revenue","y":"profit"}}]}',
+  to_json({'sales': array_agg({'revenue': revenue, 'profit': profit} ORDER BY month)})
+) AS chart
+FROM (VALUES (1, 10, 3), (2, 12, 5), (3, 9, 4), (4, 15, 8)) AS t(month, revenue, profit);
+```
+
+It exists so the chart config and the data can be built by different things — the config by a host SDK,
+the data by SQL — without either knowing the other's shape. The one-argument form is unchanged. See
+[Datasets](./reference/datasets.md).
 
 ## kuva_render_terminal
 

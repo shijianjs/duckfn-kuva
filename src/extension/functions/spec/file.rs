@@ -66,6 +66,7 @@ use std::path::Path;
 use kuva::prelude::SvgBackend;
 
 use super::convert;
+use super::dataset;
 use super::schema::FileSpec;
 use super::{RenderSpec, drop_null_object_keys};
 
@@ -98,6 +99,8 @@ const MAX_INFO_CHARS: usize = 48;
 /// 所以这个入口只有一个参数。没点名文件名时，自动命名会带上图表类型与标题（能从 JSON 里挑到才给，
 /// 见 [`describe`]）。
 ///
+/// `data_json` 是可选的第二个参数（数据集注册表），与 `kuva_render` 同一条绑定路径。
+///
 /// 这是 `kuva_render_file` 的全部实现；调用方在 `functions/kuva_render_file.rs`，那个模块整个只在
 /// 非 wasm 下编译，所以这里不必再写 `#[cfg]`。
 ///
@@ -108,10 +111,13 @@ const MAX_INFO_CHARS: usize = 48;
 /// / `open`), so this entry takes exactly one argument. With no `file.name`, the auto-name carries the
 /// chart type and title (only when they can be read out of the JSON, see [`describe`]).
 ///
+/// `data_json` is the optional second argument (the dataset registry), bound along the same path
+/// `kuva_render` uses.
+///
 /// This is the whole of `kuva_render_file`; the caller is `functions/kuva_render_file.rs`, a module
 /// that only compiles off wasm, so no `#[cfg]` is needed here.
-pub(crate) fn render(json: &str) -> Result<String, String> {
-    let (mut spec, info) = parse_spec_with_info(json)?;
+pub(crate) fn render(json: &str, data_json: Option<&str>) -> Result<String, String> {
+    let (mut spec, info) = parse_spec_with_info(json, data_json)?;
     let opts = spec.file.take().unwrap_or_default();
     let scene = convert::render(spec)?;
     let svg = SvgBackend.render_scene(&scene);
@@ -128,10 +134,17 @@ pub(crate) fn render(json: &str) -> Result<String, String> {
 ///
 /// It is read out of the **raw JSON** (see [`describe`]): once a `RenderSpec` is deserialized, serde's
 /// `type` tag is gone and the typed side can no longer name the chart.
-fn parse_spec_with_info(json: &str) -> Result<(RenderSpec, Vec<String>), String> {
+fn parse_spec_with_info(
+    json: &str,
+    data_json: Option<&str>,
+) -> Result<(RenderSpec, Vec<String>), String> {
     let mut value: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
     drop_null_object_keys(&mut value);
+    if let Some(data_json) = data_json {
+        let registry = dataset::parse(data_json)?;
+        dataset::bind(&mut value, &registry)?;
+    }
     let info = describe(&value);
     let spec = serde_json::from_value(value).map_err(|e| format!("invalid JSON: {e}"))?;
     Ok((spec, info))
@@ -615,7 +628,7 @@ mod tests {
         })
         .to_string();
 
-        let path = render(&json).expect("render");
+        let path = render(&json, None).expect("render");
 
         // 自动命名里带上了图表类型与标题。
         assert!(path.contains("-scatter-Sales.svg"), "unexpected path: {path}");
@@ -636,7 +649,7 @@ mod tests {
         })
         .to_string();
 
-        let path = render(&json).expect("render");
+        let path = render(&json, None).expect("render");
 
         assert_eq!(path, format!("{dir_str}/chart.svg"));
 
@@ -645,7 +658,7 @@ mod tests {
 
     #[test]
     fn malformed_json_is_reported() {
-        let err = render("{oops").unwrap_err();
+        let err = render("{oops", None).unwrap_err();
         assert!(err.contains("invalid JSON"), "unexpected message: {err}");
     }
 }

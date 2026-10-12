@@ -13,6 +13,11 @@
 //! `convert/layout.rs`，`render_json` 自身的在下面。共用的两个小工具在 [`test_support`]。
 
 mod convert;
+// 第二个参数（数据集注册表）的解析与绑定：在反序列化之前把 series 的数据字段填好（见模块文档）。
+//
+// Parsing and binding of the second argument (the dataset registry): it fills each series' data
+// fields before deserialization (see the module docs).
+mod dataset;
 // 落盘那条路（`kuva_render_file`）整个是原生专用的：wasm 没有本地文件系统可写。在**模块声明处**一次
 // cfg 掉，`file.rs` 里就不必每个函数头顶挂一个 —— 平台差异集中在这两处声明（这里与 `functions/mod.rs`
 // 里的 `mod kuva_render_file;`）上。
@@ -46,7 +51,15 @@ const DEFAULT_TERM_ROWS: usize = 30;
 ///
 /// **解析前先把值为 `null` 的键剔掉**（见 [`drop_null_object_keys`]）。
 pub(crate) fn render_json(json: &str) -> Result<String, String> {
-    let scene = render_scene(json)?;
+    render_json_with(json, None)
+}
+
+/// 同上，但带上第二个参数（数据集注册表）—— `kuva_render(json, data_json)` 走这里。
+///
+/// The same, with the second argument (the dataset registry) — this is what
+/// `kuva_render(json, data_json)` calls.
+pub(crate) fn render_json_with(json: &str, data_json: Option<&str>) -> Result<String, String> {
+    let scene = render_scene(json, data_json)?;
     Ok(SvgBackend.render_scene(&scene))
 }
 
@@ -63,7 +76,18 @@ pub(crate) enum TerminalRender {
 /// 网格大小与「是否直接打印」都从 JSON 里的 `terminal` 字段取（`cols` / `rows` / `print`），
 /// 所以这个入口只有一个参数 —— 以后再往终端这一路上加选项也不用动签名。
 pub(crate) fn render_terminal_json(json: &str) -> Result<TerminalRender, String> {
-    let mut spec = parse_spec(json)?;
+    render_terminal_json_with(json, None)
+}
+
+/// 同上，但带上第二个参数（数据集注册表）—— `kuva_render_terminal(json, data_json)` 走这里。
+///
+/// The same, with the second argument (the dataset registry) — this is what
+/// `kuva_render_terminal(json, data_json)` calls.
+pub(crate) fn render_terminal_json_with(
+    json: &str,
+    data_json: Option<&str>,
+) -> Result<TerminalRender, String> {
+    let mut spec = parse_spec(json, data_json)?;
     let opts = spec.terminal.take().unwrap_or_default();
 
     // 终端是**暗底**：默认的亮色主题会把文字和线画成黑色，在暗底上根本看不见，所以这里
@@ -101,15 +125,31 @@ pub(crate) fn render_terminal_json(json: &str) -> Result<TerminalRender, String>
 }
 
 /// 解析 + 转换：得到与后端无关的 `Scene`，两个渲染入口共用这一段。
-fn render_scene(json: &str) -> Result<Scene, String> {
-    let spec = parse_spec(json)?;
+fn render_scene(json: &str, data_json: Option<&str>) -> Result<Scene, String> {
+    let spec = parse_spec(json, data_json)?;
     convert::render(spec)
 }
 
-fn parse_spec(json: &str) -> Result<RenderSpec, String> {
+/// 解析成强类型 [`RenderSpec`]。
+///
+/// 顺序是刻意的：**先剔 `null` 键，再绑数据集**。DuckDB 的 `to_json` 会给同一个表达式里所有结构体
+/// 取键的并集（没给 `dataset` 的 series 也会拿到 `"dataset": null`），先剔掉它们，才不会把
+/// 「没用数据集」误判成「`dataset` 不是字符串」。
+///
+/// Parse into a typed [`RenderSpec`].
+///
+/// The order matters: **drop `null` keys first, bind datasets second**. DuckDB's `to_json` unions the
+/// keys of every struct in one expression (a series without `dataset` still gets `"dataset": null`),
+/// and dropping those first is what keeps "no dataset here" from being read as "`dataset` is not a
+/// string".
+fn parse_spec(json: &str, data_json: Option<&str>) -> Result<RenderSpec, String> {
     let mut value: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("invalid JSON: {e}"))?;
     drop_null_object_keys(&mut value);
+    if let Some(data_json) = data_json {
+        let registry = dataset::parse(data_json)?;
+        dataset::bind(&mut value, &registry)?;
+    }
     serde_json::from_value(value).map_err(|e| format!("invalid JSON: {e}"))
 }
 
@@ -147,11 +187,21 @@ fn drop_null_object_keys(value: &mut serde_json::Value) {
 /// 而且 `#[cfg(test)]` 的内联模块能跟着被测代码一起搬，不必再多一份模块清单。
 #[cfg(test)]
 pub(crate) mod test_support {
-    pub(crate) use super::render_json;
+    pub(crate) use super::{render_json, render_json_with};
 
     /// 渲染，失败直接 panic（附上原始错误）。
     pub(crate) fn render_svg(json: &str) -> String {
         match render_json(json) {
+            Ok(svg) => svg,
+            Err(e) => panic!("expected the spec to render, but got: {e}"),
+        }
+    }
+
+    /// 带上数据集参数渲染，失败直接 panic。
+    ///
+    /// Render with a dataset argument, panicking on failure.
+    pub(crate) fn render_svg_with(json: &str, data: &str) -> String {
+        match render_json_with(json, Some(data)) {
             Ok(svg) => svg,
             Err(e) => panic!("expected the spec to render, but got: {e}"),
         }
@@ -193,6 +243,7 @@ pub(crate) mod test_support {
 #[cfg(test)]
 mod tests {
     use super::render_json;
+    use super::test_support::render_svg_with;
 
     #[test]
     fn malformed_json_is_reported() {
@@ -215,5 +266,74 @@ mod tests {
             err.contains("`series` must not be empty"),
             "unexpected message: {err}"
         );
+    }
+
+    /// 第二个参数（数据集）真的接进了渲染：同一段配置，数据由注册表提供。
+    ///
+    /// The second argument (datasets) really reaches the renderer: one config, the data supplied by
+    /// the registry.
+    #[test]
+    fn renders_from_a_dataset() {
+        let svg = render_svg_with(
+            r#"{"series":[{"type":"scatter","dataset":"d","encode":{"x":"a","y":"b"}}]}"#,
+            r#"{"d":[{"a":1,"b":2},{"a":3,"b":4},{"a":5,"b":3}]}"#,
+        );
+        super::test_support::assert_renders(&svg, "DATASET");
+    }
+
+    /// 多个数据集、行数各异：一条线一个数据集，另一条来自另一个数据集。
+    ///
+    /// Several datasets of different lengths: one line per dataset.
+    #[test]
+    fn renders_several_datasets_of_different_lengths() {
+        let svg = render_svg_with(
+            r#"{"series":[
+                 {"type":"line","dataset":"a","encode":{"x":"t","y":"v"},"legend":"a"},
+                 {"type":"line","dataset":"b","encode":{"x":"t","y":"v"},"legend":"b"}]}"#,
+            r#"{"a":[{"t":0,"v":1},{"t":1,"v":2},{"t":2,"v":1}],"b":[{"t":0,"v":3},{"t":1,"v":1}]}"#,
+        );
+        super::test_support::assert_renders(&svg, "TWO_DATASETS");
+        assert_eq!(svg.matches("<path").count(), 2, "expected one line per dataset");
+    }
+
+    /// 数据集驱动的 series 与内联数据的 series 可以叠加在同一张图上。
+    ///
+    /// A dataset-driven series and an inline-data series overlay on one figure.
+    #[test]
+    fn a_dataset_series_can_overlay_an_inline_one() {
+        let svg = render_svg_with(
+            r#"{"series":[
+                 {"type":"scatter","dataset":"d","encode":{"x":"a","y":"b"}},
+                 {"type":"line","data":[[0,0],[6,6]]}]}"#,
+            r#"{"d":[{"a":1,"b":2},{"a":3,"b":4}]}"#,
+        );
+        super::test_support::assert_renders(&svg, "DATASET_OVERLAY");
+    }
+
+    /// 分组分布图型：数据集的一行就是一组，`values` 本身是数组（分组在 SQL 里做）。
+    ///
+    /// A grouped distribution chart: one dataset row is one group, and `values` is itself an array
+    /// (the grouping happens in SQL).
+    #[test]
+    fn a_grouped_chart_reads_an_array_field() {
+        let svg = render_svg_with(
+            r#"{"series":[{"type":"violin","dataset":"d","encode":{"label":"label","values":"values"}}]}"#,
+            r#"{"d":[{"label":"a","values":[1,2,2,3]},{"label":"b","values":[4,4,5]}]}"#,
+        );
+        super::test_support::assert_renders(&svg, "GROUPED_DATASET");
+    }
+
+    /// 数据集只在第二个参数里给；第一个参数里出现 `dataset` 就报错（它不是 series 上的键）。
+    ///
+    /// Datasets live in the second argument only; a `dataset` in the first is an error (it is not a key
+    /// on a series).
+    #[test]
+    fn a_dataset_outside_a_series_is_reported() {
+        let message = super::render_json_with(
+            r#"{"dataset":"d","series":[{"type":"scatter","data":[[1,2]]}]}"#,
+            Some(r#"{"d":[]}"#),
+        )
+        .unwrap_err();
+        assert!(message.contains("only valid on a series"), "unexpected: {message}");
     }
 }

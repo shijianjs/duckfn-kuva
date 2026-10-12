@@ -43,7 +43,7 @@ A few types also accept a shorter alias: `dotplot`, `diceplot`, `histogram_2d`, 
 
 ## Fields every series accepts
 
-These four are common to (almost) every series; on the chart pages they are not repeated:
+These are common to (almost) every series; on the chart pages they are not repeated:
 
 | Field | Type | What it sets |
 | --- | --- | --- |
@@ -51,6 +51,12 @@ These four are common to (almost) every series; on the chart pages they are not 
 | `legend` | string | The legend entry for this series. **A series only appears in the legend when this is set.** |
 | `tooltips` | boolean | Injects hover tooltips into the SVG. Not implemented for `line`. |
 | `tooltip_labels` | string[] | One tooltip string per data point, in data order. |
+| `dataset` | string | Draw this series from a named dataset instead of inline data. Requires the second argument to `kuva_render`; see [Datasets](./datasets.md). |
+| `encode` | object | Role → field name: which dataset column feeds which data field. Auto-mapped by name when omitted. |
+
+`dataset` / `encode` are how a series reads its data from the second argument — they replace that series'
+inline data fields, and cannot be combined with them. A series with neither draws from its inline data,
+exactly as before.
 
 :::note[Colour-mapped charts]
 

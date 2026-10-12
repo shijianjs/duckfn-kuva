@@ -43,6 +43,17 @@ SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}')
 | `kuva_render_terminal(spec)` | 标量 | `VARCHAR` → `VARCHAR`（终端文本：盲文点阵 + ANSI 色） |
 | `kuva_render_file(spec)` | 标量 | `VARCHAR` → `VARCHAR`（它写出的 SVG 文件的路径；仅原生构建） |
 
+它们都有一个**可选的第二个参数**：一个 JSON 对象，把数据集名映射到行数组 —— 于是图表**配置**与**数据**
+可以由不同的东西构造：配置交给宿主 SDK，数据交给 SQL。系列用 `dataset` 挑数据集、用 `encode` 把列接过来；
+单参数写法完全没变。
+
+```sql
+SELECT kuva_render(
+  '{"series":[{"type":"scatter","dataset":"sales","encode":{"x":"revenue","y":"profit"}}]}',
+  to_json({'sales': array_agg({'revenue': revenue, 'profit': profit})})
+) FROM sales;
+```
+
 DuckDB 的 JSON 类型到扩展这一侧就是普通的 `VARCHAR`，所以入参就是那段描述文本本身。任何不合法的地方
 —— JSON 写错、字段类型不对、`series` 为空、`values` 与 `categories` 长度对不上 —— 都会让整条查询报错
 并说明问题，而不是悄悄返回 NULL：

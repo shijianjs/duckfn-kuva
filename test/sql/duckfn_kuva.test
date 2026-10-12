@@ -221,6 +221,109 @@ SELECT contains(kuva_render('{"y2_axis":{"name":"right"},"series":[{"type":"scat
 true
 
 # ============================================================================
+# kuva_render(json, data): the chart config and the data are separate arguments
+#
+# The data argument is an object mapping dataset names to arrays of row objects. A series picks one by
+# name (`dataset`) and maps its columns onto its own data fields with `encode`.
+# ============================================================================
+
+# An explicit `encode` mapping.
+query I
+SELECT left(kuva_render(
+  '{"series":[{"type":"scatter","dataset":"d","encode":{"x":"a","y":"b"}}]}',
+  '{"d":[{"a":1,"b":2},{"a":3,"b":4}]}'
+), 4);
+----
+<svg
+
+# Roles are auto-mapped by field name: a dataset whose fields are already named `x` / `y` needs no
+# `encode`.
+query I
+SELECT left(kuva_render(
+  '{"series":[{"type":"scatter","dataset":"d"}]}',
+  '{"d":[{"x":1,"y":2},{"x":3,"y":4}]}'
+), 4);
+----
+<svg
+
+# Several datasets of different lengths, one series each.
+query I
+SELECT length(kuva_render(
+  '{"series":[{"type":"line","dataset":"a","encode":{"x":"t","y":"v"}},
+              {"type":"line","dataset":"b","encode":{"x":"t","y":"v"}}]}',
+  '{"a":[{"t":0,"v":1},{"t":1,"v":2}],"b":[{"t":0,"v":3}]}'
+)) > 500;
+----
+true
+
+# A grouped distribution: one dataset row is one group, and `values` is itself an array (the grouping
+# is done in SQL).
+query I
+SELECT left(kuva_render(
+  '{"series":[{"type":"violin","dataset":"d","encode":{"label":"k","values":"v"}}]}',
+  '{"d":[{"k":"a","v":[1,2,2,3]},{"k":"b","v":[4,4,5]}]}'
+), 4);
+----
+<svg
+
+# The data argument comes straight from SQL: to_json + array_agg over a table.
+query I
+SELECT left(kuva_render(
+  '{"series":[{"type":"bar","dataset":"t","encode":{"name":"k","value":"v"}}]}',
+  to_json({'t': array_agg({'k': k, 'v': v} ORDER BY k)})
+), 4)
+FROM (VALUES ('a', 3), ('b', 5)) AS t(k, v);
+----
+<svg
+
+# The terminal and file entry points take the same second argument.
+query I
+SELECT length(kuva_render_terminal(
+  '{"terminal":{"cols":40,"rows":12},"series":[{"type":"bar","dataset":"t","encode":{"name":"k","value":"v"}}]}',
+  '{"t":[{"k":"a","v":3},{"k":"b","v":5}]}'
+)) > 0;
+----
+true
+
+query I
+SELECT kuva_render_file(
+  '{"file":{"dir":"__TEST_DIR__","name":"data.svg"},"series":[{"type":"scatter","dataset":"d","encode":{"x":"a","y":"b"}}]}',
+  '{"d":[{"a":1,"b":2},{"a":3,"b":4}]}'
+) = '__TEST_DIR__/data.svg';
+----
+true
+
+# An unknown dataset name lists the ones the data argument defines.
+statement error
+SELECT kuva_render('{"series":[{"type":"scatter","dataset":"nope"}]}', '{"d":[{"x":1,"y":2}]}');
+----
+unknown dataset `nope`
+
+# An unknown `encode` role lists the roles this chart type accepts.
+statement error
+SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d","encode":{"z":"a"}}]}', '{"d":[{"x":1,"y":2}]}');
+----
+`encode.z` is not a role
+
+# Inline data for the same field a dataset would fill is rejected, rather than silently overriding.
+statement error
+SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d","data":[[1,2]]}]}', '{"d":[{"x":1,"y":2}]}');
+----
+cannot also be given inline
+
+# A chart type with no per-row field mapping (text) does not take a dataset.
+statement error
+SELECT kuva_render('{"series":[{"type":"text","dataset":"d"}]}', '{"d":[{"x":1}]}');
+----
+takes no `dataset`
+
+# The row form is the only accepted shape for a dataset.
+statement error
+SELECT kuva_render('{"series":[{"type":"scatter","dataset":"d"}]}', '{"d":{"x":[1],"y":[2]}}');
+----
+must be an array of row objects
+
+# ============================================================================
 # kuva_render_terminal: the same JSON, the terminal backend (braille dots + ANSI colour)
 # ============================================================================
 

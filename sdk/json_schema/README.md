@@ -36,3 +36,10 @@ just json_schema
   `dataset::bind` 消费掉（见 `spec/dataset.rs`），`RenderSpec` 看不到它们。
 - `color_map` 等按名解析的字段是 `{"type": "string"}` 而不是枚举：真实实现容忍大小写、
   连字符与 ColorBrewer 缩写（描述里写明了），列枚举会把合法写法误判成非法。
+
+内部标签枚举（`#[serde(tag = "type")]` 的 `SeriesSpec`，即 64 个图型）的判别字段**放在每个变体
+自己的 `$def` 里**（`properties.type` 的 `const` + `required`），`oneOf` 成员是纯 `$ref`。这是
+生成器做的一步归一化（`src/bin/json_schema.rs` 的 `normalize_internal_tags`）：schemars 原样输出的
+`$ref` 带兄弟节点只有 2020-12 认，draft-07 校验器会整个忽略兄弟、连标签检查一起丢，而
+json-schema-to-typescript 这类生成器只读兄弟、被引用的属性全丢。归一后新旧草案都认、校验语义
+不变，`../ts/` 的判别联合也才能生成。

@@ -51,6 +51,7 @@ use std::fs;
 use std::path::Path;
 
 use schemars::schema_for;
+use serde_json::Value;
 
 use extension::functions::spec::dataset::Registry;
 use extension::functions::spec::schema::RenderSpec;
@@ -75,6 +76,142 @@ const REGISTRY_DESCRIPTION: &str = "数据集注册表：数据集名 -> 行数�
 const ROW_DESCRIPTION: &str = "一行数据：「字段名 -> 值」的对象；字段名就是 series `encode` 里\
      出现的那些名字。";
 
+/// 内部标签枚举的一个变体在 schemars 输出里的形状：判别字段（名字 + const 值）与被引用的 `$def` 名。
+/// 不匹配这个形状的成员返回 `None`（外部标签枚举、adjacently 标签、普通 `anyOf` 都不匹配）。
+///
+/// The shape of one variant of an internally tagged enum in schemars' output: the discriminant
+/// (name and const value) plus the referenced `$def`. Members that do not match this shape return
+/// `None` (externally tagged enums, adjacently tagged ones and plain `anyOf`s do not).
+fn internal_tag_of(member: &Value) -> Option<(String, String, Value)> {
+    let obj = member.as_object()?;
+    let target = obj.get("$ref")?.as_str()?.strip_prefix("#/$defs/")?;
+    let props = obj.get("properties")?.as_object()?;
+    if props.len() != 1 {
+        return None;
+    }
+    let (key, value) = props.iter().next()?;
+    let constant = value.as_object()?.get("const")?;
+    Some((target.to_string(), key.clone(), constant.clone()))
+}
+
+/// 把 schemars 给内部标签枚举（`#[serde(tag = "type")]`，本仓库只有 `SeriesSpec` 一个）生成的成员
+/// 形状归一成 canonical 形式：const 标签搬进被引用的 `$def`，成员只剩纯 `$ref`。
+///
+/// schemars 原样输出的是
+/// `{"properties": {"type": {"const": "scatter"}}, "$ref": "#/$defs/ScatterSeries", "required": ["type"]}`
+/// —— `$ref` 带兄弟节点只有 JSON Schema 2020-12 认：draft-07 及更早的校验器会**整个忽略兄弟**，
+/// 连 const 标签检查一起丢；json-schema-to-typescript 这类生成器只读兄弟、被引用的属性全丢；
+/// quicktype 则把 64 个变体合并成一个大接口。三种消费者三种吃亏。
+///
+/// 归一后（const 进 `$def` 的 `properties` 与 `required`，成员纯 `$ref`）新旧草案都认、生成器都吃，
+/// 2020-12 下的校验语义也不变 —— 兄弟与 `$ref` 本来就要同时满足。代价是每个变体的 `$def` 多一个
+/// 必填的 `type` 字段，而这正是事实（serde 的内部标签就要求它在）。
+///
+/// Normalizes the member shape schemars emits for internally tagged enums (only `SeriesSpec` in
+/// this repository) into the canonical form: the const tag moves into the referenced `$def` and
+/// the member becomes a bare `$ref`.
+///
+/// schemars' raw output is `{"properties": {"type": {"const": "scatter"}}, "$ref":
+/// "#/$defs/ScatterSeries", "required": ["type"]}` — a `$ref` with siblings that only JSON Schema
+/// 2020-12 honors: draft-07 and earlier validators **ignore the siblings entirely**, losing the
+/// const check with them; generators like json-schema-to-typescript read only the siblings and
+/// drop the referenced properties; quicktype merges all 64 variants into one interface. Three
+/// consumers, three kinds of loss.
+///
+/// The normalized form (const inside the target's `properties` and `required`, member as a bare
+/// `$ref`) is understood by every draft and every generator, and validates identically under
+/// 2020-12 — siblings and `$ref` had to hold simultaneously anyway. The cost is one extra required
+/// `type` field per variant `$def`, which is the truth anyway (serde's internal tag demands it).
+fn normalize_internal_tags(schema: &mut schemars::Schema) {
+    let Some(defs) = schema.get_mut("$defs").and_then(Value::as_object_mut) else {
+        return;
+    };
+
+    // 第一遍：收集要搬的标签。目标 `$def` 没有 `properties`（不是对象 schema）或已经定义了同名字段
+    // 的，都不是这个形状，保持 schemars 原样 —— 宁可少归一，也不能把标签搬丢。
+    //
+    // First pass: collect the tags to move. A target without `properties` (not an object schema)
+    // or one that already defines the field is not this shape and is left as schemars wrote it —
+    // rather under-normalize than drop a tag.
+    let mut moves = Vec::new();
+    for def in defs.values() {
+        for keyword in ["oneOf", "anyOf"] {
+            let Some(members) = def.get(keyword).and_then(Value::as_array) else {
+                continue;
+            };
+            for member in members {
+                let Some((target, key, constant)) = internal_tag_of(member) else {
+                    continue;
+                };
+                let has_properties = defs
+                    .get(&target)
+                    .and_then(|d| d.get("properties"))
+                    .and_then(Value::as_object)
+                    .is_some_and(|props| !props.contains_key(&key));
+                if has_properties {
+                    moves.push((target, key, constant));
+                }
+            }
+        }
+    }
+    if moves.is_empty() {
+        return;
+    }
+
+    // 第二遍：标签写进目标 `$def` —— `properties` 补一项，`required` 补一项（没有 `required` 就建）。
+    //
+    // Second pass: write the tag into the target `$def` — one property plus one required entry
+    // (creating `required` when the def has none).
+    for (target, key, constant) in moves {
+        let Some(def) = defs.get_mut(&target).and_then(Value::as_object_mut) else {
+            continue;
+        };
+        let mut tag = serde_json::Map::new();
+        tag.insert("const".to_string(), constant);
+        if let Some(props) = def.get_mut("properties").and_then(Value::as_object_mut) {
+            props.insert(key.clone(), Value::Object(tag));
+        }
+        let already_required = def
+            .get("required")
+            .and_then(Value::as_array)
+            .is_some_and(|req| req.contains(&Value::String(key.clone())));
+        if !already_required {
+            match def.get_mut("required") {
+                Some(Value::Array(req)) => req.push(Value::String(key)),
+                None => {
+                    def.insert("required".to_string(), Value::Array(vec![Value::String(key)]));
+                }
+                Some(_) => {}
+            }
+        }
+    }
+
+    // 第三遍：成员换成纯 `$ref` —— 标签已经在目标里，兄弟节点（含原来的 `required`）全部丢掉。
+    //
+    // Third pass: reduce each member to a bare `$ref` — the tag now lives in the target, so every
+    // sibling (the original `required` included) is dropped.
+    for def in defs.values_mut() {
+        for keyword in ["oneOf", "anyOf"] {
+            let Some(members) = def.get_mut(keyword).and_then(Value::as_array_mut) else {
+                continue;
+            };
+            for member in members.iter_mut() {
+                if internal_tag_of(member).is_none() {
+                    continue;
+                }
+                let reference = member
+                    .get("$ref")
+                    .and_then(Value::as_str)
+                    .expect("a matched member carries a $ref")
+                    .to_string();
+                let mut bare = serde_json::Map::new();
+                bare.insert("$ref".to_string(), Value::String(reference));
+                *member = Value::Object(bare);
+            }
+        }
+    }
+}
+
 fn main() {
     let out_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("sdk")
@@ -90,6 +227,7 @@ fn main() {
     // All that is added here is an `$id` — a bare relative file name is a valid URI reference and
     // gives SDK-side tooling (codegen, editor completion) a stable handle to refer to.
     let mut render = schema_for!(RenderSpec);
+    normalize_internal_tags(&mut render);
     render.insert("$id".into(), "render.schema.json".into());
     write_schema(&out_dir.join("render.schema.json"), &render);
 

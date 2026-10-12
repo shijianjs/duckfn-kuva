@@ -98,6 +98,34 @@ therefore never compiles it, which keeps the extension free of a dependency only
 The same mechanism adds `#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]` to every
 type under `spec/schema/`, so the extension sources carry no schemars code when the feature is off.
 
+The bin also post-processes one thing: internally tagged enums (`SeriesSpec`, `#[serde(tag = "type")]`).
+schemars emits each variant as `{"properties": {"type": {"const": …}}, "$ref": "#/$defs/Variant",
+"required": ["type"]}` — a `$ref` with siblings that only draft 2020-12 honors. draft-07 validators
+ignore the siblings entirely (the const check included), and generators such as
+json-schema-to-typescript read only the siblings and drop the referenced properties.
+`normalize_internal_tags` moves the const into the referenced `$def` instead, leaving a bare `$ref`:
+every draft and every generator is happy, and validation under 2020-12 is unchanged (siblings and
+`$ref` had to hold simultaneously anyway).
+
+## The TypeScript SDK
+
+`sdk/ts/` holds the TypeScript types of both arguments, generated from the two schemas with
+[json-schema-to-typescript](https://www.npmjs.com/package/json-schema-to-typescript) (commands and
+rationale in `sdk/ts/README.md`):
+
+```shell
+npx -y json-schema-to-typescript@15 sdk/json_schema/render.schema.json   -o sdk/ts/render.ts
+npx -y json-schema-to-typescript@15 sdk/json_schema/datasets.schema.json -o sdk/ts/datasets.ts
+```
+
+quicktype was tried first and rejected: its JSON Schema mode never turns `oneOf` into a discriminated
+union — all 64 series variants collapse into one interface with every field optional, so a
+`{type: "scatter"}` without `data` passes the compiler. That is a property of the tool, not of the
+schema (verified with minimal cases: pure `$ref` members, inline `const`, OpenAPI-style
+`discriminator` — all merged). json-schema-to-typescript keeps `oneOf` as a union, and together with
+the normalization above `switch (s.type)` narrows to the right variant. Both files are artifacts like
+the schemas: regenerate, never hand-edit.
+
 ## One chart type per file
 
 `spec/schema/series/` and `spec/convert/charts/` mirror each other, and both hold **one chart type per

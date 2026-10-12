@@ -599,6 +599,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "bar"
+        },
         "values": {
           "type": [
             "array",
@@ -617,7 +620,10 @@
           ],
           "format": "double"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "BoxGroupSpec": {
       "type": "object",
@@ -751,6 +757,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "box"
+        },
         "width": {
           "type": [
             "number",
@@ -760,7 +769,8 @@
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "BrickAnchorKind": {
@@ -906,6 +916,9 @@
             }
           ]
         },
+        "type": {
+          "const": "brick"
+        },
         "x_offset": {
           "description": "所有行共用的 x 起点。",
           "type": [
@@ -936,7 +949,10 @@
           ],
           "format": "double"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "BrickTemplateKind": {
       "oneOf": [
@@ -1046,6 +1062,9 @@
             }
           ]
         },
+        "type": {
+          "const": "bump"
+        },
         "x_labels": {
           "description": "每个时间点一个 x 轴标签。",
           "type": [
@@ -1056,7 +1075,10 @@
             "type": "string"
           }
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "BumpSpecItem": {
       "type": "object",
@@ -1280,6 +1302,9 @@
             "$ref": "#/$defs/CalendarPeriodSpec"
           }
         },
+        "type": {
+          "const": "calendar"
+        },
         "value_range": {
           "description": "色条的取值区间。",
           "type": [
@@ -1335,7 +1360,10 @@
             "null"
           ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "CandleSpec": {
       "type": "object",
@@ -1471,6 +1499,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "candlestick"
+        },
         "volume_ratio": {
           "description": "成交量副图占整幅图的高度比例。",
           "type": [
@@ -1487,7 +1518,10 @@
           ],
           "format": "double"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "CellShapeKind": {
       "description": "格子形状。",
@@ -1561,10 +1595,14 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "chord"
         }
       },
       "required": [
-        "matrix"
+        "matrix",
+        "type"
       ]
     },
     "CladeColorSpec": {
@@ -1761,10 +1799,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "clustermap"
         }
       },
       "required": [
-        "data"
+        "data",
+        "type"
       ]
     },
     "ColorMapSpec": {
@@ -1849,6 +1891,9 @@
             "minItems": 3
           }
         },
+        "type": {
+          "const": "contour"
+        },
         "x_coords": {
           "type": [
             "array",
@@ -1883,7 +1928,10 @@
             }
           }
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "CurveSpec": {
       "description": "一条曲线：x 与 y 等长。",
@@ -2087,6 +2135,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "density"
+        },
         "values": {
           "description": "原始观测值（走核密度估计，至少 2 个）。",
           "type": [
@@ -2133,7 +2184,10 @@
             }
           ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "DiceDotSpec": {
       "description": "逐点连续写法的一条记录。",
@@ -2340,6 +2394,9 @@
             }
           ]
         },
+        "type": {
+          "const": "dice_plot"
+        },
         "x_categories": {
           "description": "列类别（x 轴）。`points` 写法必填；另外两种不给我会自己收集。",
           "type": [
@@ -2360,7 +2417,10 @@
             "type": "string"
           }
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "DicePointSpec": {
       "type": "object",
@@ -2593,6 +2653,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "dot_plot"
+        },
         "x_categories": {
           "description": "矩阵写法的列类别（x 轴）。",
           "type": [
@@ -2613,7 +2676,10 @@
             "type": "string"
           }
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "DotPointSpec": {
       "type": "object",
@@ -2776,10 +2842,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "ecdf"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "ErrSpec": {
@@ -3247,6 +3317,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "forest"
+        },
         "whisker_width": {
           "description": "置信区间横线的粗细。",
           "type": [
@@ -3255,7 +3328,10 @@
           ],
           "format": "double"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "FunnelColorModeKind": {
       "description": "各层怎么上色。",
@@ -3396,8 +3472,14 @@
           "items": {
             "$ref": "#/$defs/FunnelStageSpec"
           }
+        },
+        "type": {
+          "const": "funnel"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "FunnelStageSpec": {
       "type": "object",
@@ -3493,8 +3575,14 @@
           "items": {
             "$ref": "#/$defs/GanttTaskSpec"
           }
+        },
+        "type": {
+          "const": "gantt"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "GanttTaskSpec": {
       "type": "object",
@@ -3794,6 +3882,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "heatmap"
+        },
         "x_range": {
           "description": "只画这一段 x 范围（默认 `[0.5, 列数+0.5]`）。",
           "type": [
@@ -3834,7 +3925,8 @@
         }
       },
       "required": [
-        "data"
+        "data",
+        "type"
       ]
     },
     "HexbinSeries": {
@@ -3956,6 +4048,9 @@
           ],
           "format": "double"
         },
+        "type": {
+          "const": "hexbin"
+        },
         "x": {
           "type": "array",
           "items": {
@@ -4020,7 +4115,8 @@
       },
       "required": [
         "x",
-        "y"
+        "y",
+        "type"
       ]
     },
     "Histogram2DSeries": {
@@ -4076,6 +4172,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "histogram2d"
+        },
         "x_range": {
           "description": "x 的取值区间（分箱边界），必填。",
           "type": "array",
@@ -4112,7 +4211,8 @@
       "required": [
         "data",
         "x_range",
-        "y_range"
+        "y_range",
+        "type"
       ]
     },
     "HistogramSeries": {
@@ -4233,6 +4333,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "histogram"
+        },
         "values": {
           "type": [
             "array",
@@ -4243,7 +4346,10 @@
             "format": "double"
           }
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "HorizonSeries": {
       "description": "Horizon 图：多条时间序列叠成「分层」的带状图。",
@@ -4295,6 +4401,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "horizon"
+        },
         "value_labels": {
           "description": "在每条带上标出数值。",
           "type": [
@@ -4310,7 +4419,10 @@
           ],
           "format": "double"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "HorizonSeriesSpec": {
       "type": "object",
@@ -4380,6 +4492,9 @@
           ],
           "format": "double"
         },
+        "type": {
+          "const": "band"
+        },
         "x": {
           "description": "共享的 x。",
           "type": "array",
@@ -4408,7 +4523,8 @@
       "required": [
         "x",
         "y_lower",
-        "y_upper"
+        "y_upper",
+        "type"
       ]
     },
     "JointGroupSpec": {
@@ -4651,6 +4767,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "jointplot"
+        },
         "x_label": {
           "type": [
             "string",
@@ -4663,7 +4782,10 @@
             "null"
           ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "LabelOverlapKind": {
       "type": "string",
@@ -4841,8 +4963,14 @@
             "string",
             "null"
           ]
+        },
+        "type": {
+          "const": "legend_plot"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "LegendShapeKind": {
       "type": "string",
@@ -5102,10 +5230,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "line"
         }
       },
       "required": [
-        "data"
+        "data",
+        "type"
       ]
     },
     "LineStyleKind": {
@@ -5337,10 +5469,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "lollipop"
         }
       },
       "required": [
-        "points"
+        "points",
+        "type"
       ]
     },
     "LollipopXSpec": {
@@ -5503,8 +5639,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "manhattan"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "MarginalTypeKind": {
       "description": "边缘面板的形态。",
@@ -5640,6 +5782,9 @@
             "type": "string"
           }
         },
+        "type": {
+          "const": "mosaic"
+        },
         "values": {
           "description": "块里写数值。",
           "type": [
@@ -5647,7 +5792,10 @@
             "null"
           ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "NetworkEdgeSpec": {
       "type": "object",
@@ -5857,8 +6005,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "network"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "NodeShapeKind": {
       "description": "节点形状。",
@@ -6238,10 +6392,14 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "parallel"
         }
       },
       "required": [
-        "axis_names"
+        "axis_names",
+        "type"
       ]
     },
     "ParetoCategorySpec": {
@@ -6357,6 +6515,9 @@
           ],
           "format": "double"
         },
+        "type": {
+          "const": "pareto"
+        },
         "width": {
           "description": "柱宽占槽位的比例。",
           "type": [
@@ -6365,7 +6526,10 @@
           ],
           "format": "double"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "PhyloSeries": {
       "description": "系统发育树。树的输入（`newick` / `edges` / `dist` / `linkage` 四选一）平铺在本对象上。",
@@ -6467,8 +6631,14 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "phylo"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "PieLabelKind": {
       "type": "string",
@@ -6553,10 +6723,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "pie"
         }
       },
       "required": [
-        "slices"
+        "slices",
+        "type"
       ]
     },
     "PointFull": {
@@ -6836,8 +7010,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "polar"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "PrGroupSpec": {
       "type": "object",
@@ -6979,10 +7159,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "pr"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "PredictionSpec": {
@@ -7172,8 +7356,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "pyramid"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "QqModeKind": {
       "type": "string",
@@ -7283,10 +7473,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "qq"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "QuiverArrowSpec": {
@@ -7496,8 +7690,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "quiver"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "RadarSeriesSpec": {
       "type": "object",
@@ -7720,6 +7920,9 @@
           ],
           "format": "double"
         },
+        "type": {
+          "const": "radar"
+        },
         "vertex_labels": {
           "description": "在顶点标出数值。",
           "type": [
@@ -7729,7 +7932,8 @@
         }
       },
       "required": [
-        "axes"
+        "axes",
+        "type"
       ]
     },
     "RaincloudSeries": {
@@ -7912,10 +8116,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "raincloud"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "ReferenceLineSpec": {
@@ -8051,10 +8259,14 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "ridgeline"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "RocGroupSpec": {
@@ -8223,10 +8435,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "roc"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "RoseEncodingKind": {
@@ -8463,8 +8679,14 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "rose"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "SankeyLinkColorKind": {
       "description": "连边着色：`\"source\"`（取源节点色）/ `\"gradient\"` / `\"per_link\"`（用 `links[].color`）。",
@@ -8704,8 +8926,14 @@
           "items": {
             "type": "string"
           }
+        },
+        "type": {
+          "const": "sankey"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "Scatter3DSeries": {
       "description": "三维散点图。",
@@ -8829,6 +9057,9 @@
             "format": "double"
           }
         },
+        "type": {
+          "const": "scatter3d"
+        },
         "x_label": {
           "type": [
             "string",
@@ -8874,7 +9105,8 @@
         }
       },
       "required": [
-        "data"
+        "data",
+        "type"
       ]
     },
     "ScatterSeries": {
@@ -8998,10 +9230,14 @@
               "type": "null"
             }
           ]
+        },
+        "type": {
+          "const": "scatter"
         }
       },
       "required": [
-        "data"
+        "data",
+        "type"
       ]
     },
     "SecondaryAxisSpec": {
@@ -9118,6 +9354,9 @@
             }
           ]
         },
+        "type": {
+          "const": "series"
+        },
         "values": {
           "description": "纵排的 y 值；x 由下标隐式决定（`x = i`）。",
           "type": "array",
@@ -9128,843 +9367,204 @@
         }
       },
       "required": [
-        "values"
+        "values",
+        "type"
       ]
     },
     "SeriesSpec": {
       "description": "一张图里叠加的 series。`type` 决定用哪个变体。",
       "oneOf": [
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "scatter"
-            }
-          },
-          "$ref": "#/$defs/ScatterSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ScatterSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "line"
-            }
-          },
-          "$ref": "#/$defs/LineSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/LineSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "bar"
-            }
-          },
-          "$ref": "#/$defs/BarSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/BarSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "histogram"
-            }
-          },
-          "$ref": "#/$defs/HistogramSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/HistogramSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "box"
-            }
-          },
-          "$ref": "#/$defs/BoxSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/BoxSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "pie"
-            }
-          },
-          "$ref": "#/$defs/PieSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/PieSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "violin"
-            }
-          },
-          "$ref": "#/$defs/ViolinSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ViolinSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "ridgeline"
-            }
-          },
-          "$ref": "#/$defs/RidgelineSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/RidgelineSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "raincloud"
-            }
-          },
-          "$ref": "#/$defs/RaincloudSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/RaincloudSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "strip"
-            }
-          },
-          "$ref": "#/$defs/StripSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/StripSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dot_plot"
-            }
-          },
-          "$ref": "#/$defs/DotPlotSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/DotPlotSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "lollipop"
-            }
-          },
-          "$ref": "#/$defs/LollipopSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/LollipopSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "density"
-            }
-          },
-          "$ref": "#/$defs/DensitySeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/DensitySeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "ecdf"
-            }
-          },
-          "$ref": "#/$defs/EcdfSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/EcdfSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "qq"
-            }
-          },
-          "$ref": "#/$defs/QqSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/QqSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "forest"
-            }
-          },
-          "$ref": "#/$defs/ForestSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ForestSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "pr"
-            }
-          },
-          "$ref": "#/$defs/PrSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/PrSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "roc"
-            }
-          },
-          "$ref": "#/$defs/RocSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/RocSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "survival"
-            }
-          },
-          "$ref": "#/$defs/SurvivalSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/SurvivalSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "volcano"
-            }
-          },
-          "$ref": "#/$defs/VolcanoSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/VolcanoSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "heatmap"
-            }
-          },
-          "$ref": "#/$defs/HeatmapSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/HeatmapSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "histogram2d"
-            }
-          },
-          "$ref": "#/$defs/Histogram2DSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/Histogram2DSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "hexbin"
-            }
-          },
-          "$ref": "#/$defs/HexbinSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/HexbinSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "clustermap"
-            }
-          },
-          "$ref": "#/$defs/ClustermapSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ClustermapSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "contour"
-            }
-          },
-          "$ref": "#/$defs/ContourSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ContourSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "ternary"
-            }
-          },
-          "$ref": "#/$defs/TernarySeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/TernarySeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "polar"
-            }
-          },
-          "$ref": "#/$defs/PolarSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/PolarSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice_plot"
-            }
-          },
-          "$ref": "#/$defs/DicePlotSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/DicePlotSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "scatter3d"
-            }
-          },
-          "$ref": "#/$defs/Scatter3DSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/Scatter3DSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "surface3d"
-            }
-          },
-          "$ref": "#/$defs/Surface3DSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/Surface3DSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "sankey"
-            }
-          },
-          "$ref": "#/$defs/SankeySeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/SankeySeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "chord"
-            }
-          },
-          "$ref": "#/$defs/ChordSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ChordSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "network"
-            }
-          },
-          "$ref": "#/$defs/NetworkSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/NetworkSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "treemap"
-            }
-          },
-          "$ref": "#/$defs/TreemapSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/TreemapSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "sunburst"
-            }
-          },
-          "$ref": "#/$defs/SunburstSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/SunburstSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "venn"
-            }
-          },
-          "$ref": "#/$defs/VennSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/VennSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "upset"
-            }
-          },
-          "$ref": "#/$defs/UpSetSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/UpSetSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "waffle"
-            }
-          },
-          "$ref": "#/$defs/WaffleSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/WaffleSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "mosaic"
-            }
-          },
-          "$ref": "#/$defs/MosaicSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/MosaicSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "phylo"
-            }
-          },
-          "$ref": "#/$defs/PhyloSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/PhyloSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "synteny"
-            }
-          },
-          "$ref": "#/$defs/SyntenySeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/SyntenySeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "candlestick"
-            }
-          },
-          "$ref": "#/$defs/CandlestickSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/CandlestickSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "calendar"
-            }
-          },
-          "$ref": "#/$defs/CalendarSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/CalendarSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "gantt"
-            }
-          },
-          "$ref": "#/$defs/GanttSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/GanttSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "horizon"
-            }
-          },
-          "$ref": "#/$defs/HorizonSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/HorizonSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "manhattan"
-            }
-          },
-          "$ref": "#/$defs/ManhattanSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ManhattanSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "waterfall"
-            }
-          },
-          "$ref": "#/$defs/WaterfallSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/WaterfallSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "bump"
-            }
-          },
-          "$ref": "#/$defs/BumpSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/BumpSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "pareto"
-            }
-          },
-          "$ref": "#/$defs/ParetoSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ParetoSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "brick"
-            }
-          },
-          "$ref": "#/$defs/BrickSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/BrickSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "funnel"
-            }
-          },
-          "$ref": "#/$defs/FunnelSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/FunnelSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "slope"
-            }
-          },
-          "$ref": "#/$defs/SlopeSeries",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/SlopeSeries"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "pyramid"
-            }
-          },
-          "$ref": "#/$defs/PyramidSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/PyramidSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "series"
-            }
-          },
-          "$ref": "#/$defs/SeriesPlotSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/SeriesPlotSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "radar"
-            }
-          },
-          "$ref": "#/$defs/RadarSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/RadarSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "parallel"
-            }
-          },
-          "$ref": "#/$defs/ParallelSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/ParallelSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "stacked_area"
-            }
-          },
-          "$ref": "#/$defs/StackedAreaSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/StackedAreaSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "streamgraph"
-            }
-          },
-          "$ref": "#/$defs/StreamgraphSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/StreamgraphSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "band"
-            }
-          },
-          "$ref": "#/$defs/IntervalSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/IntervalSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "text"
-            }
-          },
-          "$ref": "#/$defs/TextSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/TextSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "legend_plot"
-            }
-          },
-          "$ref": "#/$defs/LegendPlotSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/LegendPlotSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "quiver"
-            }
-          },
-          "$ref": "#/$defs/QuiverSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/QuiverSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "rose"
-            }
-          },
-          "$ref": "#/$defs/RoseSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/RoseSpec"
         },
         {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "jointplot"
-            }
-          },
-          "$ref": "#/$defs/JointSpec",
-          "required": [
-            "type"
-          ]
+          "$ref": "#/$defs/JointSpec"
         }
       ]
     },
@@ -10173,6 +9773,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "slope"
+        },
         "value_format": {
           "description": "数值的显示格式。",
           "anyOf": [
@@ -10184,7 +9787,10 @@
             }
           ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "StackedAreaSpec": {
       "description": "堆叠面积图：多个系列在同一批 x 上堆起来。",
@@ -10233,6 +9839,9 @@
           ],
           "format": "double"
         },
+        "type": {
+          "const": "stacked_area"
+        },
         "x": {
           "description": "共享的 x（通常是时间）。",
           "type": "array",
@@ -10243,7 +9852,8 @@
         }
       },
       "required": [
-        "x"
+        "x",
+        "type"
       ]
     },
     "StatsBoxSpec": {
@@ -10431,6 +10041,9 @@
           ],
           "format": "double"
         },
+        "type": {
+          "const": "streamgraph"
+        },
         "x": {
           "type": "array",
           "items": {
@@ -10440,7 +10053,8 @@
         }
       },
       "required": [
-        "x"
+        "x",
+        "type"
       ]
     },
     "StripGroupSpec": {
@@ -10596,10 +10210,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "strip"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "StripStyleKind": {
@@ -10747,8 +10365,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "sunburst"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "Surface3DSeries": {
       "description": "三维曲面图。",
@@ -10820,6 +10444,9 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "surface3d"
         },
         "wireframe": {
           "description": "画网格线（默认开）。",
@@ -10919,7 +10546,8 @@
         }
       },
       "required": [
-        "z_data"
+        "z_data",
+        "type"
       ]
     },
     "SurvivalGroupSpec": {
@@ -11050,10 +10678,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "survival"
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "SyntenyBlockSpec": {
@@ -11193,8 +10825,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "synteny"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "TerminalSpec": {
       "description": "终端渲染的选项，见 [`RenderSpec::terminal`]。",
@@ -11353,10 +10991,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "ternary"
         }
       },
       "required": [
-        "points"
+        "points",
+        "type"
       ]
     },
     "TextAlignKind": {
@@ -11494,10 +11136,14 @@
             "string",
             "null"
           ]
+        },
+        "type": {
+          "const": "text"
         }
       },
       "required": [
-        "body"
+        "body",
+        "type"
       ]
     },
     "ThemeCustom": {
@@ -11992,8 +11638,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "treemap"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "TrendDetailed": {
       "type": "object",
@@ -12150,8 +11802,14 @@
               "type": "null"
             }
           ]
+        },
+        "type": {
+          "const": "upset"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "UpSetSortKind": {
       "description": "交集的排序方式。",
@@ -12319,8 +11977,14 @@
             "null"
           ],
           "format": "double"
+        },
+        "type": {
+          "const": "venn"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "VennSetSpec": {
       "type": "object",
@@ -12518,6 +12182,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "violin"
+        },
         "width": {
           "description": "组宽占类别槽位的比例。",
           "type": [
@@ -12528,7 +12195,8 @@
         }
       },
       "required": [
-        "groups"
+        "groups",
+        "type"
       ]
     },
     "VolcanoLabelKind": {
@@ -12702,10 +12370,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "volcano"
         }
       },
       "required": [
-        "points"
+        "points",
+        "type"
       ]
     },
     "WaffleCategorySpec": {
@@ -12815,6 +12487,9 @@
             "null"
           ]
         },
+        "type": {
+          "const": "waffle"
+        },
         "unit_label": {
           "description": "网格下方的注记，如 `\"1 格 = 10 人\"`。",
           "type": [
@@ -12822,7 +12497,10 @@
             "null"
           ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "WaterfallBarSpec": {
       "type": "object",
@@ -12979,8 +12657,14 @@
             "boolean",
             "null"
           ]
+        },
+        "type": {
+          "const": "waterfall"
         }
-      }
+      },
+      "required": [
+        "type"
+      ]
     },
     "WeekStartKind": {
       "description": "一周从哪天开始。",

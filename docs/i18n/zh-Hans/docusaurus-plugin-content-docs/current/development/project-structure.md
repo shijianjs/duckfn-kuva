@@ -89,6 +89,30 @@ schemars 是挂在 `json-schema` feature 上的**可选依赖**（见 `Cargo.tom
 `#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]`：feature 关着时，扩展源码里
 一行 schemars 代码都没有。
 
+bin 还多做一步后处理：内部标签枚举（`SeriesSpec`，`#[serde(tag = "type")]`）。schemars 对每个变体
+输出的是 `{"properties": {"type": {"const": …}}, "$ref": "#/$defs/变体", "required": ["type"]}` ——
+`$ref` 带兄弟节点，只有 2020-12 认这种写法：draft-07 校验器会整个忽略兄弟（const 检查一起丢），
+json-schema-to-typescript 这类生成器则只读兄弟、被引用的属性全丢。
+`normalize_internal_tags` 把 const 搬进被引用的 `$def`，成员只剩纯 `$ref`：新旧草案都认、生成器
+都吃，2020-12 下的校验语义也不变（兄弟与 `$ref` 本来就要同时满足）。
+
+## TypeScript SDK
+
+`sdk/ts/` 是两个参数的 TypeScript 类型，用
+[json-schema-to-typescript](https://www.npmjs.com/package/json-schema-to-typescript) 从上面那两个
+schema 生成（命令与选型理由见 `sdk/ts/README.md`）：
+
+```shell
+npx -y json-schema-to-typescript@15 sdk/json_schema/render.schema.json   -o sdk/ts/render.ts
+npx -y json-schema-to-typescript@15 sdk/json_schema/datasets.schema.json -o sdk/ts/datasets.ts
+```
+
+先试过 quicktype，否了：它的 JSON Schema 模式**不把 `oneOf` 生成为判别联合** —— 64 个 series 变体
+被合并成一个大接口、所有字段可选，`{type: "scatter"}` 缺 `data` 都编译得过。这是工具的问题不是
+schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAPI 风格 `discriminator`，三种写法
+都一样合并）。json-schema-to-typescript 保留 `oneOf` 为联合类型，配合上面的归一化，
+`switch (s.type)` 就能收窄到对应变体。两个文件和 schema 一样是产物：重新生成，不手改。
+
 ## 每种图型一个文件
 
 `spec/schema/series/` 与 `spec/convert/charts/` 一一对应，两边都是**每种图型一个文件**。正是这一点

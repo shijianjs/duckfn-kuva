@@ -740,6 +740,16 @@ export interface ScatterSeries {
   colors?: string[] | null;
   data?: PointSpec[];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 交互 SVG 里的分组名（不进图例）。
    */
   group_name?: string | null;
@@ -833,6 +843,16 @@ export interface LineSeries {
   color?: string | null;
   data?: PointSpec[];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 线下填充成面积。
    */
   fill?: boolean | null;
@@ -874,6 +894,16 @@ export interface BarSeries {
    * 简单模式下的逐类颜色。
    */
   colors?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   error_cap_width?: number | null;
   error_color?: string | null;
   /**
@@ -933,9 +963,19 @@ export interface HistogramSeries {
    */
   counts?: number[] | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 预分箱的箱边界。
    */
   edges?: number[] | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 叠加 KDE 曲线。
    */
@@ -980,6 +1020,16 @@ export interface BoxSeries {
    * 逐组颜色。
    */
   colors?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   gap?: number | null;
   groups: BoxGroupSpec[];
   horizontal?: boolean | null;
@@ -1028,6 +1078,16 @@ export interface PieSeries {
    * 主色（CSS 颜色字符串）。
    */
   color?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 内半径（像素）：`> 0` 就是环形图。
    */
@@ -1085,6 +1145,16 @@ export interface ViolinSeries {
    * 逐组颜色（按位置匹配 `groups`）。
    */
   colors?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 组间距占比。
    */
@@ -1174,6 +1244,16 @@ export interface RidgelineSeries {
    */
   baseline?: boolean | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 填充曲线下方（`false` 只画轮廓线）。
    */
   filled?: boolean | null;
@@ -1243,6 +1323,16 @@ export interface RaincloudSeries {
    */
   colors?: string[] | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 上下翻转（把雨放到云的另一侧）。
    */
   flip?: boolean | null;
@@ -1305,6 +1395,16 @@ export interface StripSeries {
    * 逐组颜色（按位置匹配 `groups`）。
    */
   colors?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   groups: StripGroupSpec[];
   /**
    * 图例条目文字。给了才会在图例里出现。
@@ -1380,6 +1480,16 @@ export interface DotPlotSeries {
    * 矩阵写法的颜色编码值，形状须与 `sizes` 一致。
    */
   colors?: number[][] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   max_radius?: number | null;
   min_radius?: number | null;
   /**
@@ -1461,6 +1571,10 @@ export interface LollipopSeries {
    */
   color?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 区间带的高度。
    */
   domain_height?: number | null;
@@ -1477,6 +1591,12 @@ export interface LollipopSeries {
    */
   dot_stroke?: string | null;
   dot_stroke_width?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 图例条目文字。给了才会在图例里出现。
    */
@@ -1532,6 +1652,16 @@ export interface DensitySeries {
    * 预计算的曲线，给了它就跳过估计。
    */
   curve?: CurveSpec | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 填充曲线下方。
    */
@@ -1612,6 +1742,16 @@ export interface EcdfSeries {
    * 置信带。
    */
   confidence_band?: boolean | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   groups: ValuesGroup[];
   /**
    * 图例条目文字。给了才会在图例里出现。
@@ -1672,6 +1812,16 @@ export interface QqSeries {
    */
   color?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 点的填充不透明度（`null` 表示不填充）。
    */
   fill_opacity?: number | null;
@@ -1717,6 +1867,16 @@ export interface ForestSeries {
    * 主色（CSS 颜色字符串）。
    */
   color?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 图例条目文字。给了才会在图例里出现。
    */
@@ -1774,6 +1934,16 @@ export interface PrSeries {
    * 主色（CSS 颜色字符串）。
    */
   color?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 一个模型一条曲线。
    */
@@ -1855,11 +2025,21 @@ export interface RocSeries {
    * 主色（CSS 颜色字符串）。
    */
   color?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
   diagonal_color?: string | null;
   /**
    * 对角线虚线样式。
    */
   diagonal_dasharray?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 一个模型一条曲线。
    */
@@ -1960,6 +2140,16 @@ export interface SurvivalSeries {
    * 逐组颜色（按位置匹配 `groups`）。
    */
   colors?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   groups: SurvivalGroupSpec[];
   /**
    * 图例条目文字。给了才会在图例里出现。
@@ -2014,6 +2204,16 @@ export interface VolcanoSeries {
    * 显著上调点的颜色。
    */
   color_up?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 倍数变化阈值（取绝对值）。
    */
@@ -2087,6 +2287,16 @@ export interface HeatmapSeries {
    */
   data?: number[][];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 这个图型没有统一的 `color`（颜色由 `color_map` 连续编码），所以这里不平铺 `CommonStyle`。
    * 色条图的标题。
    */
@@ -2146,6 +2356,16 @@ export interface Histogram2DSeries {
    */
   data?: PointSpec[];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 计数取对数（长尾时好看）。
    */
   log_count?: boolean | null;
@@ -2190,6 +2410,16 @@ export interface HexbinSeries {
    * 色条图的标题。
    */
   colorbar_label?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 平顶六边形（默认尖顶）。
    */
@@ -2275,6 +2505,16 @@ export interface ClustermapSeries {
    * 行优先矩阵：`data[row][col]`。所有行必须等长。
    */
   data?: number[][];
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 色条图的标题。
    */
@@ -2404,6 +2644,16 @@ export interface LinkageRow {
 export interface ContourSeries {
   color_map?: ColorMapSpec | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 填色（只画等值线时为 `false`）。
    */
   filled?: boolean | null;
@@ -2455,6 +2705,16 @@ export interface TernarySeries {
    * 三个角的标签，顺序是「上 / 左下 / 右下」。
    */
   corner_labels?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 网格分几份。
    */
@@ -2517,6 +2777,16 @@ export interface PolarSpec {
    * 角度增大方向为顺时针（默认开）。
    */
   clockwise?: boolean | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 半径方向的网格线根数。
    */
@@ -2601,6 +2871,10 @@ export interface DicePlotSeries {
   cell_width?: number | null;
   color_map?: ColorMapSpec | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 分类写法的颜色图例：每项 `[文字, CSS 颜色]`，长度须等于 `ndots`。
    */
   dot_legend?: [string, string][] | null;
@@ -2612,6 +2886,12 @@ export interface DicePlotSeries {
    * 点半径（`0` = 按格自动）。
    */
   dot_radius?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 填充色图例的标题。
    */
@@ -2747,6 +3027,10 @@ export interface Scatter3DSeries {
    */
   data?: PointSpec3[];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 按深度调暗（远处的点更淡）。
    */
   depth_shade?: boolean | null;
@@ -2754,6 +3038,12 @@ export interface Scatter3DSeries {
    * 仰角（度）。
    */
   elevation?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 网格线密度。
    */
@@ -2810,9 +3100,19 @@ export interface Surface3DSeries {
   azimuth?: number | null;
   color?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 仰角（度）。
    */
   elevation?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 网格线密度。
    */
@@ -2878,6 +3178,16 @@ export interface SankeySeries {
    * 每根轴的名字，长度应与 `alluvia.nodes` 一致。
    */
   axis_names?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   flow_label_format?: TickFormatSpec | null;
   /**
    * 太窄的流不标字（像素）。
@@ -2967,6 +3277,16 @@ export interface ChordSeries {
    */
   colors?: string[] | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 扇区之间的角度间隙。
    */
   gap_degrees?: number | null;
@@ -2995,6 +3315,10 @@ export interface ChordSeries {
  */
 export interface NetworkSeries {
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 有向图（画箭头）。
    */
   directed?: boolean | null;
@@ -3003,6 +3327,12 @@ export interface NetworkSeries {
    * 边。`source` / `target` 写节点名。
    */
   edges?: NetworkEdgeSpec[];
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 标签放在节点圆内。
    */
@@ -3094,6 +3424,16 @@ export interface TreemapSeries {
    */
   colorbar_label?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 布局算法：`"squarify"`（默认）/ `"slice_dice"` / `"binary"`。
    */
   layout?: TreemapLayoutKind | null;
@@ -3171,6 +3511,16 @@ export interface SunburstSeries {
    */
   colorbar_label?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 内半径占外半径的比例，内部夹到 `[0, 0.95]`。
    */
   inner_radius?: number | null;
@@ -3221,6 +3571,16 @@ export interface VennSeries {
    * 在区域里写数量。
    */
   counts?: boolean | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   fill_opacity?: number | null;
   /**
    * 集合名与圆之间画引线。
@@ -3296,11 +3656,21 @@ export interface UpSetSeries {
    * 在条上写数量。
    */
   counts?: boolean | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
   dot_color?: string | null;
   /**
    * 「不在这个交集里」的那些点的颜色。
    */
   dot_empty_color?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 非空交集：`mask` 的第 `i` 位表示 `set_names[i]` 在这个交集里。
    */
@@ -3343,9 +3713,19 @@ export interface WaffleSeries {
    */
   cols?: number | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 空格的底色。
    */
   empty_color?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   fill_order?: FillOrderKind | null;
   /**
    * 格子之间的缝（0~0.5）。
@@ -3393,6 +3773,16 @@ export interface MosaicSeries {
    * 列的顺序（不给就按 `cells` 里首次出现的顺序）。
    */
   col_order?: string[] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 块之间的留白。
    */
@@ -3455,6 +3845,10 @@ export interface PhyloSeries {
    */
   clade_colors?: CladeColorSpec[];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 距离矩阵（UPGMA 聚类）。
    */
   distance_matrix?: DistanceMatrixSpec | null;
@@ -3462,6 +3856,12 @@ export interface PhyloSeries {
    * 边表：`(父, 子, 枝长)`；根是「从没当过子」的那个节点。
    */
   edges?: TreeEdgeSpec[];
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   leaf_color?: string | null;
   /**
    * 图例标题。
@@ -3588,6 +3988,16 @@ export interface CandlestickSeries {
    */
   color_up?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 蜡烛之间的间距占比。
    */
   gap?: number | null;
@@ -3659,6 +4069,10 @@ export interface CalendarSeries {
    */
   data?: CalendarPointSpec[];
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 只画这个日期区间（等价于一个 period）。
    */
   date_range?: DateRangeSpec | null;
@@ -3666,6 +4080,12 @@ export interface CalendarSeries {
    * 标出星期几。
    */
   day_labels?: boolean | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 只给日期（数值一律记 1）。
    */
@@ -3757,6 +4177,16 @@ export interface GanttSeries {
    */
   color?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 分组表头的底色。
    */
   group_bg?: string | null;
@@ -3820,6 +4250,16 @@ export interface HorizonSeries {
    * 基准线：`y` 高于它是正区、低于它是负区。
    */
   baseline?: number | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 分几层带。
    */
@@ -3891,6 +4331,16 @@ export interface ManhattanSeries {
    * 偶数位点的颜色（默认 `color_a` 的浅一档）。
    */
   color_b?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 全基因组显著性线（`-log10(p)`）。
    */
@@ -3968,6 +4418,16 @@ export interface WaterfallSeries {
    */
   connectors?: boolean | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 柱间距占比。
    */
   gap?: number | null;
@@ -4015,7 +4475,17 @@ export interface WaterfallBarSpec {
  */
 export interface BumpSpec {
   curve_style?: CurveStyleKind | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
   dot_radius?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 只把这一条画成强调色。
    */
@@ -4084,6 +4554,16 @@ export interface ParetoSeries {
    */
   cumulative_labels?: boolean | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 横向（类目在 y 轴上）。
    */
   horizontal?: boolean | null;
@@ -4143,6 +4623,16 @@ export interface BrickSeries {
    * 把哪一行当共识序列（`0` 起）。
    */
   consensus_row?: number | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * FLANKED-STRIGAR：`(左侧翼序列, motif, strigar, 右侧翼序列)`。STR 区两侧各接一段原始
    * DNA（一个字符 = 一格，用标准 DNA 配色），省掉「用 `@` 空位把侧翼写进 motif 串」的麻烦。
@@ -4219,6 +4709,16 @@ export interface BrickColors {
 export interface FunnelSeries {
   color_mode?: FunnelColorModeKind | null;
   connector_opacity?: number | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 发散模式两侧的标签。
    */
@@ -4298,8 +4798,18 @@ export interface SlopeSeries {
    * 上升的颜色。
    */
   color_up?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
   dot_opacity?: number | null;
   dot_radius?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 逐行的颜色。
    */
@@ -4339,6 +4849,16 @@ export interface PyramidSpec {
    * 同一组内两根柱之间的间距。
    */
   bar_gap?: number | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 年龄组之间的间距。
    */
@@ -4400,6 +4920,16 @@ export interface PyramidGroupSpec {
 export interface SeriesPlotSpec {
   color?: string | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 图例文字。
    */
   legend?: string | null;
@@ -4437,9 +4967,19 @@ export interface RadarSpec {
    */
   circular_grid?: boolean | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
    * 顶点圆点半径；不给就不画点。
    */
   dot_size?: number | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 填充多边形内部。
    */
@@ -4531,6 +5071,16 @@ export interface ParallelSpec {
    */
   curved?: boolean | null;
   /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
+  /**
    * 逐分组的颜色。
    */
   group_colors?: string[] | null;
@@ -4583,6 +5133,16 @@ export interface ParallelRowSpec {
  * 堆叠面积图：多个系列在同一批 x 上堆起来。
  */
 export interface StackedAreaSpec {
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   fill_opacity?: number | null;
   /**
    * 图例位置字符串（见 `convert::enums::legend_position`）。
@@ -4622,6 +5182,16 @@ export interface AreaSeriesSpec {
  */
 export interface StreamgraphSpec {
   baseline?: StreamBaselineKind | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   fill_opacity?: number | null;
   /**
    * 图例标题。
@@ -4666,6 +5236,16 @@ export interface StreamgraphSpec {
  */
 export interface IntervalSpec {
   color?: string | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 图例文字。
    */
@@ -4734,6 +5314,16 @@ export interface LegendPlotSpec {
    * 固定列数。
    */
   cols?: number | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   entries?: LegendEntrySpec[];
   /**
    * 自动布局时的列数上限。
@@ -4787,6 +5377,16 @@ export interface QuiverSpec {
    * @maxItems 2
    */
   color_range?: [unknown, unknown] | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 箭头半宽 / 箭头长。
    */
@@ -4867,6 +5467,16 @@ export interface RoseSpec {
    * 把扇区标签换成方位名（`N` / `NE` / `E` …）。三种写法下都能用。
    */
   compass_labels?: boolean | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 半径的编码方式，默认 `area`。
    */
@@ -4953,6 +5563,16 @@ export interface JointSpec {
    * 直方图的箱数（**至少 1**；给 0 会在归一化时除零）。
    */
   bins?: number | null;
+  /**
+   * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
+   */
+  dataset?: string | null;
+  /**
+   * 角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。
+   */
+  encode?: {
+    [k: string]: string;
+  } | null;
   /**
    * 逐个数据组；x 与 y 必须等长。
    */

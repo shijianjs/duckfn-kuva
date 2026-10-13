@@ -5,3 +5,4 @@
 # 二进制产物不做换行符转换 / No EOL conversion for binary artifacts
 *.duckdb_extension binary
 *.wasm binary
+*.jar binary

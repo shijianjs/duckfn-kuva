@@ -521,6 +521,23 @@
             "type": "string"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "error_cap_width": {
           "type": [
             "number",
@@ -662,6 +679,23 @@
             "null"
           ],
           "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
             "type": "string"
           }
         },
@@ -819,6 +853,23 @@
           ],
           "format": "uint",
           "minimum": 0
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "flanked_strigars": {
           "description": "FLANKED-STRIGAR：`(左侧翼序列, motif, strigar, 右侧翼序列)`。STR 区两侧各接一段原始\nDNA（一个字符 = 一格，用标准 DNA 配色），省掉「用 `@` 空位把侧翼写进 motif 串」的麻烦。",
@@ -1008,12 +1059,29 @@
             }
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "dot_radius": {
           "type": [
             "number",
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "highlight": {
           "description": "只把这一条画成强调色。",
@@ -1253,6 +1321,13 @@
             "$ref": "#/$defs/CalendarPointSpec"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "date_range": {
           "description": "只画这个日期区间（等价于一个 period）。",
           "anyOf": [
@@ -1270,6 +1345,16 @@
             "boolean",
             "null"
           ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "events": {
           "description": "只给日期（数值一律记 1）。",
@@ -1472,6 +1557,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "gap": {
           "description": "蜡烛之间的间距占比。",
           "type": [
@@ -1554,6 +1656,23 @@
             "null"
           ],
           "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
             "type": "string"
           }
         },
@@ -1727,6 +1846,23 @@
             }
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "legend": {
           "description": "色条图的标题。",
           "type": [
@@ -1820,6 +1956,23 @@
               "type": "null"
             }
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "filled": {
           "description": "填色（只画等值线时为 `false`）。",
@@ -2055,6 +2208,23 @@
             }
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "filled": {
           "description": "填充曲线下方。",
           "type": [
@@ -2255,6 +2425,13 @@
             }
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "dot_legend": {
           "description": "分类写法的颜色图例：每项 `[文字, CSS 颜色]`，长度须等于 `ndots`。",
           "type": [
@@ -2284,6 +2461,16 @@
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "fill_legend_label": {
           "description": "填充色图例的标题。",
@@ -2560,6 +2747,23 @@
             }
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "max_radius": {
           "type": [
             "number",
@@ -2730,6 +2934,23 @@
             "boolean",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "groups": {
           "type": "array",
@@ -3261,6 +3482,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "legend": {
           "description": "图例条目文字。给了才会在图例里出现。",
           "type": [
@@ -3385,6 +3623,23 @@
             "null"
           ],
           "format": "double"
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "left_label": {
           "description": "发散模式两侧的标签。",
@@ -3517,6 +3772,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "group_bg": {
           "description": "分组表头的底色。",
@@ -3838,6 +4110,23 @@
             }
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "legend": {
           "description": "这个图型没有统一的 `color`（颜色由 `color_map` 连续编码），所以这里不平铺 `CommonStyle`。\n色条图的标题。",
           "type": [
@@ -3979,6 +4268,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "flat_top": {
           "description": "平顶六边形（默认尖顶）。",
@@ -4161,6 +4467,23 @@
             "$ref": "#/$defs/PointSpec"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "log_count": {
           "description": "计数取对数（长尾时好看）。",
           "type": [
@@ -4240,6 +4563,13 @@
             "format": "double"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "edges": {
           "description": "预分箱的箱边界。",
           "type": [
@@ -4249,6 +4579,16 @@
           "items": {
             "type": "number",
             "format": "double"
+          }
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
           }
         },
         "kde": {
@@ -4357,6 +4697,23 @@
             "null"
           ],
           "format": "double"
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "n_bands": {
           "description": "分几层带。",
@@ -4471,6 +4828,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "legend": {
           "description": "图例文字。",
@@ -4674,6 +5048,23 @@
           ],
           "format": "uint",
           "minimum": 0
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "groups": {
           "description": "逐个数据组；x 与 y 必须等长。",
@@ -4915,6 +5306,23 @@
           "format": "uint",
           "minimum": 0
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "entries": {
           "type": "array",
           "items": {
@@ -5155,6 +5563,23 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/PointSpec"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
           }
         },
         "fill": {
@@ -5403,6 +5828,13 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "domain_height": {
           "description": "区间带的高度。",
           "type": [
@@ -5439,6 +5871,16 @@
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "legend": {
           "description": "图例条目文字。给了才会在图例里出现。",
@@ -5573,6 +6015,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "genome_wide": {
           "description": "全基因组显著性线（`-log10(p)`）。",
@@ -5728,6 +6187,23 @@
             "null"
           ],
           "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
             "type": "string"
           }
         },
@@ -5940,6 +6416,13 @@
       "description": "网络图：节点 + 边，布局可选力导向 / Kamada-Kawai / 圆周。",
       "type": "object",
       "properties": {
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "directed": {
           "description": "有向图（画箭头）。",
           "type": [
@@ -5959,6 +6442,16 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/NetworkEdgeSpec"
+          }
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
           }
         },
         "label_inside": {
@@ -6336,6 +6829,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "group_colors": {
           "description": "逐分组的颜色。",
           "type": [
@@ -6475,6 +6985,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "horizontal": {
           "description": "横向（类目在 y 轴上）。",
           "type": [
@@ -6584,6 +7111,13 @@
             "$ref": "#/$defs/CladeColorSpec"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "distance_matrix": {
           "description": "距离矩阵（UPGMA 聚类）。",
           "anyOf": [
@@ -6600,6 +7134,16 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/TreeEdgeSpec"
+          }
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
           }
         },
         "leaf_color": {
@@ -6685,6 +7229,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "inner_radius": {
           "description": "内半径（像素）：`> 0` 就是环形图。",
@@ -6921,6 +7482,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "r_grid_lines": {
           "description": "半径方向的网格线根数。",
           "type": [
@@ -7130,6 +7708,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "groups": {
           "description": "一个模型一条曲线。",
           "type": "array",
@@ -7277,6 +7872,23 @@
           ],
           "format": "double"
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "group_gap": {
           "description": "年龄组之间的间距。",
           "type": [
@@ -7386,6 +7998,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "fill_opacity": {
           "description": "点的填充不透明度（`null` 表示不填充）。",
@@ -7594,6 +8223,23 @@
             }
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "head_aspect": {
           "description": "箭头半宽 / 箭头长。",
           "type": [
@@ -7792,6 +8438,13 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "dot_size": {
           "description": "顶点圆点半径；不给就不画点。",
           "type": [
@@ -7799,6 +8452,16 @@
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "filled": {
           "description": "填充多边形内部。",
@@ -7995,6 +8658,23 @@
             "type": "string"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "flip": {
           "description": "上下翻转（把雨放到云的另一侧）。",
           "type": [
@@ -8183,6 +8863,23 @@
             "boolean",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "filled": {
           "description": "填充曲线下方（`false` 只画轮廓线）。",
@@ -8387,6 +9084,13 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "diagonal_color": {
           "type": [
             "string",
@@ -8399,6 +9103,16 @@
             "string",
             "null"
           ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "groups": {
           "description": "一个模型一条曲线。",
@@ -8567,6 +9281,23 @@
             "boolean",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "encoding": {
           "description": "半径的编码方式，默认 `area`。",
@@ -8791,6 +9522,23 @@
             "type": "string"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "flow_label_format": {
           "anyOf": [
             {
@@ -8972,6 +9720,13 @@
             "$ref": "#/$defs/PointSpec3"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "depth_shade": {
           "description": "按深度调暗（远处的点更淡）。",
           "type": [
@@ -8986,6 +9741,16 @@
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "grid_lines": {
           "description": "网格线密度。",
@@ -9145,6 +9910,23 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/PointSpec"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
           }
         },
         "group_name": {
@@ -9321,6 +10103,23 @@
             "string",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "legend": {
           "description": "图例文字。",
@@ -9714,6 +10513,13 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "dot_opacity": {
           "type": [
             "number",
@@ -9727,6 +10533,16 @@
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "group_colors": {
           "description": "逐行的颜色。",
@@ -9796,6 +10612,23 @@
       "description": "堆叠面积图：多个系列在同一批 x 上堆起来。",
       "type": "object",
       "properties": {
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "fill_opacity": {
           "type": [
             "number",
@@ -9959,6 +10792,23 @@
               "type": "null"
             }
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "fill_opacity": {
           "type": [
@@ -10139,6 +10989,23 @@
             "type": "string"
           }
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "groups": {
           "type": "array",
           "items": {
@@ -10297,6 +11164,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "inner_radius": {
           "description": "内半径占外半径的比例，内部夹到 `[0, 0.95]`。",
           "type": [
@@ -10400,6 +11284,13 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "elevation": {
           "description": "仰角（度）。",
           "type": [
@@ -10407,6 +11298,16 @@
             "null"
           ],
           "format": "double"
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "grid_lines": {
           "description": "网格线密度。",
@@ -10632,6 +11533,23 @@
             "null"
           ],
           "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
             "type": "string"
           }
         },
@@ -10908,6 +11826,23 @@
             "null"
           ],
           "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
             "type": "string"
           }
         },
@@ -11567,6 +12502,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "layout": {
           "description": "布局算法：`\"squarify\"`（默认）/ `\"slice_dice\"` / `\"binary\"`。",
           "anyOf": [
@@ -11740,6 +12692,13 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "dot_color": {
           "type": [
             "string",
@@ -11752,6 +12711,16 @@
             "string",
             "null"
           ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "intersections": {
           "description": "非空交集：`mask` 的第 `i` 位表示 `set_names[i]` 在这个交集里。",
@@ -11900,6 +12869,23 @@
             "boolean",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "fill_opacity": {
           "type": [
@@ -12058,6 +13044,23 @@
             "null"
           ],
           "items": {
+            "type": "string"
+          }
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
             "type": "string"
           }
         },
@@ -12289,6 +13292,23 @@
             "null"
           ]
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "fc_cutoff": {
           "description": "倍数变化阈值（取绝对值）。",
           "type": [
@@ -12422,12 +13442,29 @@
           "format": "uint",
           "minimum": 0
         },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "empty_color": {
           "description": "空格的底色。",
           "type": [
             "string",
             "null"
           ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "fill_order": {
           "anyOf": [
@@ -12618,6 +13655,23 @@
             "boolean",
             "null"
           ]
+        },
+        "dataset": {
+          "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "encode": {
+          "description": "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "gap": {
           "description": "柱间距占比。",

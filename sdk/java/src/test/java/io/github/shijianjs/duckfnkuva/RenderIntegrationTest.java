@@ -94,12 +94,13 @@ class RenderIntegrationTest {
     void rendersConfigFromJavaAndDataFromSql() throws Exception {
         Assumptions.assumeTrue(Files.exists(EXT), "extension not built: " + EXT);
 
-        // `dataset` / `encode` 不在 schema 里（扩展在反序列化之前消费它们），走 additionalProperties。
+        // `dataset` / `encode` 是 schema 里的显式字段（schema 生成器为「认数据集」的图型注入），
+        // 所以这里走类型安全的 builder，而不是「额外键」那条没类型的口子。
         ScatterSeries scatter =
                 new ScatterSeries()
                         .type("scatter")
-                        .putAdditionalProperty("dataset", "d")
-                        .putAdditionalProperty("encode", Map.of("x", "a", "y", "b"));
+                        .dataset("d")
+                        .encode(Map.of("x", "a", "y", "b"));
         RenderSpec spec = new RenderSpec().series(List.of(new SeriesSpec(scatter)));
 
         String sql =

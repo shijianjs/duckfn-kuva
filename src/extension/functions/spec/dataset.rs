@@ -276,7 +276,7 @@ fn bind_series(series: &mut Map<String, Value>, registry: &Registry) -> Result<(
 /// and a record list (plus the band's two bounds). The roles are the field names that shape reads, see
 /// [`Binding::roles`].
 #[derive(Debug, Clone, Copy)]
-enum Binding {
+pub(crate) enum Binding {
     /// 目标字段是一列：把数据集的某一列原样搬过去（`Vec<f64>` / `Vec<String>` / `Vec<Vec<f64>>` …）。
     ///
     /// The target field is a column: the dataset's column is moved over as it is.
@@ -327,10 +327,18 @@ impl Binding {
     }
 }
 
-/// 按类型名给出它的绑定表；`None` 表示这个图型不接受数据集（目前只有 `text`）。
+/// 按类型名给出它的绑定表；`None` 表示这个图型不接受数据集（`text` 与 `synteny`）。
 ///
-/// The binding table for a type name; `None` means the type takes no dataset (only `text` today).
-fn bindings_for(kind: &str) -> Option<&'static [Binding]> {
+/// 除 [`bind_series`] 之外，schema 生成器（`src/bin/json_schema.rs`）也用它判断该给哪些 series
+/// 变体补 `dataset` / `encode` 两个字段 —— 认数据集的图型才暴露它们。所以「哪些图型接受数据集」
+/// 这份真相只有一处。
+///
+/// The binding table for a type name; `None` means the type takes no dataset (`text` and `synteny`).
+///
+/// Besides [`bind_series`], the schema generator (`src/bin/json_schema.rs`) uses it to decide which
+/// series variants get the injected `dataset` / `encode` fields — only the types that accept a
+/// dataset expose them, so the "which types take a dataset" truth lives in exactly one place.
+pub(crate) fn bindings_for(kind: &str) -> Option<&'static [Binding]> {
     use Binding::{Band, Column, Points, Points3, Records};
 
     let list: &'static [Binding] = match kind {

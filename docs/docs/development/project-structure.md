@@ -33,7 +33,9 @@ src/extension/functions/…   the registered functions
 test/sql/                   SQLLogicTest files
 sdk/json_schema/            the generated JSON Schema of kuva_render's two arguments
 sdk/ts/                     the TypeScript SDK package, generated from those schemas
-sdk/java/                   the Java SDK, generated from those schemas via an OpenAPI 3.1 wrapper
+sdk/openapi/                the shared JSON Schema -> OpenAPI 3.1 wrapper (the Java and Kotlin SDKs)
+sdk/java/                   the Java SDK, generated from that OpenAPI document (openapi-generator)
+sdk/kotlin/                 the Kotlin Multiplatform SDK, generated from it too (ogen)
 scripts/rename.sh           rename the extension after cloning
 scripts/release.sh          version bump, tag, development version
 Justfile                    the everyday commands
@@ -109,6 +111,14 @@ json-schema-to-typescript read only the siblings and drop the referenced propert
 every draft and every generator is happy, and validation under 2020-12 is unchanged (siblings and
 `$ref` had to hold simultaneously anyway).
 
+A second post-process, `inject_dataset_fields`, adds the `dataset` / `encode` keys to every series
+variant whose binding table accepts a dataset (that table, `dataset::bindings_for`, is the single
+source of truth for the question). The two keys exist only as JSON — `spec/dataset.rs` consumes and
+removes them **before** deserialization, so schemars cannot emit them — yet host SDKs need them to
+write the "data comes from a dataset" config *with types* instead of an untyped extra-keys escape
+hatch. All three SDKs therefore expose them as ordinary fields, and `text` / `synteny` (which take no
+dataset) do not grow them.
+
 ## The TypeScript SDK
 
 `sdk/ts/` is a small npm package (`@shijianjs/duckfn-kuva`, types only — no runtime code) that turns
@@ -155,11 +165,12 @@ never contains the previous release's number for its grep to find). Details in `
 
 `sdk/java/` turns the same two schemas into Jackson-annotated Java models with
 [openapi-generator](https://openapi-generator.tech). Raw JSON Schema has no `discriminator` keyword, so
-`tools/openapi.mjs` wraps the schemas into an OpenAPI 3.1 document (a superset of JSON Schema 2020-12)
-and adds the discriminator for the 64-variant `SeriesSpec` `oneOf`; it also hoists the inline array
-members of `anyOf`/`oneOf` into named `$ref`s, without which openapi-generator emits `List<Double>.class`
-(invalid Java). The generated sources land under `target/generated-sources/` and are **not** committed —
-the repo keeps the generator config (`pom.xml` + `tools/openapi.mjs`) and a small hand-written test.
+the shared `sdk/openapi/openapi.mjs` wraps the schemas into an OpenAPI 3.1 document (a superset of JSON
+Schema 2020-12) and adds the discriminator for the 64-variant `SeriesSpec` `oneOf`; it also hoists the
+inline array members of `anyOf`/`oneOf` into named `$ref`s, without which openapi-generator emits
+`List<Double>.class` (invalid Java), and strips `default`s so unset fields are not serialized. The
+generated sources land under `target/generated-sources/` and are **not** committed — the repo keeps the
+generator config (`pom.xml`) and a small hand-written test.
 
 ```shell
 just java_sdk              # = cd sdk/java && mvn -q generate-sources (regenerate only)
@@ -167,6 +178,30 @@ cd sdk/java && mvn test    # generate + compile + test
 ```
 
 Prerequisite: JDK 17+ and Maven. See `sdk/java/README.md`.
+
+## The Kotlin Multiplatform SDK
+
+`sdk/kotlin/` turns the same OpenAPI 3.1 document into a Kotlin Multiplatform library with
+[ogen](https://github.com/goquati/ogen) (a Gradle plugin; models only, no HTTP client).
+kotlinx.serialization supports discriminated unions natively, so the 64-variant `SeriesSpec` comes out
+as `@JsonClassDiscriminator("type") sealed interface SeriesSpecDto` with one `@SerialName`-tagged
+`data class` per chart type — a real sealed hierarchy, unlike the wrapper class openapi-generator
+produces for Java. openapi-generator's own Kotlin `multiplatform` library was tried first and rejected:
+it hoists every variant's fields into the base class as hundreds of `abstract val`s while no variant
+extends it, so the result neither compiles nor serializes. ogen reads the spec at **configuration**
+time, so `build.gradle.kts` regenerates it there (guarded by an mtime freshness check).
+
+All the usual KMP targets are declared (`jvm`, `js`, `wasmJs`, and the Linux/mingw/macOS/iOS/watchOS/
+tvOS native targets); Apple targets can only be *built* on macOS, and Android is left out because it
+needs AGP plus an Android SDK. ogen is pre-1.0, so its version is pinned in `build.gradle.kts`.
+
+```shell
+just kotlin_sdk                       # = cd sdk/kotlin && ./gradlew ogenGenerate (regenerate only)
+cd sdk/kotlin && ./gradlew jvmTest    # generate + compile + test
+```
+
+Prerequisite: JDK 21+ (ogen's requirement); Gradle comes from the committed wrapper. See
+`sdk/kotlin/README.md`.
 
 ## One chart type per file
 

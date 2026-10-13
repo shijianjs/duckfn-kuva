@@ -17,8 +17,10 @@ just json_schema
 # 等价于：cargo run --bin json_schema --features json-schema
 ```
 
-生成器是 `src/bin/json_schema.rs`，只做一件事：把上面两个根类型交给 schemars 的
-`schema_for!`，落盘到本目录。schemars 是**可选依赖**，只有 `json-schema` feature 打开时才编
+生成器是 `src/bin/json_schema.rs`：主体是把上面两个根类型交给 schemars 的 `schema_for!`，落盘到本
+目录；此外补两处 schemars 给不出的东西 —— 归一化内部标签枚举的成员形状
+（`normalize_internal_tags`），以及给「认数据集」的 series 变体注入 `dataset` / `encode`
+（`inject_dataset_fields`）。schemars 是**可选依赖**，只有 `json-schema` feature 打开时才编
 （见 `Cargo.toml`），扩展本体与 wasm 产物不带它。
 
 改了 `spec/schema/` 或 `spec/dataset.rs` 里的类型之后，重跑一遍命令，把 diff 一起提交。
@@ -30,14 +32,16 @@ just json_schema
 （`$ref` 全是本文件内的 `#/$defs/…`）。schema 只覆盖**形状**（类型、必填、枚举名）；
 长度一致、数值范围这类校验在 Rust 的 `convert` 层做，schema 不重复那份真相。
 
-当前的宿主 SDK：[`../ts/`](../ts/)（json-schema-to-typescript）与
-[`../java/`](../java/)（先经 `tools/openapi.mjs` 包成 OpenAPI 3.1 补 `discriminator`，再交给
-openapi-generator）。
+当前的宿主 SDK：[`../ts/`](../ts/)（json-schema-to-typescript）、
+[`../java/`](../java/)（先经共用的 [`../openapi/`](../openapi/) 包成 OpenAPI 3.1 补 `discriminator`，
+再交给 openapi-generator）与 [`../kotlin/`](../kotlin/)（同一份 OpenAPI 3.1 交给 ogen，生成 KMP 模型）。
 
 已知边界，都不是 bug：
 
-- `dataset` / `encode` 两个键不出现在 schema 里 —— 它们在反序列化**之前**就被
-  `dataset::bind` 消费掉（见 `spec/dataset.rs`），`RenderSpec` 看不到它们。
+- `dataset` / `encode` 两个键在 **Rust 类型里没有**（它们在反序列化**之前**就被 `dataset::bind`
+  消费掉，见 `spec/dataset.rs`），但 **schema 里有** —— 生成器按绑定表把它们补到每个「认数据集」的
+  series 变体上（`inject_dataset_fields`），这样各语言 SDK 才能类型安全地写「数据来自数据集」的配置，
+  而不必借助「额外键」那种没类型的手段。`text` / `synteny` 不接受数据集，也就没有这两个字段。
 - `color_map` 等按名解析的字段是 `{"type": "string"}` 而不是枚举：真实实现容忍大小写、
   连字符与 ColorBrewer 缩写（描述里写明了），列枚举会把合法写法误判成非法。
 

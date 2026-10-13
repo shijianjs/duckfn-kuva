@@ -12,6 +12,10 @@
 //! 自动变成 schema 里的 `description` —— 没有第二份手工维护的字段表，也没有 AI 现编的说明。类型
 //! 改了，重跑一遍命令，两个文件跟着走；git diff 一眼能看出对外形状变了没有。
 //!
+//! 唯一的例外是 `dataset` / `encode`：它们在反序列化**之前**就被 `spec/dataset.rs` 消费掉，从不进入
+//! Rust 类型，所以 schemars 生成不出来 —— 由 [`inject_dataset_fields`] 按绑定表补到「认数据集」的
+//! series 变体上（见该函数的说明）。
+//!
 //! 为什么用 `#[path]` 把 `extension` 再编一遍，而不是 `use duckfn_kuva::...`：schema 类型全是
 //! `pub(crate)`（它们本来就不该出现在扩展的公开 API 上），从 rlib 外面摸不到。这与
 //! `src/bin/duckfn.rs` 是同一个路子，只是原因不同（那边是 inventory 的静态注册，这边是可见性）。
@@ -35,6 +39,10 @@
 //! hand-maintained field table and no AI-written prose. Change a type, re-run the command, and the
 //! files follow; `git diff` then shows at a glance whether the public shape moved.
 //!
+//! The one exception is `dataset` / `encode`: consumed before deserialization by `spec/dataset.rs`,
+//! they never reach the Rust types, so schemars cannot emit them — [`inject_dataset_fields`] adds
+//! them to the series variants whose binding table accepts a dataset (see that function).
+//!
 //! `#[path]` compiles `extension` a second time instead of `use duckfn_kuva::...` because the schema
 //! types are all `pub(crate)` (they were never meant to be part of the extension's public API) and
 //! are unreachable from outside the rlib. This is the same trick `src/bin/duckfn.rs` uses, for a
@@ -53,7 +61,7 @@ use std::path::Path;
 use schemars::schema_for;
 use serde_json::Value;
 
-use extension::functions::spec::dataset::Registry;
+use extension::functions::spec::dataset::{self, Registry};
 use extension::functions::spec::schema::RenderSpec;
 
 /// `datasets.schema.json` 顶层与「一行」的说明。
@@ -75,6 +83,16 @@ const REGISTRY_DESCRIPTION: &str = "数据集注册表：数据集名 -> 行数�
      观测值本身就是数组）。";
 const ROW_DESCRIPTION: &str = "一行数据：「字段名 -> 值」的对象；字段名就是 series `encode` 里\
      出现的那些名字。";
+
+/// `dataset` / `encode` 两个字段的说明。它们不在 Rust 类型里（见 [`inject_dataset_fields`]），
+/// 所以没有 `///` 可以流进 schema，只能在这里写死。
+///
+/// The descriptions of the injected `dataset` / `encode` fields. They have no Rust type to carry a
+/// `///` (see [`inject_dataset_fields`]), so they are written out here.
+const DATASET_DESCRIPTION: &str = "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。\
+     给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。";
+const ENCODE_DESCRIPTION: &str = "角色 -> 数据集字段名。角色随图型而定（例如散点的 `x` / `y` / \
+     `size` / `color`）；省略时按同名字段自动映射，显式给了就覆盖它。";
 
 /// 内部标签枚举的一个变体在 schemars 输出里的形状：判别字段（名字 + const 值）与被引用的 `$def` 名。
 /// 不匹配这个形状的成员返回 `None`（外部标签枚举、adjacently 标签、普通 `anyOf` 都不匹配）。
@@ -212,6 +230,68 @@ fn normalize_internal_tags(schema: &mut schemars::Schema) {
     }
 }
 
+/// 给**接受数据集的**每个 series 变体补上 `dataset` / `encode` 两个字段。
+///
+/// 这两个键由 `spec/dataset.rs` 在反序列化**之前**消费并移除，从不进入 Rust 类型，所以 schemars
+/// 生成不出来。但宿主 SDK 需要它们才能类型安全地写下「数据来自数据集」的配置（否则只能靠
+/// 「额外键」这种没类型的口子），于是这里按绑定表补上 —— 只有 [`dataset::bindings_for`] 认的
+/// 图型才有；`text` / `synteny` 不会凭空多出这两个字段。
+///
+/// 依赖调用顺序：必须在 [`normalize_internal_tags`] 之后跑，那时 series 变体的图型名才落在
+/// `properties.type.const` 上。
+///
+/// Add the `dataset` / `encode` fields to every series variant that accepts a dataset.
+///
+/// `spec/dataset.rs` consumes and removes these two keys before deserialization, so they never reach
+/// the Rust types and schemars cannot emit them. Host SDKs need them to write the "data comes from a
+/// dataset" config type-safely (the only alternative being an untyped escape hatch for extra keys),
+/// so they are added here from the binding table — only for the chart types
+/// [`dataset::bindings_for`] accepts; `text` / `synteny` do not grow them.
+///
+/// Order matters: this must run after [`normalize_internal_tags`], which is what puts the chart
+/// type name on `properties.type.const`.
+fn inject_dataset_fields(schema: &mut schemars::Schema) {
+    let Some(defs) = schema.get_mut("$defs").and_then(Value::as_object_mut) else {
+        return;
+    };
+
+    for def in defs.values_mut() {
+        // 归一化之后，series 变体正是「`properties.type.const` 是个字符串」的那些 `$def`。
+        //
+        // After normalization a series variant is exactly a `$def` whose `properties.type.const` is
+        // a string.
+        let kind = def
+            .get("properties")
+            .and_then(Value::as_object)
+            .and_then(|props| props.get("type"))
+            .and_then(|tag| tag.get("const"))
+            .and_then(Value::as_str)
+            .map(str::to_owned);
+        let Some(kind) = kind else {
+            continue;
+        };
+        if dataset::bindings_for(&kind).is_none() {
+            continue;
+        }
+        let Some(props) = def.get_mut("properties").and_then(Value::as_object_mut) else {
+            continue;
+        };
+
+        props.insert(
+            "dataset".into(),
+            serde_json::json!({ "description": DATASET_DESCRIPTION, "type": ["string", "null"] }),
+        );
+        props.insert(
+            "encode".into(),
+            serde_json::json!({
+                "description": ENCODE_DESCRIPTION,
+                "type": ["object", "null"],
+                "additionalProperties": { "type": "string" }
+            }),
+        );
+    }
+}
+
 fn main() {
     let out_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("sdk")
@@ -219,15 +299,21 @@ fn main() {
     fs::create_dir_all(&out_dir).unwrap_or_else(|e| panic!("failed to create {}: {e}", out_dir.display()));
 
     // 第一个参数：图表配置。schemars 已经放好了 `$schema` / `title` / `$defs`，`description` 来自
-    // `RenderSpec` 与其全部字段上的 `///`。这里只补一个 `$id` —— 相对文件名即合法 URI reference，
-    // 让 SDK 侧的工具（代码生成、编辑器补全）有个稳定标识可引。
+    // `RenderSpec` 与其全部字段上的 `///`。这里补两处它给不出的东西：归一化内部标签枚举的成员形状
+    // （`normalize_internal_tags`），以及 `dataset` / `encode` 两个反序列化前的键
+    // （`inject_dataset_fields`）；最后加一个 `$id` —— 相对文件名即合法 URI reference，让 SDK 侧的
+    // 工具（代码生成、编辑器补全）有个稳定标识可引。
     //
     // The first argument: the chart config. schemars already laid down `$schema` / `title` /
     // `$defs`, and the `description` comes from the `///` comments on `RenderSpec` and every field.
-    // All that is added here is an `$id` — a bare relative file name is a valid URI reference and
-    // gives SDK-side tooling (codegen, editor completion) a stable handle to refer to.
+    // Two things it cannot produce are added here: the normalized member shape of the internally
+    // tagged enum (`normalize_internal_tags`) and the two pre-deserialization keys
+    // `dataset` / `encode` (`inject_dataset_fields`). Last comes an `$id` — a bare relative file name
+    // is a valid URI reference and gives SDK-side tooling (codegen, editor completion) a stable
+    // handle to refer to.
     let mut render = schema_for!(RenderSpec);
     normalize_internal_tags(&mut render);
+    inject_dataset_fields(&mut render);
     render.insert("$id".into(), "render.schema.json".into());
     write_schema(&out_dir.join("render.schema.json"), &render);
 

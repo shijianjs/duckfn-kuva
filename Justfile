@@ -84,10 +84,19 @@ ts_sdk:
     cd sdk/ts && npm install && npm run gen
 
 # 重新生成 `sdk/java/` 下的 Java 模型（schema 改了之后跑它）。实际命令在 `sdk/java/pom.xml`：
-# exec 先跑 `tools/openapi.mjs` 把 `sdk/json_schema/` 包成一份 OpenAPI 3.1（补 discriminator），再用
-# openapi-generator（generatorName=java、library=native=Jackson）生成模型。连 schema 一起更新就是
-# `just json_schema && just java_sdk`。
+# exec 先跑共用的 `sdk/openapi/openapi.mjs` 把 `sdk/json_schema/` 包成一份 OpenAPI 3.1（补
+# discriminator），再用 openapi-generator（generatorName=java、library=native=Jackson）生成模型。
+# 连 schema 一起更新就是 `just json_schema && just java_sdk`。
 #
 # 前置：JDK 17+ 与 Maven（见 `sdk/java/README.md`）。
 java_sdk:
     cd sdk/java && mvn -q generate-sources
+
+# 重新生成 `sdk/kotlin/` 下的 Kotlin Multiplatform 模型（schema 改了之后跑它）。同一份
+# `sdk/openapi/openapi.mjs` 产出的 OpenAPI 3.1 交给 Gradle 插件 `de.quati.ogen`，只生成模型、不生成
+# client；生成物落在 `sdk/kotlin/build/`，不入库。连 schema 一起更新就是
+# `just json_schema && just kotlin_sdk`。
+#
+# 前置：JDK 21+（ogen 的要求）；Gradle 由 `sdk/kotlin/gradlew` 自带。
+kotlin_sdk:
+    cd sdk/kotlin && ./gradlew ogenGenerate

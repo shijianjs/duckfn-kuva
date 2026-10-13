@@ -66,8 +66,9 @@
   <build>
     <plugins>
       <!--
-        1) 先把 sdk/json_schema/ 下的两份 JSON Schema 包成一份 OpenAPI 3.1 文档（tools/openapi.mjs，
-           补 discriminator）。真相源仍是 json_schema，这只是容器转换。
+        1) 先把 sdk/json_schema/ 下的两份 JSON Schema 包成一份 OpenAPI 3.1 文档（共用的
+           sdk/openapi/openapi.mjs，补 discriminator）。真相源仍是 json_schema，这只是容器转换。
+           Kotlin SDK 走同一个脚本 —— 归一化全部语言无关，没有按语言分叉的步骤。
       -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -84,7 +85,9 @@
               <executable>node</executable>
               <workingDirectory>${project.basedir}</workingDirectory>
               <arguments>
-                <argument>tools/openapi.mjs</argument>
+                <argument>../openapi/openapi.mjs</argument>
+                <argument>--out</argument>
+                <argument>${project.build.directory}/openapi.json</argument>
               </arguments>
             </configuration>
           </execution>

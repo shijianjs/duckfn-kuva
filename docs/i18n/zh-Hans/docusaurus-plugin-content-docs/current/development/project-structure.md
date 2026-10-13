@@ -32,7 +32,9 @@ src/extension/types/
 test/sql/                   SQLLogicTest 用例
 sdk/json_schema/            生成出来的 JSON Schema：kuva_render 两个参数的形状
 sdk/ts/                    由那两个 schema 生成的 TypeScript SDK 包
-sdk/java/                  由那两个 schema 生成的 Java SDK（先包一层 OpenAPI 3.1）
+sdk/openapi/               JSON Schema -> OpenAPI 3.1 的共用包装脚本（Java 与 Kotlin SDK 共用）
+sdk/java/                  由那份 OpenAPI 3.1 生成的 Java SDK（openapi-generator）
+sdk/kotlin/                由同一份 OpenAPI 3.1 生成的 Kotlin Multiplatform SDK（ogen）
 scripts/rename.sh           克隆后改扩展名
 scripts/release.sh          提版本号、打 tag、切开发版本
 Justfile                    日常命令
@@ -98,6 +100,12 @@ json-schema-to-typescript 这类生成器则只读兄弟、被引用的属性全
 `normalize_internal_tags` 把 const 搬进被引用的 `$def`，成员只剩纯 `$ref`：新旧草案都认、生成器
 都吃，2020-12 下的校验语义也不变（兄弟与 `$ref` 本来就要同时满足）。
 
+第二处后处理 `inject_dataset_fields` 给「认数据集」的每个 series 变体补上 `dataset` / `encode` 两个
+字段（哪些图型认数据集，由 `dataset::bindings_for` 这一处真相决定）。这两个键只存在于 JSON 里 ——
+`spec/dataset.rs` 在反序列化**之前**就把它们消费掉，schemars 生成不出来 —— 但宿主 SDK 需要它们，才能
+**类型安全**地写「数据来自数据集」的配置，而不必借助「额外键」那种没类型的手段。所以三个 SDK 都把它们
+当普通字段暴露；`text` / `synteny` 不接受数据集，也就没有这两个字段。
+
 ## TypeScript SDK
 
 `sdk/ts/` 是一个小 npm 包（`@shijianjs/duckfn-kuva`，**纯类型包、无运行时代码**），用
@@ -141,11 +149,11 @@ schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAP
 ## Java SDK
 
 `sdk/java/` 用 [openapi-generator](https://openapi-generator.tech) 把同样那两个 schema 生成带 Jackson
-注解的 Java 模型。raw JSON Schema 没有 `discriminator` 关键字，所以 `tools/openapi.mjs` 先把 schema
-包成一份 OpenAPI 3.1（JSON Schema 2020-12 的超集），再给 64 成员的 `SeriesSpec` `oneOf` 补上
-discriminator；它还把 `anyOf`/`oneOf` 里的内联数组成员提成具名 `$ref`，否则 openapi-generator 会生成
-`List<Double>.class`（非法 Java）。生成物落在 `target/generated-sources/` 下、**不入库** —— 入库的是
-生成它的配置（`pom.xml` + `tools/openapi.mjs`）与一个小测试。
+注解的 Java 模型。raw JSON Schema 没有 `discriminator` 关键字，所以共用的 `sdk/openapi/openapi.mjs`
+先把 schema 包成一份 OpenAPI 3.1（JSON Schema 2020-12 的超集），再给 64 成员的 `SeriesSpec` `oneOf`
+补上 discriminator；它还把 `anyOf`/`oneOf` 里的内联数组成员提成具名 `$ref`，否则 openapi-generator 会
+生成 `List<Double>.class`（非法 Java），另外去掉 `default`，免得未设的字段也被序列化出去。生成物落在
+`target/generated-sources/` 下、**不入库** —— 入库的是生成它的配置（`pom.xml`）与一个小测试。
 
 ```shell
 just java_sdk              # = cd sdk/java && mvn -q generate-sources（只重生成）
@@ -153,6 +161,27 @@ cd sdk/java && mvn test    # 生成 + 编译 + 测试
 ```
 
 前置：JDK 17+ 与 Maven。见 `sdk/java/README.md`。
+
+## Kotlin Multiplatform SDK
+
+`sdk/kotlin/` 把同一份 OpenAPI 3.1 交给 [ogen](https://github.com/goquati/ogen)（一个 Gradle 插件；
+只生成模型、不生成 HTTP client），得到 Kotlin Multiplatform 库。kotlinx.serialization 原生支持判别
+联合，所以 64 成员的 `SeriesSpec` 生成成 `@JsonClassDiscriminator("type") sealed interface
+SeriesSpecDto` + 每个图型一个带 `@SerialName` 的 `data class` —— **真正的密封层级**，而不是 Java 那边
+openapi-generator 的包装类。先试过 openapi-generator 自己的 Kotlin `multiplatform`，否了：它把每个变体
+的字段全拍进基类（几百个 `abstract val`）且没有变体继承它，结果既编不过也序列化不了。ogen 在**配置
+阶段**就要读 spec，所以 `build.gradle.kts` 在那里重生成（按 mtime 判断新鲜度）。
+
+KMP 的常规目标都声明了（`jvm`、`js`、`wasmJs`，以及 Linux/mingw/macOS/iOS/watchOS/tvOS 的原生
+目标）；Apple 目标只能在 macOS 上**构建**，Android 没开 —— 它需要 AGP 加 Android SDK。ogen 还是
+pre-1.0，版本钉在 `build.gradle.kts` 里。
+
+```shell
+just kotlin_sdk                       # = cd sdk/kotlin && ./gradlew ogenGenerate（只重生成）
+cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 测试
+```
+
+前置：JDK 21+（ogen 的要求）；Gradle 由提交进去的 wrapper 自带。见 `sdk/kotlin/README.md`。
 
 ## 每种图型一个文件
 

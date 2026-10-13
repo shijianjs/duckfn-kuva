@@ -10,13 +10,17 @@
 
 目录名必须与 `extension.name` **逐字一致** —— 社区仓的 `scripts/build.py` 会校验，不一致直接报错。
 
-## 提交前还剩什么要改
+## 提交进度与还要改什么
 
 `description.yml` 的 `extension.description` / `maintainers` / `repo.github` 与 `docs.hello_world` /
 `docs.extended_description` 都已按本扩展的真实 API（`kuva_render` / `kuva_render_terminal` /
-`kuva_render_file`）写好，改 API 时跟着改。
-**唯一仍是占位符的是 `repo.ref`** —— 它要等打过 tag 之后填那次发布的提交 SHA（见下面
-「`repo.ref` 写发布那一版的提交 SHA」）。本文件下面提到的路径与用户名也照本机实际情况核对一遍。
+`kuva_render_file`）写好，改 API 时跟着改 —— 改了 `hello_world` / `extended_description`，或改了函数
+属性上的 description / example，都要重生成 `docs/function_descriptions.csv`（见下面「那份 CSV 是必须的」），
+并**真跑一遍** `hello_world`：它渲染进社区文档页的代码块，写歪了不会有人报错。
+
+**首次提交已完成**（2026-10-13）：`repo.ref` 与 `extension.version` 都指向 v0.2.0，PR 是
+[duckdb/community-extensions#3044](https://github.com/duckdb/community-extensions/pull/3044)。之后每次
+发版回来改这两处（见下面「每次发版都要回来改」）。本文件下面提到的路径与用户名也照本机实际情况核对一遍。
 
 `extension.name` / `version` / `license` / `language` / `build` / `requires_toolchains` 在模板里已经是可直接
 沿用的值（下面一节解释为什么），只有 `name` 要跟着你改名后的扩展名走（`scripts/rename.sh` 会一起改）。
@@ -71,8 +75,8 @@ cp target/function_descriptions.csv community-extension/docs/function_descriptio
 上游注册仓（`duckdb/community-extensions`）的 fork 与本地克隆：
 
 - fork：`shijianjs/duckdb-community-extensions`
-- 克隆：`S:\workspace\my\rust\duckdb\duckdb-community-extensions`（`origin` 就是这个 fork，没有配
-  `upstream`）—— 按本机实际路径替换。
+- 克隆：`S:\workspace\my\rust\duckdb\duckdb-community-extensions`（`origin` 是这个 fork，`upstream`
+  指向 `duckdb/community-extensions`）—— 按本机实际路径替换。
 
 流程是「加分支 → 复制两个文件 → 提交 → 推分支 → 开 PR」，本仓这边一行都不用改：
 

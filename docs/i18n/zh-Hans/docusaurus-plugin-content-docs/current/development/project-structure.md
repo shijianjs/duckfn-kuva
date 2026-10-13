@@ -141,9 +141,9 @@ schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAP
 `switch (s.type)` 就能收窄到对应变体。
 
 生成文件和 schema 一样是产物：重新生成，不手改；`SDK` workflow（`.github/workflows/Sdk.yml`）
-把每一层都重生成一遍再比对 `git diff`，看守整个 `sdk/`。它刻意独立成一份、触发方式与文档站一致
-（扩充分发流水线跑完之后），并且只对版本 tag 那次生效 —— 是**插件发版**触发，不是日常提交。
-以后发 npm 就是在 `sdk/ts/` 里
+把每一层都重生成一遍再比对 `git diff`，看守整个 `sdk/`。它刻意独立成一份：**PR 上跑**（产物新鲜度 +
+各语言测试），另外与文档站一样在扩充分发流水线跑完之后跑，那里只对版本 tag 那次生效 —— 也就是插件
+发版会拿 Release 里的产物把整套再验一遍。以后发 npm 就是在 `sdk/ts/` 里
 `npm publish --access public`；那里的版本号跟 `Cargo.toml` 手工对齐（`just release_bump` 不碰它
 —— 开发中的 `-dev.N` 号里不含上一个正式版本号的字样，它的 grep 找不到）。细节见
 `sdk/ts/README.md`。
@@ -188,8 +188,10 @@ cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 测试（单测 + JDBC
 ```
 
 前置：JDK 21+（ogen 的要求）；Gradle 由提交进去的 wrapper 自带（钉 9.6.0 —— AGP 9.4 能接受的最低
-版本）。`jvmTest` 还会跑一个集成测试：用 DuckDB 的 JDBC 驱动加载本地编好的扩展，真调一遍
-`kuva_render`；扩展不存在时 skip（与 TS / Java 的集成测试同一套规则）。见 `sdk/kotlin/README.md`。
+版本）。`jvmTest` 还会跑一个集成测试：用 DuckDB 的 JDBC 驱动加载扩展、真调一遍 `kuva_render` ——
+本机用 `just build` 的产物，CI 里直接拉最新 Release 的资产（文档站拉 wasm 同理），都没有时 skip
+（与 TS / Java 的集成测试同一套规则）。CI 还会编译 Android 目标并跑它的 host test。见
+`sdk/kotlin/README.md`。
 
 ## 每种图型一个文件
 

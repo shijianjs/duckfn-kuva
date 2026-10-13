@@ -80,8 +80,10 @@ ogen 在**配置阶段**就要读 spec（不是等任务执行），所以 `buil
 `linuxX64` / `linuxArm64` / `mingwX64` / `macosX64` / `watchos*` / `tvos*`。多声明一个，KMP 的
 `kmpPartiallyResolvedDependenciesChecker` 会直接以 error 级失败。上游补齐变体后，把对应那行加回来即可。
 
-**Android SDK**：只有编译 *Android* 产物才需要（`ANDROID_HOME` 或 `local.properties` 里的 `sdk.dir`，
-后者已 gitignore）。在别的目标上（`jvmTest`、`js`、Apple）配置和构建都不需要它。
+**Android SDK**：只有编译 *Android* 产物才需要 —— 设 `ANDROID_HOME`，或在 `local.properties` 里写
+`sdk.dir`（已 gitignore）。在别的目标上（`jvmTest`、`js`、Apple）配置和构建都不需要它。本机已实测：
+装上 `platforms;android-36` + `build-tools;36.0.0` 后，`./gradlew assembleAndroidMain
+testAndroidHostTest` 通过（`testAndroidHostTest` 也会跑 `commonTest` 那批用例）。
 
 ## 测试
 
@@ -91,11 +93,19 @@ ogen 在**配置阶段**就要读 spec（不是等任务执行），所以 `buil
   扩展 `build/debug/duckfn_kuva.duckdb_extension`，真正调一遍 `kuva_render`（不是 mock）。扩展不存在时
   skip，与 `sdk/ts`、`sdk/java` 的集成测试同一套规则；跑之前先 `just build`。
 
+CI（`.github/workflows/Sdk.yml`）不编译扩展，而是**直接拉最新 Release 的
+`duckfn_kuva-linux_amd64.duckdb_extension`** 放到那个位置（文档站拉 wasm 也是这么干的），所以集成测试
+在 CI 里同样是真跑的 —— 本扩展是稳定 C API 构建（元数据要 C API v1.2.0），一份产物在 DuckDB
+1.3.2 ~ 1.5.6 上都能加载，与测试用的 JDBC 驱动兼容。
+
 ## 命令
 
 ```shell
 just kotlin_sdk                       # = cd sdk/kotlin && ./gradlew ogenGenerate（仅重生成模型）
-cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 跑测试
+cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 跑测试（单测 + JDBC 集成测试）
+
+# Android 目标（需要 Android SDK，见上）：
+cd sdk/kotlin && ./gradlew assembleAndroidMain testAndroidHostTest
 ```
 
 前置：JDK 21+（ogen 的要求）；Gradle 由 `gradlew` 自带，**钉在 9.6.0**（AGP 9.4 能接受的最低版本；

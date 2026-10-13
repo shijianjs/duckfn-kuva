@@ -1,46 +1,48 @@
 #
 # `sdk/` 下各语言 SDK 的 CI：重生成产物（JSON Schema / TypeScript），构建并测试 TS / Java / Kotlin。
 #
-# 触发面与文档站（DeployDocs.yml）一致：**扩展分发流水线跑完之后**，或从 Actions 页手动发起 ——
-# 日常提交与 PR 都不跑。门禁条件也一样：只有「成功 + 由推 v*.*.* tag 触发」的那次流水线才继续，
-# 也就是**只有插件发版才触发**。
+# 触发面三种：
+#   - **PR**：只跑一遍（产物新鲜度 + 各语言测试），不发布任何东西；
+#   - **扩展分发流水线跑完之后**：与文档站（DeployDocs.yml）同一套，门禁也相同 —— 只有「成功 + 由推
+#     v*.*.* tag 触发」的那次才继续，也就是插件发版才触发；
+#   - 从 Actions 页手动发起。
 #
 # 为什么独立成一份而不挂在 MainDistributionPipeline 里：那是 DuckDB 扩展的构建 / 发布流水线，
 # SDK 只是它的下游消费者 —— 两者的版本节奏、依赖和失败语义都不同，不该互相拖累。
 #
-# The CI for the language SDKs under `sdk/`: regenerate the artifacts (JSON Schema / TypeScript) and
-# build + test the TS / Java / Kotlin SDKs. Triggered the way the docs site (DeployDocs.yml) is —
-# after the extension distribution pipeline finishes, or manually from the Actions tab; ordinary
-# pushes and pull requests do not run it. The gate is the same as the docs site's: only a successful
-# run started by pushing a `v*.*.*` tag continues, i.e. **only a plugin release triggers it**.
-#
-# It lives in its own workflow rather than in MainDistributionPipeline because that file is the
-# DuckDB extension's build/release pipeline and the SDKs are merely downstream consumers of it.
+# The CI for the language SDKs under `sdk/`. Three triggers: pull requests (freshness + per-language
+# tests only), the extension distribution pipeline finishing (same pattern and the same gate as the
+# docs site — only a successful `v*.*.*` tag run continues, i.e. a plugin release), and a manual
+# dispatch. It lives in its own workflow because MainDistributionPipeline is the DuckDB extension's
+# build/release pipeline and the SDKs are merely downstream consumers of it.
 #
 name: SDK
 on:
+  pull_request:
   workflow_run:
     workflows: ['Main Extension Distribution Pipeline']
     types: [completed]
   workflow_dispatch:
 
-# 只需要读代码。
+# 只需要读代码与读 Release。
 permissions:
   contents: read
 
-# 同一个提交只留最后一次运行。
+# 同一个提交 / 同一个 tag 只留最后一次运行。
 concurrency:
-  group: sdk-${{ github.event.workflow_run.head_sha || github.sha }}
+  group: sdk-${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
   sdk:
     name: Regenerate and test the SDKs
-    # workflow_run 也会为 PR 触发的流水线、以及手动触发的流水线跑；只有「成功 + 推 tag」才继续。
+    # PR 与手动触发直接跑；workflow_run 还会为 PR 触发的、以及手动触发的流水线各来一次，只有
+    # 「成功 + 推 tag」那次才继续。
     #
-    # A `workflow_run` also fires for pipeline runs started by pull requests and by hand; only a
-    # successful version-tag run goes on.
+    # Pull requests and manual runs always go ahead; a `workflow_run` also fires for pipeline runs
+    # started by pull requests and by hand, and only a successful version-tag run goes on.
     if: >-
+      github.event_name == 'pull_request' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
@@ -51,8 +53,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # workflow_run 默认 checkout 默认分支；这里要的是流水线跑的那个 tag。
+          # PR / 手动触发时 workflow_run 为 null，退回 github.sha（PR 的合并提交）。
           #
           # A `workflow_run` checks out the default branch by default; we want the tag it built.
+          # On a pull request (or a manual run) `workflow_run` is null, so this falls back to
+          # github.sha — the pull request's merge commit.
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # ---- 1) JSON Schema（Rust 里那两个真相源的投影）----
@@ -62,7 +67,35 @@ jobs:
       - name: Regenerate the JSON Schema
         run: cargo run --bin json_schema --features json-schema
 
-      # ---- 2) TypeScript SDK ----
+      # ---- 2) 各语言集成测试要用的扩展 ----
+      # 不在这里编译扩展（那要整套 DuckDB 构建），直接取**最新 Release 的构建产物** —— 文档站拉
+      # wasm 也是这个路子（见 docs/docusaurus.config.ts 的 dfkExtensions release 条目）。
+      #
+      # 取 linux_amd64 那份：本扩展只用 C API 稳定区、元数据写的是 C API v1.2.0，一份产物在
+      # DuckDB 1.3.2 ~ 1.5.6 上都能加载（见 Makefile 里 TARGET_DUCKDB_VERSION 的说明），所以
+      # release 产物与测试用的 JDBC 驱动（1.4.x）兼容。
+      #
+      # Take the released binary instead of building the extension here (that would mean the whole
+      # DuckDB build) — the same trick the docs site uses for its wasm asset. The linux_amd64 asset
+      # works with the JDBC driver the tests use because the extension is a stable-C-API build whose
+      # metadata asks for C API v1.2.0, and one such artifact loads on DuckDB 1.3.2 – 1.5.6.
+      - name: Fetch the released extension
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/debug
+          if gh release download --repo "$GITHUB_REPOSITORY" \
+               --pattern 'duckfn_kuva-linux_amd64.duckdb_extension' \
+               --dir build/debug --clobber; then
+            mv build/debug/duckfn_kuva-linux_amd64.duckdb_extension \
+               build/debug/duckfn_kuva.duckdb_extension
+            ls -l build/debug
+          else
+            echo "::warning::no released extension downloaded — the JDBC integration tests will skip"
+          fi
+
+      # ---- 3) TypeScript SDK ----
       # 生成器由 sdk/ts/package-lock.json 钉版本，`npm ci` 严格按锁文件装。
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -79,22 +112,21 @@ jobs:
           npm run gen
           npm test
 
-      # ---- 3) Java SDK ----
+      # ---- 4) Java SDK ----
       # ubuntu runner 自带 JDK 与 Maven（Java SDK 只要 JDK 17+）。生成物落在 sdk/java/target，
-      # 已被 gitignore，不进下面的 diff；这一步是确认生成链路通。
+      # 已被 gitignore，不进下面的 diff；这一步是确认生成链路通、并跑真·集成测试。
       #
       # The ubuntu runner ships JDK + Maven (the Java SDK only needs JDK 17+). Its output lands in
-      # sdk/java/target (gitignored) and never reaches the diff check below; this step proves the
-      # generation chain works.
+      # sdk/java/target (gitignored) and never reaches the diff check below.
       - name: Build and test the Java SDK
         run: |
           set -euo pipefail
           cd sdk/java
           mvn -B -q test
 
-      # ---- 4) Kotlin Multiplatform SDK ----
-      # ogen 要求 JDK 21+（runner 默认未必是），所以显式装一个。Gradle 由 sdk/kotlin 里
-      # 提交的 wrapper 自带（发行包走国内镜像，见 gradle-wrapper.properties）。
+      # ---- 5) Kotlin Multiplatform SDK ----
+      # ogen 要求 JDK 21+（runner 默认未必是），所以显式装一个。Gradle 由 sdk/kotlin 里提交的
+      # wrapper 自带（发行包走官方源，见 gradle-wrapper.properties）。
       #
       # ogen needs JDK 21+ (the runner default may be older), so install one explicitly. Gradle comes
       # from the committed wrapper under sdk/kotlin.
@@ -104,13 +136,28 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      # runner 上装了 Android SDK，但不确定有没有 AGP 要的 platform / build-tools；
+      # `continue-on-error` 保证这步只兜底、不把整条流水线带崩（装不上就地报错更清楚）。
+      #
+      # The runner ships an Android SDK, but not necessarily the platform / build-tools AGP wants.
+      # Best-effort only: `continue-on-error` keeps it from failing the run.
+      - name: Ensure the Android platform AGP needs
+        continue-on-error: true
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      # jvmTest：单测 + JDBC 集成测试（上一步拉到的扩展让它真跑）。
+      # assembleAndroidMain / testAndroidHostTest：Android 目标能编译，且 commonTest 在 Android 上
+      # 也跑（本机实测过这四个任务）。
+      #
+      # jvmTest runs the unit tests plus the JDBC integration test; assembleAndroidMain and
+      # testAndroidHostTest prove the Android target compiles and runs the shared tests.
       - name: Build and test the Kotlin SDK
         run: |
           set -euo pipefail
           cd sdk/kotlin
-          ./gradlew ogenGenerate jvmTest
+          ./gradlew ogenGenerate jvmTest assembleAndroidMain testAndroidHostTest
 
-      # ---- 5) 产物必须与源码同步 ----
+      # ---- 6) 产物必须与源码同步 ----
       # 只盯 sdk/：源码那边有 diff 是正常的，产物这边不允许「忘了重新生成」。
       #
       # Only sdk/ is watched: diffs in the sources are normal, a stale artifact is not.

@@ -157,9 +157,10 @@ the normalization above `switch (s.type)` narrows to the right variant.
 
 The generated files are artifacts like the schemas — regenerate, never hand-edit — and the `SDK`
 workflow (`.github/workflows/Sdk.yml`) guards all of `sdk/` by regenerating every layer and failing on
-any `git diff`. It is deliberately a workflow of its own, triggered the way the docs site is (after
-the extension distribution pipeline finishes) and gated to the version-tag run — a plugin release, not
-an ordinary push. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
+any `git diff`. It is deliberately a workflow of its own: it runs on pull requests (freshness plus the
+per-language tests) and, like the docs site, after the extension distribution pipeline finishes — gated
+there to the version-tag run, so a plugin release re-verifies everything against the artifact in the
+Release. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
 there tracks `Cargo.toml` by hand (`just release_bump` does not touch it, since a `-dev.N` version
 never contains the previous release's number for its grep to find). Details in `sdk/ts/README.md`.
 
@@ -208,9 +209,10 @@ cd sdk/kotlin && ./gradlew jvmTest    # generate + compile + test (unit + JDBC i
 ```
 
 Prerequisite: JDK 21+ (ogen's requirement); Gradle comes from the committed wrapper, which pins 9.6.0
-(the minimum AGP 9.4 accepts). `jvmTest` also runs an integration test that loads the locally built
-extension through DuckDB's JDBC driver — skipped when the extension is absent, the same rule the
-TypeScript and Java integration tests follow. See `sdk/kotlin/README.md`.
+(the minimum AGP 9.4 accepts). `jvmTest` also runs an integration test that loads the extension through
+DuckDB's JDBC driver — locally the build `just build` produced, in CI the asset from the latest GitHub
+Release (the same trick the docs site uses for its wasm), skipped when neither is there. The CI runs the
+Android target as well (`assembleAndroidMain testAndroidHostTest`). See `sdk/kotlin/README.md`.
 
 ## One chart type per file
 

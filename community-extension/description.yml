@@ -16,15 +16,15 @@ repo:
 docs:
   hello_world: |
     -- One function: a JSON chart spec in, an SVG document out
-    SELECT kuva_render('{"series":[{"type":"scatter","data":[[1,2],[3,4],[5,3]]}]}');
+    SELECT kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4},{"x":5,"y":3}]}]}');
     -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 
     -- Several series overlay on one set of axes
-    SELECT kuva_render('{"series":[{"type":"line","data":[[0,1],[1,2],[2,1.5]],"legend":"signal"},{"type":"scatter","data":[[0,1.2],[1,1.8],[2,1.6]],"legend":"observed"}]}');
+    SELECT kuva_render('{"series":[{"type":"line","data":[{"x":0,"y":1},{"x":1,"y":2},{"x":2,"y":1.5}],"legend":"signal"},{"type":"scatter","data":[{"x":0,"y":1.2},{"x":1,"y":1.8},{"x":2,"y":1.6}],"legend":"observed"}]}');
     -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 
     -- Or a multi-panel figure grid
-    SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[[1,2],[2,3]]}]},{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}]}}');
+    SELECT kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}]},{"series":[{"type":"histogram","values":[1,2,2,3,3,3,4],"bins":4}]}]}}');
     -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
 
     -- The chart config and the data can be separate: pass a dataset registry as the second argument
@@ -56,7 +56,7 @@ docs:
     The JSON spec uses snake_case keys and describes the drawing rather than one particular chart. The
     top-level keys are `title`, `x_axis`, `y_axis`, `grid`, `legend`, `theme`, `palette`, `font`,
     `annotations`, `width`, `height` and `series`. Every `series` entry carries a `type` from the table
-    below and declares only the fields that type needs, so a scatter takes `data` as `[x, y]` pairs or
+    below and declares only the fields that type needs, so a scatter takes `data` as `{"x":…, "y":…}`
     objects with optional `x_err` / `y_err`, a bar takes `categories` plus `values` (or several named
     `series` for grouped and stacked bars), a histogram takes `values` with optional `bins` and a `kde`
     overlay, a box takes `groups` of raw values, and a pie takes `slices`.

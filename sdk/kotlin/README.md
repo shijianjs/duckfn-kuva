@@ -66,12 +66,30 @@ ogen 在**配置阶段**就要读 spec（不是等任务执行），所以 `buil
 
 ## 目标平台
 
-KMP 全平台：`jvm`、`js`、`wasmJs`、`linuxX64` / `linuxArm64`、`mingwX64`、`macosX64` / `macosArm64`、
-`iosX64` / `iosArm64` / `iosSimulatorArm64`、`watchosArm32` / `watchosArm64` / `watchosDeviceArm64` /
-`watchosSimulatorArm64`、`tvosX64` / `tvosArm64` / `tvosSimulatorArm64`。
+声明的是**依赖已发布平台变体的交集**：
 
-Apple 目标只能在 macOS 上**构建**（KMP 的既定限制；在这里声明是给 macOS CI 用的，非 macOS 宿主上
-对应的测试任务会被禁用）。Android 目标没开：它需要 AGP + Android SDK，会把本地构建整个卡住。
+| 目标 | 说明 |
+| --- | --- |
+| `jvm` | 桌面 / 服务端；集成测试跑在这一头 |
+| `android` | AGP 9 的 KMP 原生插件（`com.android.kotlin.multiplatform.library`），配置写在 `kotlin { android {} }` |
+| `js`、`wasmJs` | 浏览器 + Node |
+| `iosX64` / `iosArm64` / `iosSimulatorArm64`、`macosArm64` | Apple；只能在 macOS 上**构建**（KMP 的既定限制） |
+
+**为什么只有这些**：生成的代码依赖 `de.quati.ogen:core`（`OptionSerializer`）与
+`de.quati:kotlin-util`（`Option`），两者合起来只发布了上面这些变体 —— 没有
+`linuxX64` / `linuxArm64` / `mingwX64` / `macosX64` / `watchos*` / `tvos*`。多声明一个，KMP 的
+`kmpPartiallyResolvedDependenciesChecker` 会直接以 error 级失败。上游补齐变体后，把对应那行加回来即可。
+
+**Android SDK**：只有编译 *Android* 产物才需要（`ANDROID_HOME` 或 `local.properties` 里的 `sdk.dir`，
+后者已 gitignore）。在别的目标上（`jvmTest`、`js`、Apple）配置和构建都不需要它。
+
+## 测试
+
+- `src/commonTest/`：多态判别标签、`dataset` / `encode` 序列化（跑在**每个**能用测试的目标上，含
+  Android host test）。
+- `src/jvmTest/`：真·集成测试 —— 用 DuckDB 的 JDBC 驱动（`org.duckdb:duckdb_jdbc`）加载**本地编译好的**
+  扩展 `build/debug/duckfn_kuva.duckdb_extension`，真正调一遍 `kuva_render`（不是 mock）。扩展不存在时
+  skip，与 `sdk/ts`、`sdk/java` 的集成测试同一套规则；跑之前先 `just build`。
 
 ## 命令
 
@@ -80,8 +98,8 @@ just kotlin_sdk                       # = cd sdk/kotlin && ./gradlew ogenGenerat
 cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 跑测试
 ```
 
-前置：JDK 21+（ogen 的要求）；Gradle 由 `gradlew` 自带（发行包走腾讯镜像，见
-`gradle/wrapper/gradle-wrapper.properties`，想换回官方源改那一行即可）。
+前置：JDK 21+（ogen 的要求）；Gradle 由 `gradlew` 自带，**钉在 9.6.0**（AGP 9.4 能接受的最低版本；
+wrapper 的发行包走腾讯镜像，见 `gradle/wrapper/gradle-wrapper.properties`，想换回官方源改那一行）。
 
 ## 已知边界
 

@@ -38,61 +38,15 @@ jobs:
       extension_name: duckfn_kuva
       extra_toolchains: rust;python3
 
-  # `sdk/` 下的四个文件都是**产物**：改了 `spec/schema/` 或 `spec/dataset.rs` 里的类型（或它们的
-  # 文档注释）就必须重跑 `just json_schema` + `just ts_sdk` 并把 diff 一起提交。这个 job 就是那道
-  # 把关：重新生成一遍，`git diff` 非空即失败 —— 否则提交进去的产物会慢慢和源码对不上，而它本应是
-  # 「唯一真相源」的投影。
+  # SDK 的 CI（重生成产物、构建并测试 TS / Java / Kotlin）不在本文件里：见
+  # `.github/workflows/Sdk.yml`。它与文档站是同一套触发方式 —— 扩充分发流水线跑完之后、且只有
+  # 版本 tag 那一次才跑，日常提交与 PR 都不跑。扩展的构建/发布不该被 SDK 的节奏拖着，反之亦然。
   #
-  # The four files under `sdk/` are **generated artifacts**: after touching a type under
-  # `spec/schema/` or `spec/dataset.rs` (or their doc comments) one must re-run `just json_schema`
-  # plus `just ts_sdk` and commit the diff. This job is that guard: regenerate and fail on any
-  # `git diff` — otherwise the committed artifacts slowly drift from the sources they are supposed
-  # to be a projection of.
-  sdk-artifacts-fresh:
-    name: SDK artifacts are up to date
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      # ubuntu-latest 自带 Rust 与 Node；schema 生成器只依赖 schemars（可选 feature），
-      # TS 生成器由 sdk/ts/package-lock.json 钉版本，`npm ci` 严格按锁文件装。
-      #
-      # ubuntu-latest ships Rust and Node; the schema generator only needs schemars (the optional
-      # feature), and the TypeScript generator is pinned by sdk/ts/package-lock.json, installed
-      # strictly from the lockfile with `npm ci`.
-      - name: Regenerate the JSON Schema
-        run: cargo run --bin json_schema --features json-schema
-
-      - name: Regenerate the TypeScript SDK
-        run: |
-          set -euo pipefail
-          cd sdk/ts
-          npm ci
-          npm run gen
-          npm test
-
-      # 只盯 sdk/：源码那边自己有 diff 是正常的，产物这边不允许「忘了重新生成」。
-      #
-      # Only sdk/ is watched: diffs in the sources are normal, a stale artifact is not.
-      # Java 的产物落在 sdk/java/target（gitignore），不进上面的 diff；这一步只是编译 + 跑测试，
-      # 确认生成链路通。ubuntu runner 自带 JDK 与 Maven。
-      #
-      # The Java output lands in sdk/java/target (gitignored) and is not part of the diff below; this
-      # step just builds and tests it. The ubuntu runner ships JDK + Maven.
-      - name: Build and test the Java SDK
-        run: |
-          set -euo pipefail
-          cd sdk/java
-          mvn -B -q test
-
-      - name: Check the artifacts are unchanged
-        run: |
-          set -euo pipefail
-          if ! git diff --exit-code -- sdk/; then
-            echo "::error::sdk/ is stale — run 'just json_schema' and 'just ts_sdk', then commit the result"
-            exit 1
-          fi
+  # The SDK CI (regenerate the artifacts, build and test the TS / Java / Kotlin SDKs) is not in this
+  # file: see `.github/workflows/Sdk.yml`. It is triggered the way the docs site is — after the
+  # distribution pipeline finishes, and only for the version-tag run; ordinary pushes and pull
+  # requests do not run it. Building and releasing the extension should not be coupled to the SDK
+  # release cadence, nor the other way round.
 
   # 发布 GitHub Release：把上面那个 job 为每个平台构建出的扩展二进制挂到当前 tag 的 Release 上
   # （已经有 Release 就只补资产）。关键是那个 `if`：只有当前 ref 是版本 tag 才跑 —— PR 上

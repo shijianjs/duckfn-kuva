@@ -155,9 +155,11 @@ schema (verified with minimal cases: pure `$ref` members, inline `const`, OpenAP
 `discriminator` — all merged). json-schema-to-typescript keeps `oneOf` as a union, and together with
 the normalization above `switch (s.type)` narrows to the right variant.
 
-The generated files are artifacts like the schemas — regenerate, never hand-edit — and the
-`sdk-artifacts-fresh` CI job guards all of `sdk/` by regenerating both layers from the committed
-lockfile. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
+The generated files are artifacts like the schemas — regenerate, never hand-edit — and the `SDK`
+workflow (`.github/workflows/Sdk.yml`) guards all of `sdk/` by regenerating every layer and failing on
+any `git diff`. It is deliberately a workflow of its own, triggered the way the docs site is (after
+the extension distribution pipeline finishes) and gated to the version-tag run — a plugin release, not
+an ordinary push. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
 there tracks `Cargo.toml` by hand (`just release_bump` does not touch it, since a `-dev.N` version
 never contains the previous release's number for its grep to find). Details in `sdk/ts/README.md`.
 
@@ -191,17 +193,24 @@ it hoists every variant's fields into the base class as hundreds of `abstract va
 extends it, so the result neither compiles nor serializes. ogen reads the spec at **configuration**
 time, so `build.gradle.kts` regenerates it there (guarded by an mtime freshness check).
 
-All the usual KMP targets are declared (`jvm`, `js`, `wasmJs`, and the Linux/mingw/macOS/iOS/watchOS/
-tvOS native targets); Apple targets can only be *built* on macOS, and Android is left out because it
-needs AGP plus an Android SDK. ogen is pre-1.0, so its version is pinned in `build.gradle.kts`.
+The declared targets are the intersection of what the dependencies publish — `jvm`, `android`, `js`,
+`wasmJs`, `iosX64` / `iosArm64` / `iosSimulatorArm64` and `macosArm64`. That is not a hand-picked
+subset: the generated code needs `de.quati.ogen:core` and `de.quati:kotlin-util`, which between them
+ship only those variants, and declaring one more makes `kmpPartiallyResolvedDependenciesChecker` fail
+at error level. Android uses AGP 9's KMP-native plugin
+(`com.android.kotlin.multiplatform.library`, configured under `kotlin { android {} }`); only compiling
+*Android* artifacts needs a local Android SDK, so the rest of the build works without one. ogen is
+pre-1.0, so its version is pinned in `build.gradle.kts`.
 
 ```shell
 just kotlin_sdk                       # = cd sdk/kotlin && ./gradlew ogenGenerate (regenerate only)
-cd sdk/kotlin && ./gradlew jvmTest    # generate + compile + test
+cd sdk/kotlin && ./gradlew jvmTest    # generate + compile + test (unit + JDBC integration)
 ```
 
-Prerequisite: JDK 21+ (ogen's requirement); Gradle comes from the committed wrapper. See
-`sdk/kotlin/README.md`.
+Prerequisite: JDK 21+ (ogen's requirement); Gradle comes from the committed wrapper, which pins 9.6.0
+(the minimum AGP 9.4 accepts). `jvmTest` also runs an integration test that loads the locally built
+extension through DuckDB's JDBC driver — skipped when the extension is absent, the same rule the
+TypeScript and Java integration tests follow. See `sdk/kotlin/README.md`.
 
 ## One chart type per file
 

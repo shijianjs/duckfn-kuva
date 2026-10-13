@@ -2,6 +2,8 @@ plugins {
     kotlin("multiplatform") version "2.4.0"
     kotlin("plugin.serialization") version "2.4.0"
     id("de.quati.ogen") version "0.15.0"
+    // AGP 9 起，KMP 模块不能再配 `com.android.library`；用 KMP 原生的 Android 插件。
+    id("com.android.kotlin.multiplatform.library") version "9.4.1"
 }
 
 group = "io.github.shijianjs"
@@ -34,7 +36,7 @@ run {
 }
 
 /** 显式重生成 spec（供 `just kotlin_sdk` / CI 使用）；日常构建由上面的配置期判断兜底。 */
-val genOpenapi by tasks.registering(Exec::class) {
+val genOpenapi = tasks.register<Exec>("genOpenapi") {
     inputs.file(openapiScript)
     inputs.dir(schemaDir)
     outputs.file(openapiSpecFile)
@@ -59,22 +61,31 @@ kotlin {
         nodejs()
     }
 
-    linuxX64()
-    linuxArm64()
-    mingwX64()
+    // Android：插件是 com.android.kotlin.multiplatform.library（AGP 9），配置进 `kotlin { android {} }`。
+    // 只有编译 Android 产物才需要本机装 Android SDK（ANDROID_HOME），其余目标不受影响。
+    android {
+        namespace = "io.github.shijianjs.duckfnkuva"
+        compileSdk = 36
+        minSdk = 24
+        // 打开 host test，Android 才会跑 commonTest 里那批用例（否则只有其它目标会跑）。
+        withHostTest {}
+    }
 
-    macosX64()
+    // 下面这些目标不是随手挑的，是**依赖已发布平台变体**的交集：生成的代码依赖
+    // `de.quati.ogen:core`（`OptionSerializer`）与 `de.quati:kotlin-util`（`Option`），
+    // 二者都只发布了 jvm / js / wasmJs / iosX64 / iosArm64 / iosSimulatorArm64 / macosArm64
+    // （kotlin-util 另有 linuxX64 / linuxArm64 / mingwX64，但 ogen:core 没有 —— 取交集）。
+    // 多声明一个，KMP 的 `kmpPartiallyResolvedDependenciesChecker` 就会报 error 级失败；
+    // 上游补齐变体后，把对应那行加回来即可。
+    //
+    // These targets are the intersection of what the dependencies publish — not a hand-picked
+    // subset: the generated code needs `de.quati.ogen:core` and `de.quati:kotlin-util`, which
+    // between them only ship jvm / js / wasmJs / iosX64 / iosArm64 / iosSimulatorArm64 / macosArm64.
+    // Declaring one more makes kmpPartiallyResolvedDependenciesChecker fail at error level.
     macosArm64()
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    watchosArm32()
-    watchosArm64()
-    watchosDeviceArm64()
-    watchosSimulatorArm64()
-    tvosX64()
-    tvosArm64()
-    tvosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {
@@ -85,6 +96,10 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+        }
+        // JVM 平台的集成测试要真连 DuckDB（加载本地编好的扩展），所以 JDBC 驱动只在 jvmTest 上。
+        jvmTest.dependencies {
+            implementation("org.duckdb:duckdb_jdbc:1.4.2.0")
         }
     }
 }

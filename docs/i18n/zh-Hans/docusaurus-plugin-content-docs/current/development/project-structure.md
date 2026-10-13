@@ -140,8 +140,10 @@ schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAP
 都一样合并）。json-schema-to-typescript 保留 `oneOf` 为联合类型，配合上面的归一化，
 `switch (s.type)` 就能收窄到对应变体。
 
-生成文件和 schema 一样是产物：重新生成，不手改；CI 的 `sdk-artifacts-fresh` job 按提交进去的锁文件
-把两层都重生成一遍再比对，看守整个 `sdk/`。以后发 npm 就是在 `sdk/ts/` 里
+生成文件和 schema 一样是产物：重新生成，不手改；`SDK` workflow（`.github/workflows/Sdk.yml`）
+把每一层都重生成一遍再比对 `git diff`，看守整个 `sdk/`。它刻意独立成一份、触发方式与文档站一致
+（扩充分发流水线跑完之后），并且只对版本 tag 那次生效 —— 是**插件发版**触发，不是日常提交。
+以后发 npm 就是在 `sdk/ts/` 里
 `npm publish --access public`；那里的版本号跟 `Cargo.toml` 手工对齐（`just release_bump` 不碰它
 —— 开发中的 `-dev.N` 号里不含上一个正式版本号的字样，它的 grep 找不到）。细节见
 `sdk/ts/README.md`。
@@ -172,16 +174,22 @@ openapi-generator 的包装类。先试过 openapi-generator 自己的 Kotlin `m
 的字段全拍进基类（几百个 `abstract val`）且没有变体继承它，结果既编不过也序列化不了。ogen 在**配置
 阶段**就要读 spec，所以 `build.gradle.kts` 在那里重生成（按 mtime 判断新鲜度）。
 
-KMP 的常规目标都声明了（`jvm`、`js`、`wasmJs`，以及 Linux/mingw/macOS/iOS/watchOS/tvOS 的原生
-目标）；Apple 目标只能在 macOS 上**构建**，Android 没开 —— 它需要 AGP 加 Android SDK。ogen 还是
-pre-1.0，版本钉在 `build.gradle.kts` 里。
+声明哪些目标是**依赖已发布变体的交集**：`jvm`、`android`、`js`、`wasmJs`、
+`iosX64` / `iosArm64` / `iosSimulatorArm64`、`macosArm64`。这不是随手挑的子集 —— 生成的代码依赖
+`de.quati.ogen:core` 与 `de.quati:kotlin-util`，两者合起来只发布了这些变体；多声明一个，
+`kmpPartiallyResolvedDependenciesChecker` 就会以 error 级失败。Android 走 AGP 9 的 KMP 原生插件
+（`com.android.kotlin.multiplatform.library`，配置写在 `kotlin { android {} }` 里）；只有编译
+*Android* 产物才需要本机装 Android SDK，其余构建不受影响。ogen 还是 pre-1.0，版本钉在
+`build.gradle.kts` 里。
 
 ```shell
 just kotlin_sdk                       # = cd sdk/kotlin && ./gradlew ogenGenerate（只重生成）
-cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 测试
+cd sdk/kotlin && ./gradlew jvmTest    # 生成 + 编译 + 测试（单测 + JDBC 集成测试）
 ```
 
-前置：JDK 21+（ogen 的要求）；Gradle 由提交进去的 wrapper 自带。见 `sdk/kotlin/README.md`。
+前置：JDK 21+（ogen 的要求）；Gradle 由提交进去的 wrapper 自带（钉 9.6.0 —— AGP 9.4 能接受的最低
+版本）。`jvmTest` 还会跑一个集成测试：用 DuckDB 的 JDBC 驱动加载本地编好的扩展，真调一遍
+`kuva_render`；扩展不存在时 skip（与 TS / Java 的集成测试同一套规则）。见 `sdk/kotlin/README.md`。
 
 ## 每种图型一个文件
 

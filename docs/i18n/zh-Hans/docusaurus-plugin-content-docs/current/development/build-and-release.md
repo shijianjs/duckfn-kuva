@@ -57,7 +57,7 @@ flowchart LR
 | 1. 提升版本号 | `just release_bump {{EXTENSION_VERSION}}` |
 | 2. 提交并打 tag | `git commit …` 后 `just release_tag {{EXTENSION_VERSION}}` |
 | 3. 看 CI | `just release_ci`，再 `gh run watch <run-id>` |
-| 4. 切下一开发版本 | `just release_dev 0.1.1-dev.0` |
+| 4. 切下一开发版本 | `just release_dev 0.2.1-dev.0` |
 
 版本号只写在 `Cargo.toml` 的 `[package] version` 里，别处不写：`scripts/release.sh bump` 会改这一行、
 更新文档与 CI 注释里的出现处、同步 `Cargo.lock`，并改写 `docs/extension-version.ts`（文档站显示的版本号
@@ -66,9 +66,10 @@ flowchart LR
 
 文档站用的是同一个版本号：页面里写的是 `{{EXTENSION_VERSION}}` 占位符（放在围栏代码块或行内代码里），
 `scripts/release.sh` 在提版本号时把新值写进 `docs/extension-version.ts` —— 所以发版从不用手改 markdown。
-那个脚本的批量替换正是因此跳过 `docs/package-lock.json`、`docs/docs` 与 `docs/i18n`。
+那个脚本的批量替换正是因此跳过 `docs/docs` 与 `docs/i18n`，以及所有的 `package-lock.json` —— 锁文件里的
+版本号属于第三方依赖。
 
-只有正式版本才打 tag。`0.1.1-dev.0` 这类版本留在分支上：不打 tag、不发布、也不部署站点。
+只有正式版本才打 tag。`0.2.1-dev.0` 这类版本留在分支上：不打 tag、不发布、也不部署站点。
 
 ### 推一个 tag 会触发什么
 

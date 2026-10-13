@@ -90,9 +90,10 @@ cd sdk/ts && npm run test:integration
 
 包名 `@shijianjs/duckfn-kuva`（与 GitHub 组织一致，未占用）。发布前确认三件事：
 
-1. **版本号**：`package.json` 的 `version` 与扩展版本对齐（当前跟 `Cargo.toml` 的
-   `0.1.1-dev.0`）。`just release_bump` 不碰这个文件 —— 它按 git grep 替换上一个 tag 的版本号，
-   而开发中的 `-dev.N` 号不含上一个正式版本号字样。**发版时手工同步一次**。
+1. **版本号**：`package.json` 的 `version` 写**最近一次发布的那一版**（`0.2.0` 这种发布号，不写
+   `-dev.N`）。`just release_bump` 不碰这个文件 —— 它按 git grep 替换上一个 tag 的版本号，而开发中的
+   `-dev.N` 号不含上一个正式版本号字样。**每次发版手工同步一次**，四个 SDK 清单一起来：这里的
+   `package.json` 与锁文件、`sdk/java/pom.xml`、`sdk/kotlin/build.gradle.kts`、`sdk/openapi/openapi.mjs`。
 2. `npm run check` 与 `npm run build` 通过（`prepublishOnly` 会自动跑，过不了发不出去）。
 3. `npm publish --access public`（scoped 包首次发布需要显式 public）。
 

@@ -24,18 +24,20 @@ set -euo pipefail
 # 示例。`community-extension/` **不在**排除列表里：那里 description.yml 的 `version` 就该跟着发布版本
 # 走（`repo.ref` 那个提交 SHA 仍然要人工改，脚本认不出来）。
 #
-# 文档站那几处单独说：package-lock.json 里 `0.1.0` 之类的字符串是依赖自己的版本号，动了会让
-# `npm ci` 对不上完整性校验；docs/docs 与 docs/i18n 的正文只写 {{EXTENSION_VERSION}} 占位符，真正的
-# 版本号集中在 docs/extension-version.ts，由下面单独替换（它可能是新建、还没被 git 跟踪的文件，
-# `git grep` 找不到）。
+# 另外两处单独说：凡是 package-lock.json（docs/ 与 sdk/ts/ 各一份）都要跳过 —— 里面 `^0.1.0` 这类
+# 字符串是**第三方依赖自己的**版本需求（node-fetch 对 encoding 之类），改了会与 npm 的锁文件校验对不上，
+# 而本包自己的版本号在两处顶层 `version` 字段上，跟 SDK 清单一样是手工同步的（见 sdk/ts/README.md）；
+# 而 docs/docs 与 docs/i18n 的正文只写 {{EXTENSION_VERSION}} 占位符，真正的版本号集中在
+# docs/extension-version.ts，由下面单独替换（它可能是新建、还没被 git 跟踪的文件，`git grep` 找不到）。
 #
 # Paths skipped when replacing the version inside docs / READMEs / CI comments. Cargo.toml is handled
 # separately (the `[package]` line, see set_package_version), Cargo.lock is `cargo update`'s job, the
 # versions inside test/ are asserted expectations rather than this project's version, and the ones in
 # AGENTS.md and this script are examples. `community-extension/` is deliberately *not* excluded: the
 # `version` in description.yml is supposed to follow the release (`repo.ref`, a commit SHA, still has to
-# be updated by hand — the script cannot guess it). The docs site is spelled out above: package-lock.json
-# would be corrupted, and the site's actual version number lives in the file below.
+# be updated by hand — the script cannot guess it). Two things are spelled out above: every
+# package-lock.json (docs/ and sdk/ts/) would be corrupted, since the versions in there belong to third
+# party packages, and the docs site's own version number lives in the file below.
 DOC_EXCLUDES=(
     ':(exclude)Cargo.toml'
     ':(exclude)Cargo.lock'
@@ -43,6 +45,7 @@ DOC_EXCLUDES=(
     ':(exclude)scripts'
     ':(exclude)test'
     ':(exclude)docs/package-lock.json'
+    ':(exclude)sdk/ts/package-lock.json'
     ':(exclude)docs/docs'
     ':(exclude)docs/i18n'
     ':(exclude)docs/build'

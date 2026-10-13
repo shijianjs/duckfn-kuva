@@ -160,9 +160,11 @@ workflow (`.github/workflows/Sdk.yml`) guards all of `sdk/` by regenerating ever
 any `git diff`. It is deliberately a workflow of its own: it runs on pull requests (freshness plus the
 per-language tests) and, like the docs site, after the extension distribution pipeline finishes — gated
 there to the version-tag run, so a plugin release re-verifies everything against the artifact in the
-Release. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version
-there tracks `Cargo.toml` by hand (`just release_bump` does not touch it, since a `-dev.N` version
-never contains the previous release's number for its grep to find). Details in `sdk/ts/README.md`.
+Release. Publishing to npm later is `npm publish --access public` out of `sdk/ts/`; the version in the
+manifests is set by hand when releasing — the released number, never a `-dev.N` one, in all four at
+once (`sdk/ts/package.json` and its lock file, `sdk/java/pom.xml`, `sdk/kotlin/build.gradle.kts`,
+`sdk/openapi/openapi.mjs`). `just release_bump` does not touch them: a `-dev.N` version never contains
+the previous release's number for its grep to find. Details in `sdk/ts/README.md`.
 
 ## The Java SDK
 

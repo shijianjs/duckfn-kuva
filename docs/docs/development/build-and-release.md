@@ -58,7 +58,7 @@ A release is four steps, and only the second one is manual:
 | 1. Bump the version | `just release_bump {{EXTENSION_VERSION}}` |
 | 2. Commit and tag | `git commit …` then `just release_tag {{EXTENSION_VERSION}}` |
 | 3. Watch CI | `just release_ci`, then `gh run watch <run-id>` |
-| 4. Next development version | `just release_dev 0.1.1-dev.0` |
+| 4. Next development version | `just release_dev 0.2.1-dev.0` |
 
 The version lives in `Cargo.toml` (`[package] version`) and nowhere else:
 `scripts/release.sh bump` rewrites that one line, updates the occurrences in the docs and the CI
@@ -69,9 +69,10 @@ version into the built extension — a mismatch would publish a release claiming
 The documentation site is versioned from the same number: its pages carry the `{{EXTENSION_VERSION}}`
 placeholder (inside a code block or inline code), and `scripts/release.sh` writes the new value into
 `docs/extension-version.ts` during the bump — so a release never edits markdown by hand. The script's
-bulk replacement skips `docs/package-lock.json`, `docs/docs` and `docs/i18n` for exactly that reason.
+bulk replacement skips `docs/docs` and `docs/i18n` for exactly that reason, and every
+`package-lock.json` as well: the versions in a lock file belong to third party packages.
 
-Only real releases get a tag. A version like `0.1.1-dev.0` stays on the branch: no tag, no release, no
+Only real releases get a tag. A version like `0.2.1-dev.0` stays on the branch: no tag, no release, no
 site deployment.
 
 ### What a tag triggers

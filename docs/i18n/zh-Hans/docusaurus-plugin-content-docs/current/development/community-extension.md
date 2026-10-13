@@ -74,7 +74,7 @@ flowchart LR
 | `extension.requires_toolchains` | `"rust;python3"` —— 与 CI 工作流的 `extra_toolchains` 一致。 |
 | `extension.maintainers` | 你的 GitHub 账号。 |
 | `repo.github` | `owner/repository`。 |
-| `repo.ref` | 发布那一版的**提交 SHA**（40 位）—— `git rev-list -n 1 v0.1.0` —— 不要写 `main`，也不要写 tag 名。注册项指向的应当是不可变的代码，而从分支构建出的产物会自称开发版本。 |
+| `repo.ref` | 发布那一版的**提交 SHA**（40 位）—— `git rev-list -n 1 v0.2.0` —— 不要写 `main`，也不要写 tag 名。注册项指向的应当是不可变的代码，而从分支构建出的产物会自称开发版本。 |
 | `docs.hello_world` | 可直接复制跑的示例，会渲染进代码块。不要在这里写 `INSTALL` / `LOAD`：页面自己会加。 |
 | `docs.extended_description` | 函数表周围的正文。 |
 

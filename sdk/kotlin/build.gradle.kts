@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.shijianjs"
-version = "0.1.1-dev.0"
+version = "0.2.0"
 
 /** 仓库根：`sdk/kotlin/` 往上两级，用来定位共用的 OpenAPI 包装脚本。 */
 val repoRoot = layout.projectDirectory.dir("../..")

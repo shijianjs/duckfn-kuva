@@ -144,9 +144,10 @@ schema 的（最小用例验证过：纯 `$ref` 成员、内联 `const`、OpenAP
 把每一层都重生成一遍再比对 `git diff`，看守整个 `sdk/`。它刻意独立成一份：**PR 上跑**（产物新鲜度 +
 各语言测试），另外与文档站一样在扩充分发流水线跑完之后跑，那里只对版本 tag 那次生效 —— 也就是插件
 发版会拿 Release 里的产物把整套再验一遍。以后发 npm 就是在 `sdk/ts/` 里
-`npm publish --access public`；那里的版本号跟 `Cargo.toml` 手工对齐（`just release_bump` 不碰它
-—— 开发中的 `-dev.N` 号里不含上一个正式版本号的字样，它的 grep 找不到）。细节见
-`sdk/ts/README.md`。
+`npm publish --access public`；清单里的版本号在发版时手工同步成**那一版的发布号**（不写 `-dev.N`），
+四处一起改：`sdk/ts/package.json` 与它的锁文件、`sdk/java/pom.xml`、`sdk/kotlin/build.gradle.kts`、
+`sdk/openapi/openapi.mjs`。`just release_bump` 不碰它们 —— 开发中的 `-dev.N` 号里不含上一个正式版本号的
+字样，它的 grep 找不到。细节见 `sdk/ts/README.md`。
 
 ## Java SDK
 

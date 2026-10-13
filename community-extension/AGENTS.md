@@ -25,7 +25,7 @@
 
 这份文件会被原样复制到上游，所以刻意保持「只有字段」。需要解释的东西写在本文件里，不要写回 YAML。
 
-`repo.ref` 写**发布那一版的提交 SHA（40 位）**（`git rev-list -n 1 v0.1.0`），**不要写 `main`、也不要写
+`repo.ref` 写**发布那一版的提交 SHA（40 位）**（`git rev-list -n 1 v0.2.0`），**不要写 `main`、也不要写
 tag 名**。三者都是合法 git ref、社区仓都能照着 clone，但上游已收录的扩展清一色用提交 SHA
 （`extensions/h3`、`extensions/orc` 都是），跟着走既不用解释，也天生不可变 —— 注册项指向的东西不会随时
 间漂移。写 `main` 的代价是实打实的：构建出来的二进制会自称 main 上的开发版本（`X.Y.Z-dev.N`），与这里
@@ -41,8 +41,9 @@ tag 名**。三者都是合法 git ref、社区仓都能照着 clone，但上游
 - **不写 `excluded_platforms`**：没有需要排除的平台。两个 musl 平台（`linux_amd64_musl` /
   `linux_arm64_musl`）在矩阵里都是 `opt_in`，不主动点名就不会构建，所以也不必写进排除列表。
   真的跑不起来某个平台时（例如依赖在 wasm 上编不过），再回来加。
-- `version`：写**要发布的那一版**，不要 `-dev.N`（开发版本是 `0.1.1-dev.0`，发版流程把它抬成 `0.1.1`）。
-  它与 `repo.ref` 配套 —— `ref: v0.1.1` ↔ `version: 0.1.1`，所以社区仓构建出的二进制自称的版本、
+- `version`：写**要发布的那一版**，不要 `-dev.N`（开发版本是 `0.2.1-dev.0`，发版时抬成要发布的那一版，
+  例如 0.2.0 那一版就是从 `0.1.1-dev.0` 抬上来的）。
+  它与 `repo.ref` 配套 —— `ref: v0.2.0` ↔ `version: 0.2.0`，所以社区仓构建出的二进制自称的版本、
   文档页上的版本号、这里的字段三者一致，不存在漂移。`just release_bump` 会顺手改掉这里的 `version`，
   `repo.ref` 仍然要人工改。
 - `license: MIT`：对应仓库根目录的 `LICENSE`。注意 duckdb.org 的社区扩展文档页把字段名写成 `licence`，
@@ -92,8 +93,8 @@ gh pr create --repo duckdb/community-extensions --base main --head shijianjs:add
   --title '…' --body-file …
 ```
 
-- **每次发版都要回来改一处**：`repo.ref` 换成新发布提交的 SHA（`git rev-list -n 1 v0.1.1`），
-  `version` 跟着改成 `0.1.1`，改完在本仓 `community-extension/` 里改，再复制进那份克隆，推到同一条 PR
+- **每次发版都要回来改一处**：`repo.ref` 换成新发布提交的 SHA（`git rev-list -n 1 v0.2.0`），
+  `version` 跟着改成 `0.2.0`，改完在本仓 `community-extension/` 里改，再复制进那份克隆，推到同一条 PR
   分支（PR 会自动更新）或另开一个。注册项钉的是具体提交，不会自己跟。
 - PR 一开，上游会起三条构建（`Community Extension Build`、`Community Extension with latest DuckDB`、
   `Community Extension with DuckDB on Andium`）。外部贡献者的 PR 会被 GitHub 挂成 `action_required`

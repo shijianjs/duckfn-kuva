@@ -6,7 +6,7 @@
 
   <groupId>io.github.shijianjs</groupId>
   <artifactId>duckfn-kuva</artifactId>
-  <version>0.1.1-dev.0</version>
+  <version>0.2.0</version>
   <packaging>jar</packaging>
 
   <name>duckfn-kuva</name>

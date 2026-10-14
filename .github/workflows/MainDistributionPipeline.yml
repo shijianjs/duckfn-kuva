@@ -38,6 +38,29 @@ jobs:
       extension_name: duckfn_kuva
       extra_toolchains: rust;python3
 
+  # 2.0 预发布那一路（3.0 在前时同理）：参数与社区注册表的「next」构建**逐字对齐** —— 那边是
+  # `build_next.yml`（ci-tools 用 main、DuckDB 用 v2.0-cyanoptera 分支、要求描述文件里有 repo.ref_next），
+  # 所以这里能提前把「注册表到时会不会构建失败」测出来。产物不进 Release（见下面 github-release 的前缀过滤）、
+  # 也不覆盖 stable 那一路的产物名。
+  #
+  # 只在 tag 之外跑：Release 只挂上面那条 1.5.6 的产物，而 2.0 的二进制由注册表自己从 `repo.ref_next`
+  # 构建，与本仓库的 Release 无关 —— 让这条腿在发版日多占 15 分钟没有收益。
+  #
+  # The upcoming-DuckDB leg, with the exact parameters the community registry's "next" build uses
+  # (`build_next.yml`: ci-tools main, DuckDB's v2.0-cyanoptera branch, `repo.ref_next` required), so a 2.0
+  # breakage shows up here long before release day. It is skipped on version tags: the Release only carries
+  # the v1.5.6 artifacts (the release job filters by that version's prefix) and the registry builds its own
+  # 2.0 binaries from `repo.ref_next`.
+  duckdb-next-build:
+    name: Build extension binaries (DuckDB 2.0 prerelease)
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
+    with:
+      duckdb_version: v2.0-cyanoptera
+      ci_tools_version: main
+      extension_name: duckfn_kuva
+      extra_toolchains: rust;python3
+
   # SDK 的 CI（重生成产物、构建并测试 TS / Java / Kotlin）不在本文件里：见
   # `.github/workflows/Sdk.yml`。它与文档站是同一套触发方式 —— 扩充分发流水线跑完之后、且只有
   # 版本 tag 那一次才跑，日常提交与 PR 都不跑。扩展的构建/发布不该被 SDK 的节奏拖着，反之亦然。

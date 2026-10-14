@@ -75,6 +75,7 @@ flowchart LR
 | `extension.maintainers` | 你的 GitHub 账号。 |
 | `repo.github` | `owner/repository`。 |
 | `repo.ref` | 发布那一版的**提交 SHA**（40 位）—— `git rev-list -n 1 v0.2.0` —— 不要写 `main`，也不要写 tag 名。注册项指向的应当是不可变的代码，而从分支构建出的产物会自称开发版本。 |
+| `repo.ref_next` | 社区注册表的**预发布腿**要构建的那个提交：那条腿以这个字段为门禁，没有它直接跳过。扩展对新引擎不需要改代码时，就和 `ref` 填同一个 SHA —— 依据见 `community-extension/AGENTS.md`。 |
 | `docs.hello_world` | 可直接复制跑的示例，会渲染进代码块。不要在这里写 `INSTALL` / `LOAD`：页面自己会加。 |
 | `docs.extended_description` | 函数表周围的正文。 |
 

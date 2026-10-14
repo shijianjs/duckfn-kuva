@@ -18,9 +18,11 @@
 属性上的 description / example，都要重生成 `docs/function_descriptions.csv`（见下面「那份 CSV 是必须的」），
 并**真跑一遍** `hello_world`：它渲染进社区文档页的代码块，写歪了不会有人报错。
 
-**首次提交已完成**（2026-10-13）：`repo.ref` 与 `extension.version` 都指向 v0.2.0，PR 是
-[duckdb/community-extensions#3044](https://github.com/duckdb/community-extensions/pull/3044)。之后每次
-发版回来改这两处（见下面「每次发版都要回来改」）。本文件下面提到的路径与用户名也照本机实际情况核对一遍。
+**首次提交已完成**（2026-10-13，[#3044](https://github.com/duckdb/community-extensions/pull/3044)，已合并）：
+`repo.ref` 与 `extension.version` 都指向 v0.2.0。**打开预发布腿的那一版**是 2026-10-14 的
+[#3056](https://github.com/duckdb/community-extensions/pull/3056)（加 `repo.ref_next`，见下面
+「`repo.ref_next`：下一个大版本那一腿」）。之后每次发版回来改这两处（见下面「每次发版都要回来改」）。
+本文件下面提到的路径与用户名也照本机实际情况核对一遍。
 
 `extension.name` / `version` / `license` / `language` / `build` / `requires_toolchains` 在模板里已经是可直接
 沿用的值（下面一节解释为什么），只有 `name` 要跟着你改名后的扩展名走（`scripts/rename.sh` 会一起改）。

@@ -197,10 +197,15 @@ just docs_build      # 真正要过的那关：onBrokenLinks 设成了 throw
 
 ## 安装已发布的产物
 
-发布走 GitHub Release，挂上构建矩阵产出的 `.duckdb_extension`（每平台一份）：
+发布走 GitHub Release，挂上构建矩阵产出的 `.duckdb_extension`（每平台一份），命名是
+`duckfn_kuva-<平台>.duckdb_extension`。下载你平台那一份之后**先改名成 `duckfn_kuva.duckdb_extension` 再加载**
+—— `LOAD` 收的是扩展名或本地路径（它不会去下载 URL，下载那条路是 `INSTALL '<url>'`），而入口点符号由文件名
+决定，直接用 Release 里的名字会报 `did not contain function "duckfn_kuva-windows_amd64_init_c_api"`：
 
-```sql
-LOAD 'https://github.com/shijianjs/duckfn-kuva/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
+```shell
+curl -LO https://github.com/shijianjs/duckfn-kuva/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension
+mv duckfn_kuva-windows_amd64.duckdb_extension duckfn_kuva.duckdb_extension
+duckdb -unsigned -c "LOAD './duckfn_kuva.duckdb_extension';"
 ```
 
 收录进 DuckDB 的[社区扩展](https://duckdb.org/community_extensions/list_of_extensions)之后就可以用

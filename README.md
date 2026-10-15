@@ -214,10 +214,16 @@ deployment, the `{{EXTENSION_VERSION}}` version placeholder — are in
 
 ## Installing the released extension
 
-Releases are GitHub Releases carrying the build matrix's `.duckdb_extension` files, one per platform:
+Releases are GitHub Releases carrying the build matrix's `.duckdb_extension` files, one per platform, named
+`duckfn_kuva-<platform>.duckdb_extension`. Download the one for your platform and **rename it to
+`duckfn_kuva.duckdb_extension`** before loading it — `LOAD` takes an extension name or a local path (it fetches
+no URLs; that is what `INSTALL '<url>'` is for), and DuckDB takes the entry-point symbol from the file name, so
+the release name fails with `did not contain function "duckfn_kuva-windows_amd64_init_c_api"`:
 
-```sql
-LOAD 'https://github.com/shijianjs/duckfn-kuva/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension';
+```shell
+curl -LO https://github.com/shijianjs/duckfn-kuva/releases/latest/download/duckfn_kuva-windows_amd64.duckdb_extension
+mv duckfn_kuva-windows_amd64.duckdb_extension duckfn_kuva.duckdb_extension
+duckdb -unsigned -c "LOAD './duckfn_kuva.duckdb_extension';"
 ```
 
 Publishing to DuckDB's [community extensions](https://duckdb.org/community_extensions/list_of_extensions)

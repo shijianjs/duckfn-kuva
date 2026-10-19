@@ -111,12 +111,14 @@ kuva_render_typst(spec_json VARCHAR, data_json VARCHAR) -> VARCHAR
 The same JSON, a third backend: instead of SVG you get **Typst source** — a complete `.typ` document with a
 page setup, an `@preview/cetz` import and the figure drawn with CETZ primitives:
 
-```sql
--- write the source out and compile it with the Typst toolchain
-COPY (SELECT kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}'))
-  TO 'chart.typ';
--- shell> typst compile chart.typ        -> chart.pdf, or chart.svg / chart.png
+```sql {"type":"duckfn","show":"terminal"}
+SELECT kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}') AS source;
 ```
+
+The returned string **is** the `.typ` file — write it out verbatim from your client, then
+`typst compile chart.typ` gives you a PDF (or `--format svg` / `--format png`). Do **not** use
+`COPY … TO 'chart.typ'`: that is a CSV writer, so it adds a header row and doubles every `"` in the
+document. See [Typst output](./reference/typst.md) for the details and the workaround.
 
 kuva does not embed a Typst compiler — this backend is pure string emission — so turning the source into a
 PDF, SVG or PNG is a separate `typst compile` you run yourself. That is exactly when it is the right tool: a

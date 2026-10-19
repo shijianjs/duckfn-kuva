@@ -103,12 +103,13 @@ kuva_render_typst(spec_json VARCHAR, data_json VARCHAR) -> VARCHAR
 同一段 JSON，第三个后端：不再是 SVG，而是 **Typst 源码** —— 一份完整的 `.typ` 文档，含页面设置、
 `@preview/cetz` 的导入，图本身用 CETZ 的原语画出来：
 
-```sql
--- 把源码写出来，再交给 Typst 工具链编译
-COPY (SELECT kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}'))
-  TO 'chart.typ';
--- shell> typst compile chart.typ        -> chart.pdf，或 chart.svg / chart.png
+```sql {"type":"duckfn","show":"terminal"}
+SELECT kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}') AS source;
 ```
+
+返回的字符串**就是**那份 `.typ` —— 用你的客户端原样写出去，再 `typst compile chart.typ` 得到 PDF
+（或 `--format svg` / `--format png`）。**不要**用 `COPY … TO 'chart.typ'`：那是 CSV 写出器，会给文件
+加一行表头、并把文档里每个 `"` 翻倍。细节与变通写法见 [Typst 输出](./reference/typst.md)。
 
 kuva 不内嵌 Typst 编译器（这个后端纯是字符串拼装），所以把源码变成 PDF / SVG / PNG 是你自己另跑的一步
 `typst compile`。它恰好适合这种场景：图要放进一份更大的 Typst 文档，或者想拿源码来手改。其余情况交给

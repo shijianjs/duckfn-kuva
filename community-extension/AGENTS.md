@@ -14,13 +14,13 @@
 
 `description.yml` 的 `extension.description` / `maintainers` / `repo.github` 与 `docs.hello_world` /
 `docs.extended_description` 都已按本扩展的真实 API（`kuva_render` / `kuva_render_terminal` /
-`kuva_render_typst` / `kuva_render_file`）写好，改 API 时跟着改 —— 改了 `hello_world` /
+`kuva_render_typst` / `kuva_render_file` / `kuva_version`）写好，改 API 时跟着改 —— 改了 `hello_world` /
 `extended_description`，或改了函数
 属性上的 description / example，都要重生成 `docs/function_descriptions.csv`（见下面「那份 CSV 是必须的」），
 并**真跑一遍** `hello_world`：它渲染进社区文档页的代码块，写歪了不会有人报错。
 
 **首次提交已完成**（2026-10-13，[#3044](https://github.com/duckdb/community-extensions/pull/3044)，已合并）：
-`repo.ref` 与 `extension.version` 都指向 v0.3.0。**打开预发布腿的那一版**是 2026-10-14 的
+`repo.ref` 与 `extension.version` 都指向 v0.2.0。**打开预发布腿的那一版**是 2026-10-14 的
 [#3056](https://github.com/duckdb/community-extensions/pull/3056)（加 `repo.ref_next`，见下面
 「`repo.ref_next`：下一个大版本那一腿」）。之后每次发版回来改这两处（见下面「每次发版都要回来改」）。
 本文件下面提到的路径与用户名也照本机实际情况核对一遍。

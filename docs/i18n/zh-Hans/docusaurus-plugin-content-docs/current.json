@@ -50,5 +50,13 @@
   "sidebar.userGuide.category.Reference.link.generated-index.description": {
     "message": "JSON 图表规格接受的每一项参数，按它控制的东西分组。各图型页面遇到这些参数时链接到这里，而不是重复一遍。",
     "description": "The generated-index page description for category 'Reference' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Versions": {
+    "message": "版本",
+    "description": "The label for category 'Versions' in sidebar 'userGuide'"
+  },
+  "sidebar.userGuide.category.Versions.link.generated-index.description": {
+    "message": "每个版本一页，最新的在前：改了什么、对应哪一版 kuva、去哪里看 diff。完整对照表在总览页。",
+    "description": "The generated-index page description for category 'Versions' in sidebar 'userGuide'"
   }
 }

@@ -30,11 +30,10 @@ pub(super) fn build_synteny(s: SyntenySeries) -> Result<Plot, String> {
     let mut plot = SyntenyPlot::new();
     for seq in &s.sequences {
         plot = plot.with_sequences([(seq.label.clone(), seq.length)]);
-        if let Some(c) = &seq.color {
-            if let Some(last) = plot.sequences.last_mut() {
+        if let Some(c) = &seq.color
+            && let Some(last) = plot.sequences.last_mut() {
                 last.color = Some(c.clone());
             }
-        }
     }
     if let Some(v) = s.sequence_colors {
         plot = plot.with_sequence_colors(v);

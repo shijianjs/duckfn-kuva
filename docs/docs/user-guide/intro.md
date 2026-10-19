@@ -62,5 +62,6 @@ the file.
 - **Reference** — the options shared across charts: [axes](./reference/layout.md),
   [legends](./reference/legends.md), [themes](./reference/themes.md), [palettes](./reference/palettes.md)
   and more.
+- [Versions](./versions/overview.md) — which kuva release each extension version wraps, and what changed.
 - [Development guide](../development/quick-start.md) — building the extension from source. That part is
   for people working on this repository; it is not needed to use the extension.

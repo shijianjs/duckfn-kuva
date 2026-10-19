@@ -17,15 +17,14 @@ pub(super) fn build_hexbin(s: HexbinSeries) -> Result<Plot, String> {
         ));
     }
     // kuva 直接按下标取 `z[i]`，长度对不上会 panic。
-    if let Some(z) = &s.z {
-        if z.len() != s.x.len() {
+    if let Some(z) = &s.z
+        && z.len() != s.x.len() {
             return Err(format!(
                 "hexbin: `z` has {} entries but there are {} points",
                 z.len(),
                 s.x.len()
             ));
         }
-    }
 
     let mut plot = HexbinPlot::new().with_data(s.x, s.y);
     if let Some(z) = s.z {

@@ -90,7 +90,7 @@ cd sdk/ts && npm run test:integration
 
 包名 `@shijianjs/duckfn-kuva`（与 GitHub 组织一致，未占用）。发布前确认三件事：
 
-1. **版本号**：`package.json` 的 `version` 写**最近一次发布的那一版**（`0.2.0` 这种发布号，不写
+1. **版本号**：`package.json` 的 `version` 写**最近一次发布的那一版**（`0.3.0` 这种发布号，不写
    `-dev.N`）。`just release_bump` 不碰这个文件 —— 它按 git grep 替换上一个 tag 的版本号，而开发中的
    `-dev.N` 号不含上一个正式版本号字样。**每次发版手工同步一次**，四个 SDK 清单一起来：这里的
    `package.json` 与锁文件、`sdk/java/pom.xml`、`sdk/kotlin/build.gradle.kts`、`sdk/openapi/openapi.mjs`。

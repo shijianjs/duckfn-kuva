@@ -14,15 +14,14 @@ pub(super) fn build_heatmap(s: HeatmapSeries) -> Result<Plot, String> {
     let cols = s.data[0].len();
     super::check_label_count("heatmap", "row_labels", s.row_labels.as_ref(), rows)?;
     super::check_label_count("heatmap", "col_labels", s.col_labels.as_ref(), cols)?;
-    if let Some(labels) = &s.tooltip_labels {
-        if labels.len() != rows * cols {
+    if let Some(labels) = &s.tooltip_labels
+        && labels.len() != rows * cols {
             return Err(format!(
                 "heatmap: `tooltip_labels` has {} entries but the matrix has {} cells",
                 labels.len(),
                 rows * cols
             ));
         }
-    }
 
     let mut plot = Heatmap::new().with_data(s.data);
     if let (Some(r), Some(c)) = (&s.row_labels, &s.col_labels) {

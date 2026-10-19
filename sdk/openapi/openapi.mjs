@@ -163,7 +163,7 @@ if (seriesSpec && Array.isArray(seriesSpec.oneOf)) {
 
 const doc = {
   openapi: '3.1.0',
-  info: { title: 'duckfn-kuva', version: '0.2.0' },
+  info: { title: 'duckfn-kuva', version: '0.3.0' },
   paths: {},
   components: { schemas },
 };

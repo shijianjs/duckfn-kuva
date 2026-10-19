@@ -18,14 +18,13 @@ pub(super) fn build_chord(s: ChordSeries) -> Result<Plot, String> {
             s.matrix[bad].len()
         ));
     }
-    if let Some(labels) = &s.labels {
-        if labels.len() != n {
+    if let Some(labels) = &s.labels
+        && labels.len() != n {
             return Err(format!(
                 "chord: `labels` has {} entries but the matrix is {n}x{n}",
                 labels.len()
             ));
         }
-    }
 
     let mut plot = ChordPlot::new().with_matrix(s.matrix);
     if let Some(v) = s.labels {

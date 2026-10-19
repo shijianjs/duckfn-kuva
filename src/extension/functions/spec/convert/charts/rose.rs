@@ -53,45 +53,41 @@ pub(super) fn build_rose(s: RoseSpec) -> Result<Plot, String> {
     if n == 0 {
         return Err("rose: needs at least one sector".into());
     }
-    if let Some(labels) = &s.labels {
-        if labels.len() != n {
+    if let Some(labels) = &s.labels
+        && labels.len() != n {
             return Err(format!(
                 "rose: `labels` has {} entries but there are {n} sectors",
                 labels.len()
             ));
         }
-    }
 
     let mut plot = RosePlot::new();
     if bearing_mode {
         // 分箱与计数交给 kuva：它先按 `n` 建好扇区，再 push 一个名为 "Count" 的系列，
         // 所以颜色只能在它之后补。
         plot = plot.with_bearing_data(s.bearings.iter().copied(), n);
-        if let Some(c) = &s.color {
-            if let Some(first) = plot.series.first_mut() {
+        if let Some(c) = &s.color
+            && let Some(first) = plot.series.first_mut() {
                 first.color = Some(c.clone());
             }
-        }
     } else if multi {
         if let Some(labels) = s.labels {
             plot = plot.with_x_labels(labels);
         }
         for spec in &s.series {
             plot = plot.with_stack(spec.name.clone(), spec.values.clone());
-            if let Some(c) = spec.color.clone().or_else(|| s.color.clone()) {
-                if let Some(last) = plot.series.last_mut() {
+            if let Some(c) = spec.color.clone().or_else(|| s.color.clone())
+                && let Some(last) = plot.series.last_mut() {
                     last.color = Some(c);
                 }
-            }
         }
     } else {
         for slice in &s.slices {
             plot = plot.with_slice(slice.label.clone(), slice.value);
-            if let Some(c) = slice.color.clone().or_else(|| s.color.clone()) {
-                if let Some(last) = plot.series.last_mut() {
+            if let Some(c) = slice.color.clone().or_else(|| s.color.clone())
+                && let Some(last) = plot.series.last_mut() {
                     last.color = Some(c);
                 }
-            }
         }
     }
 

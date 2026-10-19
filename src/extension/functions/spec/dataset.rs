@@ -691,11 +691,10 @@ fn records(ctx: &Ctx, fields: &[&'static str]) -> Result<Option<Value>, String> 
     for row in ctx.rows {
         let mut record = Map::new();
         for (target, source) in &resolved {
-            if let Some(value) = row.get(source) {
-                if !value.is_null() {
+            if let Some(value) = row.get(source)
+                && !value.is_null() {
                     record.insert((*target).to_string(), value.clone());
                 }
-            }
         }
         out.push(Value::Object(record));
     }
@@ -737,13 +736,11 @@ fn insert_cell(
     field: Option<&str>,
     index: usize,
 ) {
-    if let Some(field) = field {
-        if let Some(value) = ctx.rows[index].get(field) {
-            if !value.is_null() {
+    if let Some(field) = field
+        && let Some(value) = ctx.rows[index].get(field)
+            && !value.is_null() {
                 point.insert(target.to_string(), value.clone());
             }
-        }
-    }
 }
 
 /// 排序后拼成 `a, b, c`，让错误信息与测试断言稳定。

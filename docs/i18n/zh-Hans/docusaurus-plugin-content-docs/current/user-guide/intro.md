@@ -56,5 +56,6 @@ FROM read_csv_auto('{{DFK_BASE_URL}}data/scatter.tsv');
   看起。
 - **参考** —— 跨图型共用的参数：[坐标轴](./reference/layout.md)、[图例](./reference/legends.md)、
   [主题](./reference/themes.md)、[调色板](./reference/palettes.md)等等。
+- [版本](./versions/overview.md) —— 每个扩展版本对应哪一版 kuva，以及各版本改了什么。
 - [开发指南](../development/quick-start.md) —— 从源码构建这个扩展。那是给改这个仓库的人看的；用扩展
   本身不需要它。

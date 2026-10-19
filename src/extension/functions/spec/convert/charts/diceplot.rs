@@ -41,22 +41,20 @@ pub(super) fn build_dice_plot(s: DicePlotSeries) -> Result<Plot, String> {
             ));
         }
     }
-    if let Some(labels) = &s.category_labels {
-        if labels.len() != ndots {
+    if let Some(labels) = &s.category_labels
+        && labels.len() != ndots {
             return Err(format!(
                 "dice_plot: `category_labels` has {} entries but `ndots` is {ndots}",
                 labels.len()
             ));
         }
-    }
-    if let Some(legend) = &s.dot_legend {
-        if legend.len() != ndots {
+    if let Some(legend) = &s.dot_legend
+        && legend.len() != ndots {
             return Err(format!(
                 "dice_plot: `dot_legend` has {} entries but `ndots` is {ndots}",
                 legend.len()
             ));
         }
-    }
 
     // `category_labels` 必须在 `with_records` **之前**设好：kuva 是用它把记录里的类别名换算成
     // 点位下标的，默认那套标签（`Cat 1`…）匹配不上任何真实类别，于是**一条记录都不会画**，

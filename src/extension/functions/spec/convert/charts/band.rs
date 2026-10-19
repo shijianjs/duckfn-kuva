@@ -19,11 +19,10 @@ pub(super) fn build_band(s: IntervalSpec) -> Result<Plot, String> {
         }
     }
     // 负的不透明度会让 kuva 拼出非法的颜色串，渲染时 panic。
-    if let Some(v) = s.opacity {
-        if v < 0.0 {
+    if let Some(v) = s.opacity
+        && v < 0.0 {
             return Err("band: `opacity` must not be negative".into());
         }
-    }
 
     let mut plot = BandPlot::new(s.x.clone(), s.y_lower.clone(), s.y_upper.clone());
     if let Some(v) = &s.color {

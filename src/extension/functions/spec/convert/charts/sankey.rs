@@ -51,11 +51,10 @@ pub(super) fn build_sankey(s: SankeySeries) -> Result<Plot, String> {
     }
     for l in &s.links {
         plot = plot.with_links([(l.source.clone(), l.target.clone(), l.value)]);
-        if let Some(c) = &l.color {
-            if let Some(last) = plot.links.last_mut() {
+        if let Some(c) = &l.color
+            && let Some(last) = plot.links.last_mut() {
                 last.color = Some(c.clone());
             }
-        }
     }
     for a in &s.alluvia {
         plot = plot.with_alluvium(a.nodes.clone(), a.value);

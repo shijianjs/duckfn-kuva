@@ -145,7 +145,7 @@ DuckDB looks up, hence the rename from the release asset, which carries the wasm
 Two more things worth knowing:
 
 - **`REPO_URL` has to point at the right repository.** The template ships with it set to the template's
-  own repository, whose `v0.2.0` release is what lets the template's blocks run out of the box. A clone
+  own repository, whose `v0.3.0` release is what lets the template's blocks run out of the box. A clone
   has to repoint it at its own repository (`just rename` only rewrites the extension name) and tag
   `v*.*.*` once — that release is then what the deployment, which waits for the pipeline, preloads.
 - Release downloads are cached under `.cache/duckfn-docs-kit/` and only re-fetched when the release

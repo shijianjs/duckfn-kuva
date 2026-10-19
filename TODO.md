@@ -19,9 +19,16 @@
       把同一段 JSON 落成一份 `.typ`（CETZ 矢量图），由调用方 `typst compile`。原来「与产品形态不合」的
       判断只对「SQL 里直接拿到图像」成立 —— 但要放进更大的 Typst 文档、或想手改源码时，它就是对的工具。
       文档见 `docs/user-guide/reference/typst.md`。
-- [ ] **`typst-math` 仍不开（待定）**：它把整个 Typst 编译器（约两百个 crate）链进来，只为把 `$...$`
-      就地排成矢量数学公式。默认那档已经把 `$...$` 降级成全平台通用的内联 Unicode，`kuva_render_typst`
-      则把公式原样交给 Typst 自己排。是否值得那份产物体积见下面「typst-math 体积实验」。
+- [x] **`typst-math` 实测后决定不开**：它把整个 Typst 编译器（约 239 个 crate）链进来，只为把 `$...$`
+      就地排成矢量数学公式。两端都**验证可行** —— native 与 wasm（`wasm32-unknown-emscripten`）都能编，
+      在 `rust-version = "1.88"` 下解析器自动选 `typst 0.14.0`，`$...$` 也确实渲染成矢量字形
+      （SVG 里出现 `class="typst-text"` 与 `<defs id="m0-glyph">`）。但产物体积代价太大，故不开：
+      wasm_eh 4.80 MB → 32.48 MB（6.8×）、native release 8.64 MB → 39.85 MB（4.6×）、
+      native debug 16.25 MB → 83.58 MB（5.1×），`Cargo.lock` 多出约 2528 行。默认那档已把 `$...$`
+      降级成全平台通用的内联 Unicode（见 `docs/user-guide/reference/math.md`），`kuva_render_typst`
+      则把公式原样交给 Typst 自己排 —— 单为排版精度不值得这份体积，尤其 wasm 那一刀正砍在
+      浏览器 DuckDB-Wasm 上。另一处副作用：标签只要含 `$...$`，整段文字（含旁边普通文字）都改由
+      Typst 内嵌字体排版，会与同图内其它 SVG 文本字体不一致。
 - [ ] **`kuva coverage` / `brick-pop` 的 CLI 专属开关不跟进**：例如 `--min-coverage` 的多值重复写法、
       `--emit-code`。前者在 JSON 里就是 `coverage_thresholds` 数组，后者对组合图本来就不适用
       （官方明说 `--emit-code` 不覆盖组合图）。

@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: shijianjs/duckfn-kuva
-  ref: 229292db2882927cbaaa209687d44f6117ba1065
-  ref_next: 229292db2882927cbaaa209687d44f6117ba1065
+  ref: 5fd677c70d5572f61eab5d44ce9a157708d15486
+  ref_next: 5fd677c70d5572f61eab5d44ce9a157708d15486
 
 docs:
   hello_world: |

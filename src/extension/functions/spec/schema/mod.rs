@@ -20,6 +20,7 @@
 //! This layer is a pure mapping — every check (non-empty, matching lengths, valid enum strings) happens
 //! in `convert`, the only place that knows kuva's constraints.
 
+mod composite;
 mod panel;
 mod series;
 mod style;
@@ -27,6 +28,7 @@ mod style;
 // `FileSpec` 只有原生构建有（wasm 下 `kuva_render_file` 整个不存在），所以它的 re-export 也跟着 cfg。
 //
 // `FileSpec` is native-only (a wasm build has no `kuva_render_file`), so its re-export is gated too.
+pub(crate) use composite::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use panel::FileSpec;
 pub(crate) use panel::{FigureSpec, LabelsKind, LabelsSpec, PanelSpec, RenderSpec};

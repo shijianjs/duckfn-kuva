@@ -287,6 +287,15 @@ impl SeriesSpec {
     }
 }
 
+/// 砖墙图的 build 入口，供 `brick_pop` 组合图复用（那里需要的是内层的 `BrickPlot`，不是一个
+/// 包好的 `Plot`）。
+///
+/// The brick builder, reused by the `brick_pop` composite (which needs the inner `BrickPlot` rather
+/// than a wrapped `Plot`).
+pub(super) fn build_brick_series(s: BrickSeries) -> Result<Plot, String> {
+    brick::build_brick(s)
+}
+
 /// 逐组给色的分组（violin / ridgeline / raincloud / ecdf / qq 共用）里有没有显式颜色。
 fn groups_have_color(groups: &[ValuesGroup]) -> bool {
     groups.iter().any(|g| g.color.is_some())
@@ -423,12 +432,13 @@ mod tests {
             "stacked_area", "streamgraph", "band", "text", "legend_plot", "quiver", "jointplot",
             "rose",
         ];
-        // kuva 0.5 的 `Plot` 就是 64 个变体。数量对不上，说明这版 kuva 动了枚举
+        // kuva 0.6 的 `Plot` 仍是 64 个变体（0.6 新增的 `CoveragePlot` / `BrickPopPlot` 是**组合图**，
+        // 不是 `Plot` 变体，见 `spec/composite.rs`）。数量对不上，说明这版 kuva 动了枚举
         // —— 先看漏了哪个，再决定是补实现还是把这一行改掉。
         assert_eq!(
             REGISTERED.len(),
             64,
-            "kuva 0.5 has 64 plot types; a different count means the enum changed"
+            "kuva 0.6 still has 64 plot types; a different count means the enum changed"
         );
 
         for name in REGISTERED {

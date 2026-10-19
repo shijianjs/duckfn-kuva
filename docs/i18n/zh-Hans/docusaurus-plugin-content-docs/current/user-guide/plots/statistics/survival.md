@@ -32,8 +32,14 @@ SELECT kuva_render(to_json({
 
 ## 多臂对照与 p 值
 
-一个臂一个分组。log-rank 的 p 值**不在这里计算**：kuva 只是把你给的字符串画出来，所以检验要在 SQL（或别处）跑完、
-再把结果传进来。这是有意的 —— 一张自己编 p 值的图，比一张没有 p 值的图更糟。
+一个臂一个分组。把 p 值画到图上有两条路：
+
+- `pvalue_text` 画的是**你给的字符串**，检验要在 SQL（或别处）跑完、再把格式化结果传进来。
+- `logrank_pvalue: true` 用**原始数据**跑 log-rank 检验并标注结果（例如 `log-rank p = 0.023`），
+  会覆盖 `pvalue_text`。两组用精确的 Mantel–Haenszel 统计量，3 组以上用 `Σ (O−E)²/E` 近似。
+
+下面的例子传的是预先算好的字符串 —— 一张自己编 p 值的图，比一张没有 p 值的图更糟，字符串至少让数字
+可追溯到产生它的查询。
 
 ```sql {"type":"duckfn","show":"svg"}
 WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
@@ -55,6 +61,46 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart;
 ```
+
+## 临床标注
+
+三个开关把生存曲线变成发表级的临床图：
+
+| 字段 | 加什么 |
+| --- | --- |
+| `risk_table` | 图下方的 **number-at-risk 表**：每组一行，在各 x 刻度处给剩余人数。空间由 kuva 自动预留。 |
+| `median_lines` | **中位生存参考线**：先在 S = 0.5 处画一条水平虚线到各曲线的中位时间，再垂直落到轴上。始终没降到 0.5 的组没有线。 |
+| `logrank_pvalue` | **log-rank 的 p 值**：从原始数据算出并标注（覆盖 `pvalue_text`）。 |
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
+SELECT kuva_render(to_json({
+  'title': 'Kaplan-Meier with number at risk',
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'survival',
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group")),
+    'ci': true,
+    'ci_alpha': 0.15,
+    'risk_table': true,
+    'median_lines': true,
+    'logrank_pvalue': true,
+    'legend': 'arm'
+  }]
+})) AS chart;
+```
+
+> **怎么读这张表：** 每一格是该时刻**仍在随访**的人数 —— 观察时间（事件**或**删失）不早于该刻度的所有人。
+> 它**不是**「生存概率 × N」：有删失时两者会分叉，而数字变小正是提示 —— 曲线后面那几级台阶只建立在很少
+> 几个人身上。
 
 ## 置信带
 
@@ -155,6 +201,9 @@ SELECT kuva_render(to_json({
 | `ci` / `ci_alpha` | boolean / number | Greenwood 95 % 置信带及其不透明度。 |
 | `censoring` / `censoring_size` | boolean / number | 删失标记。 |
 | `pvalue_text` | string | 画在角上的自由文本 —— kuva 不替你算它。 |
+| `risk_table` | boolean | 在图下方画 number-at-risk 表。 |
+| `median_lines` | boolean | 画中位生存期的虚线参考线。 |
+| `logrank_pvalue` | boolean | 用原始数据算 log-rank p 值并标注；覆盖 `pvalue_text`。 |
 | `legend` | string | 图例标题；每个分组一条。 |
 
 ## 说明
@@ -162,6 +211,8 @@ SELECT kuva_render(to_json({
 - **`groups` 不能为空**，且组内 `times` 与 `events` 必须等长。
 - 事件时间是数值 —— 月、天、周期都行，只要一个 x 单位有一个含义。
 - `pvalue_text` 是一个**字符串**：log-rank 检验不会替你跑。在 SQL 里算好、把格式化结果传进来，图上的数字才可追溯。
+  `logrank_pvalue: true` 是唯一的例外 —— 它用 `times` / `events` 自己算，并优先于 `pvalue_text`。
+- `risk_table` 与 `median_lines` 只读你已经传进来的数据，不引入新字段。
 - 删失的受试者贡献的是一个小刻度、不是一次下降；把刻度藏起来的话，图注里要写明。
 - `colors` 按位置对应，所以必须与查询输出的分组顺序一致。
 

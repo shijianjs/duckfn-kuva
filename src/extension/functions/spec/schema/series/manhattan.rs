@@ -7,8 +7,7 @@
 
 use serde::Deserialize;
 
-use super::common::CommonStyle;
-use super::volcano::VolcanoLabelSpec;
+use super::common::{CommonStyle, LabelStyleSpec};
 
 /// 参考基因组版本（决定每条染色体的长度，用来算累积坐标）。
 #[derive(Debug, Deserialize)]
@@ -41,7 +40,7 @@ pub(crate) struct ManhattanSeries {
     pub point_size: Option<f64>,
     /// 标出最显著的多少个点（`0` = 全不标）。
     pub label_top: Option<usize>,
-    pub label_style: Option<VolcanoLabelSpec>,
+    pub label_style: Option<LabelStyleSpec>,
     /// p 值的下限（避免 `log10(0)`）。
     pub pvalue_floor: Option<f64>,
 }

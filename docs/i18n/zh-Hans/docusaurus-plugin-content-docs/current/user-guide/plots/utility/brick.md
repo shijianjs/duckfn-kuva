@@ -98,6 +98,9 @@ SELECT kuva_render(to_json({
 （`"CAT:A,C:B"`），strigar 则是这些字母的游程编码（`"10A1B4A"`）。kuva 会把 k-mer 旋转到规范形式、按出现频率分配
 全局字母，并画出宽度正比于各 motif 长度的砖块。
 
+游程**首尾相接、没有分隔符**：`<次数><字母><次数><字母>…`。字母是**双射 base-26**（`A`…`Z`，然后是
+`AA`、`AB`…），所以一行可以引用超过 26 种 motif，一个字母也可能不止一个字符。
+
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
   'title': 'Tandem repeats',
@@ -120,9 +123,13 @@ SELECT kuva_render(to_json({
 `consensus_row` 把规范旋转锁定到某一行 —— 第 0 行是参考序列时正是你想要的：图例随后显示的是**参考**的重复单元
 拼法，而不是恰好最常见的那个旋转。
 
+> **kuva 0.6 的破坏性变更：** 旧格式用 `|` 分段、用 `@` 表示空位（`"10A | 2@ | 2A"`）。这两个字符现在会被
+> **直接拒绝** —— kuva 宁可丢掉这一行，也不画出一张看起来合理、实则错位的图；本扩展会把它变成一条点名到行
+> 的错误。旧串请用当前的 bladerunner 重新生成，或改写成没有分隔符的 `<次数><字母>`。
+
 ## 带侧翼的 STRIGAR
 
-真实的 read 在重复区两侧都带着侧翼 DNA，用 `@` 空位段把它编码进去很别扭。`flanked_strigars` 直接收
+真实的 read 在重复区两侧都带着侧翼 DNA。`flanked_strigars` 直接收
 `[左侧翼, motif, strigar, 右侧翼]`：两侧给原始 DNA 字符串（一个字符一块砖，用标准 A/C/G/T 配色），中间那一对
 `(motif, strigar)` 与上面完全一样。
 
@@ -147,7 +154,7 @@ SELECT kuva_render(to_json({
 ## 逐段注记
 
 `notations` 每行给一项：任意字符串就打开该行砖块上方的 `(kmer)count` 标签，`null` 表示不开。字符串内容会被忽略 ——
-标签是根据展开后的 strigar 的游程结构生成的，空位砖块会被跳过。
+标签是根据展开后的 strigar 的游程结构生成的。
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -168,6 +175,68 @@ SELECT kuva_render(to_json({
 ```
 
 相邻段的标签会重叠时，它们会错开到最多四层，画布也会自动补出需要的那点上边距。
+
+## CIGAR 条
+
+`cigars` 在每行上方画一条细带，按该 read 的 CIGAR 操作上色 —— 一眼就能看出哪些碱基有参考支持、哪些是插入
+或软剪切。它画在**读段坐标**里，与砖块同一个坐标系，所以每个操作总与它下面的碱基对齐。
+
+CIGAR 必须覆盖**这一行画出的全部碱基（含两侧翼）** —— 也就是 `row_base_len` 返回的长度。读段长度对不上的
+CIGAR 会被**拒收而不是照画**：短几个碱基的条会让后面每个操作都错位，看起来却仍然像一条合法注记。CIGAR 应该
+由产生这一行的工具给出；从基因组坐标反推会丢掉 span 的边界。
+
+相邻且 CIGAR 相同的行会合并成一条（`cigar_dedup`，默认开），左侧沟槽里用 `xN` 标出这一段的计数
+（`cigar_run_bracket`，默认开）。`sort: "cigar"` 把相同 CIGAR 归到一起，去重后条数最少。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'CIGAR bars',
+  'series': [{
+    'type': 'brick',
+    'names': ['consensus', 'read_1', 'read_2', 'read_3'],
+    'flanked_strigars': [
+      ['ACGTACGT', 'CAG:A,CAA:B', '6A1B8A', 'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A,CAA:B', '6A1B8A', 'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A',       '16A',    'TGCATGCA'],
+      ['ACGTACGT', 'CAG:A',       '20A',    'TGCA']
+    ],
+    'cigars': ['55M6S', '55M6S', '58M6I', '66M6S'],
+    'cigar_dedup': true,
+    'cigar_run_bracket': true,
+    'cigar_colors': {'insertion': '#e9c46a', 'soft_clip': '#8ecae6'},
+    'sort': 'cigar',
+    'row_height': 22
+  }]
+})) AS chart;
+```
+
+`cigar_colors` 按操作名覆盖配色：`"match"` · `"mismatch"` · `"insertion"` · `"deletion"` ·
+`"soft_clip"`。删除（`D` / `N`）不消耗读段碱基，所以画成一个零宽的尖角，而不是在行里开一个缺口。
+
+## 参考线
+
+`marker_lines` 在所有行上画竖直参考线 —— 引物边界、变异位点、关注的位置。它们用砖墙自己的参考坐标，
+所以 `x_offset` / `x_origin` 会一并生效。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Primer boundary',
+  'series': [{
+    'type': 'brick',
+    'names': ['read_1', 'read_2', 'read_3'],
+    'sequences': [
+      'CGGCGATCAGGCCGCACTCATCATCATCATCATCATCAT',
+      'CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCAT',
+      'CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCAT'
+    ],
+    'template': 'dna',
+    'x_offset': 18,
+    'marker_lines': [
+      {'value': 6, 'label': 'primer', 'color': 'crimson', 'dasharray': '4 2'}
+    ]
+  }]
+})) AS chart;
+```
 
 ## 锚点
 
@@ -213,6 +282,12 @@ SELECT kuva_render(to_json({
 | `consensus_row` | integer | 把 k-mer 的规范旋转锁定到这一行。 |
 | `notations` | (string \| null)[] | 该行砖块上方的 `(kmer)count` 标签。 |
 | `row_height` | number | 行高（像素）。 |
+| `cigars` | (string \| null)[] | 逐行 CIGAR；`null` 表示该行不画。必须覆盖该行画出的全部碱基（含两侧翼）。 |
+| `cigar_dedup` | boolean | 相邻且 CIGAR 相同的行合并成一条（默认 `true`）。 |
+| `cigar_run_bracket` | boolean | 给合并后的每一段标 `xN` 计数（默认 `true`）。 |
+| `cigar_colors` | object | 操作 → 颜色，键是 `match` · `mismatch` · `insertion` · `deletion` · `soft_clip`。 |
+| `sort` | string \| object | `"none"`（默认）· `"cigar"` · `{"custom": [行序]}`。 |
+| `marker_lines` | object[] | 竖直参考线 `{value, label?, color?, stroke_width?, dasharray?}`；只接受竖直方向。 |
 
 ## 说明
 
@@ -221,8 +296,12 @@ SELECT kuva_render(to_json({
   （strigar / flanked-strigar 模式下 strigar 那部分的配色由 motif 自动生成，`template` 只对 `sequences` 生效。）
 - `names` 必须与生效的那一份数据行数一致 —— 按 `strigars` / `flanked_strigars` 或 `sequences` 算。
 - **第 0 行在最上面**，共识序列因此天然读起来像一行表头。
-- strigar 模式下每一段都必须带次数：写 `"10A"`，不能写 `"A"`。库会直接解析那个数字，缺了就报错，而不是默认成 1。
-  段与段之间用 `|` 分隔、两端会被 trim，所以 `"10A | 2B"` 可以，`"10 A"` 不行。
+- strigar 模式下每一段都必须带次数：写 `"10A"`，不能写 `"A"`。kuva 会把没有次数的片段静默丢掉，画出来比要求的
+  短一截 —— 所以扩展侧直接报错。段与段之间没有分隔符：`"10A2B"`。0.6 之前的 `|` / `@` 写法会被**拒绝**
+  （见「STRIGAR 模式」）。
+- `cigars` 必须一行一项，且每条 CIGAR 的读段长度（`M` / `I` / `S` / `=` / `X`）必须等于该行画出的碱基
+  （左侧翼 + STRIGAR + 右侧翼）。这两项检查在这里都是错误，而不是「静默画错」或「静默丢掉」。
+- `marker_lines` 只支持竖直方向：不写 `orientation`，或写 `"vertical"`。水平线会报错 —— 砖墙的 y 轴是行号。
 - `consensus_row` 锁的是这一行的规范旋转，所以它必须在 strigar 被解析**之前**设好 —— 扩展侧已经替你处理好顺序；
   不给时以「所有 read 里最常见的那个旋转」为准。
 - `x_offsets` 与 `start_positions` 都在设逐行偏移，所以不能同时给（后者是前者取负值之后的说法，以参考坐标表达）。

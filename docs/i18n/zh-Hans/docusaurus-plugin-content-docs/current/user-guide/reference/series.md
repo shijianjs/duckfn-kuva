@@ -86,7 +86,8 @@ kuva 的 64 种图型全部已实现。侧边栏按 [kuva 官方文档](https://
 
 ## 趋势线
 
-在 `scatter` series 上设 `trend`。短写法拟合一条最小二乘直线；对象写法还能设置样式并印出拟合统计量：
+在 `scatter` series 上设 `trend`。短写法拟合一条最小二乘直线（`"linear"`）或一条 LOESS 平滑曲线
+（`"loess"`）；对象写法还能设置样式并印出拟合统计量：
 
 ```json
 { "type": "linear", "color": "crimson", "width": 2, "equation": true, "correlation": true }
@@ -94,11 +95,12 @@ kuva 的 64 种图型全部已实现。侧边栏按 [kuva 官方文档](https://
 
 | 字段 | 类型 | 设置什么 |
 | --- | --- | --- |
-| `type` | `"linear"` | 拟合方式，`linear` 是唯一取值。 |
+| `type` | `"linear"` \| `"loess"` | 拟合方式：最小二乘直线，或局部加权回归平滑。 |
+| `span` | number | LOESS 带宽（每次局部拟合用到的点比例，`0.05`–`1`，默认 `0.5`）。 |
 | `color` | string | 线颜色（默认 `"black"`）。 |
 | `width` | number | 线宽。 |
-| `equation` | boolean | 在图里印出回归方程 `y = mx + b`。 |
-| `correlation` | boolean | 在图里印出 Pearson R²。 |
+| `equation` | boolean | 在图里印出回归方程 `y = mx + b`（仅线性）。 |
+| `correlation` | boolean | 在图里印出 Pearson R²（仅线性）。 |
 
 点很密时想更干净，就别开这两个，改成把数字放进[统计框](./stats-box.md)。
 

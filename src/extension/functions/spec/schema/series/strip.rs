@@ -23,6 +23,12 @@ pub(crate) struct StripSeries {
     pub seed: Option<u64>,
     pub marker_opacity: Option<f64>,
     pub marker_stroke_width: Option<f64>,
+    /// 横向摆放：类别在 Y 轴、数值在 X 轴（seaborn `orient='h'`、ggplot2 `coord_flip`）。
+    /// 抖动 / 蜂群在每一行内**纵向**散开。
+    ///
+    /// Horizontal orientation: categories on Y, values on X. Jitter and swarm spread vertically
+    /// within each row.
+    pub horizontal: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

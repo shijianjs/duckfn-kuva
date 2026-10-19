@@ -170,7 +170,7 @@ axis.
 | `color_a` / `color_b` | string | The alternating chromosome colours. |
 | `point_size` | number | Circle radius in pixels (default `2.5`). |
 | `label_top` | integer | Label the *n* most significant points above the genome-wide line. |
-| `label_style` | string \| object | `"nudge"` (default) · `"exact"` · `{offset_x, offset_y}`. |
+| `label_style` | string \| object | `"nudge"` (default) · `"exact"` · `"repel"` · `{offset_x, offset_y}`. |
 | `pvalue_floor` | number | Explicit p-value floor for the `−log10` transform. |
 | `legend` | string | Any non-empty value turns the threshold legend on. |
 

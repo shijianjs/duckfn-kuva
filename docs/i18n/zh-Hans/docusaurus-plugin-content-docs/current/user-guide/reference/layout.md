@@ -43,10 +43,31 @@ SVG 自身的高度自动撑开，所以预览框同样不用钉。
 | 字段 | 类型 | 设置什么 |
 | --- | --- | --- |
 | `family` | string | 所有文字的字体族。 |
+| `tick_family` | string | **只给刻度标签**用的字体族，标题、轴名、图例仍用 `family`。 |
 | `title_size` | integer | 标题字号（会被 `title.size` 覆盖）。 |
 | `label_size` | integer | 坐标轴标题字号。 |
 | `tick_size` | integer | 刻度标签字号。 |
 | `body_size` | integer | 正文（图例、标注）字号。 |
+
+`tick_family` 是给序列上下文的类别标签、基因组坐标，或任何「等宽字体能让数字按列对齐」的轴用的
+（`"monospace"`、`"DejaVu Sans Mono"`、`"Consolas"`…）。宽度预留会跟着字体走：等宽刻度按 kuva 的等宽
+字宽表测量，所以小数轴不会像按无衬线测量时那样被裁掉。刻度标签会被包进一层 `<g font-family>`，不设这个
+字段时输出完全不变。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Monospace ticks',
+  'font': {'tick_family': 'monospace'},
+  'x_axis': {'name': 'position', 'tick_format': 'integer'},
+  'y_axis': {'name': 'depth'},
+  'series': [{
+    'type': 'line',
+    'color': 'steelblue',
+    'data': [{'x': 1000000, 'y': 12}, {'x': 1000250, 'y': 48},
+             {'x': 1000500, 'y': 31}, {'x': 1000750, 'y': 9}]
+  }]
+})) AS chart;
+```
 
 ## 坐标轴
 

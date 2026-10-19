@@ -1,12 +1,13 @@
 ---
 title: 散点图
 sidebar_position: 1
-description: 逐个 (x, y) 点，支持趋势线、置信带、误差棒、气泡大小、逐点颜色与六种 marker 形状。
+description: 逐个 (x, y) 点，支持线性或 LOESS 趋势线、置信带、误差棒、气泡大小、逐点颜色、点标签与十种 marker 形状。
 ---
 
 # 散点图
 
-散点图把 `(x, y)` 逐个画成 marker。它支持趋势线、误差棒、可变点大小、逐点颜色与六种 marker 形状。
+散点图把 `(x, y)` 逐个画成 marker。它支持线性与 LOESS 趋势线、误差棒、可变点大小、逐点颜色、点标签与
+十种 marker 形状。
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -58,6 +59,39 @@ FROM (
 
 > **提示：** `equation` 与 `correlation` 会把拟合统计量当作浮动文字压在数据区上。点一密，它就和数据抢地方；
 > 用[统计框](../../reference/stats-box.md)可以把同一批数字放进带边框的插图里。
+
+### LOESS 平滑
+
+关系不是直线时，直线就是错的模型。`"trend": {"type": "loess"}` 改叠一条 LOESS（局部加权回归）平滑曲线：
+每个预测点用距离权重拟合一条局部直线。`span` 是每次局部拟合用到的点比例（`0.05`–`1`，默认 `0.5`）——
+越小越贴近局部细节，越大越平滑。
+
+```sql {"type":"duckfn","show":"svg"}
+WITH pts AS (
+  -- 确定性的带噪正弦：与 kuva 自己的 LOESS 示例同一批 120 个点。
+  SELECT i,
+         i / 120.0 * 10.0 AS x,
+         sin(i / 120.0 * 10.0)
+           + 0.6 * ((sin(i * 12.9898) * 43758.5453)
+                    - trunc(sin(i * 12.9898) * 43758.5453) - 0.5) AS y
+  FROM (SELECT unnest(range(0, 120))::DOUBLE AS i)
+)
+SELECT kuva_render(to_json({
+  'title': 'LOESS smoother (span 0.3)',
+  'x_axis': {'name': 'x'},
+  'y_axis': {'name': 'y'},
+  'series': [{
+    'type': 'scatter',
+    'color': 'steelblue',
+    'size': 3,
+    'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY i) FROM pts),
+    'trend': {'type': 'loess', 'span': 0.3, 'color': 'crimson', 'width': 2.5}
+  }]
+})) AS chart;
+```
+
+> **注意：** `equation` 与 `correlation` 描述的是**线性**拟合。LOESS 没有截距与斜率可报，`type` 为
+> `"loess"` 时它们会被忽略。
 
 ## 置信带
 
@@ -132,9 +166,10 @@ SELECT kuva_render(to_json({
 
 ## marker 形状
 
-`marker` 有六种形状。几个 series 共用一对坐标轴、光靠颜色分不开时，它最有用。
+`marker` 有十种形状。几个 series 共用一对坐标轴、光靠颜色分不开时，它最有用。
 
-`"circle"`（默认）· `"square"` · `"triangle"` · `"diamond"` · `"cross"` · `"plus"`
+`"circle"`（默认）· `"square"` · `"triangle"` · `"triangle_down"` · `"diamond"` · `"cross"` ·
+`"plus"` · `"star"` · `"pentagon"` · `"hexagon"`
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -153,12 +188,16 @@ FROM (
     'legend': label
   } ORDER BY y) AS series
   FROM (VALUES
-    (1.0, 'steelblue',   'circle',   'Circle'),
-    (2.0, 'crimson',     'square',   'Square'),
-    (3.0, 'seagreen',    'triangle', 'Triangle'),
-    (4.0, 'darkorange',  'diamond',  'Diamond'),
-    (5.0, 'purple',      'cross',    'Cross'),
-    (6.0, 'saddlebrown', 'plus',     'Plus')
+    (1.0,  'steelblue',   'circle',        'Circle'),
+    (2.0,  'crimson',     'square',        'Square'),
+    (3.0,  'seagreen',    'triangle',      'Triangle'),
+    (4.0,  'darkorange',  'triangle_down', 'Triangle down'),
+    (5.0,  'purple',      'diamond',       'Diamond'),
+    (6.0,  'saddlebrown', 'cross',         'Cross'),
+    (7.0,  'teal',        'plus',          'Plus'),
+    (8.0,  'goldenrod',   'star',          'Star'),
+    (9.0,  'slategray',   'pentagon',      'Pentagon'),
+    (10.0, 'firebrick',   'hexagon',       'Hexagon')
   ) AS t(y, color, marker, label)
 );
 ```
@@ -266,6 +305,44 @@ SELECT kuva_render(to_json({
 FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv');
 ```
 
+## 点标签
+
+`labels` 给每个点挂一段文字，按顺序与 `data` 对应。**空字符串表示这个点不标** —— 这就是「只标关键点、
+又不把 series 拆开」的写法。
+
+`label_style` 决定摆放方式，与[火山图](../statistics/volcano.md)、[曼哈顿图](../statistics/manhattan.md)共用：
+
+| 取值 | 摆放方式 |
+| --- | --- |
+| `"exact"` | 就压在点上，不做避让（可能重叠） |
+| `"nudge"`（默认） | 按 x 排序后纵向错开 |
+| `{"offset_x": …, "offset_y": …}` | 固定像素偏移，并画一条引线 |
+| `"repel"` | 力导向（ggrepel / adjustText 风格）：标签互相推开、也推离数据点，并画细引线 |
+
+标签密集、挤在一起时用 `"repel"`：下面这张图只标最显著的 6 个基因，它们夹在几千个点里仍然读得出来。
+
+```sql {"type":"duckfn","show":"svg"}
+WITH g AS (
+  SELECT gene, log2fc, -log10(pvalue) AS neglog10p,
+         row_number() OVER (ORDER BY pvalue) AS rk
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/gene_stats.tsv')
+)
+SELECT kuva_render(to_json({
+  'title': 'Point labels (repel)',
+  'x_axis': {'name': 'log2 fold change'},
+  'y_axis': {'name': '-log10(p)'},
+  'series': [{
+    'type': 'scatter',
+    'color': 'steelblue',
+    'size': 3,
+    'marker_opacity': 0.5,
+    'data': (SELECT array_agg({'x': log2fc, 'y': neglog10p} ORDER BY gene) FROM g),
+    'labels': (SELECT array_agg(CASE WHEN rk <= 6 THEN gene ELSE '' END ORDER BY gene) FROM g),
+    'label_style': 'repel'
+  }]
+})) AS chart;
+```
+
 ## 多系列
 
 `series` 里一个 series 一个对象，各自带 `color` 与 `legend`，就会画在同一对坐标轴上。只要有任意一个 series
@@ -293,10 +370,12 @@ FROM (
 | `size` | number | 统一的点半径（默认 3）。 |
 | `sizes` | number[] | 逐点半径（气泡图）；会覆盖 `size`。 |
 | `colors` | string[] | 逐点颜色；超出列表长度就回退到 `color`。 |
-| `marker` | string | `"circle"`（默认）· `"square"` · `"triangle"` · `"diamond"` · `"cross"` · `"plus"`。 |
+| `marker` | string | `"circle"`（默认）· `"square"` · `"triangle"` · `"triangle_down"` · `"diamond"` · `"cross"` · `"plus"` · `"star"` · `"pentagon"` · `"hexagon"`。 |
 | `marker_opacity` | number | 填充 alpha：`0` 空心，`1` 实心。 |
 | `marker_stroke_width` | number | 描边线宽，颜色取填充色。 |
-| `trend` | `"linear"` \| object | 叠一条最小二乘线；对象形式可加 `type`、`color`、`width`、`equation`、`correlation`。 |
+| `labels` | string[] | 逐点文字标签，与 `data` 对齐；空字符串表示该点不标。 |
+| `label_style` | string \| object | `"nudge"`（默认）· `"exact"` · `"repel"` · `{"offset_x": …, "offset_y": …}`。 |
+| `trend` | `"linear"` \| `"loess"` \| object | 叠一条最小二乘线或 LOESS 平滑曲线；对象形式可加 `type`、`span`（LOESS）、`color`、`width`、`equation`、`correlation`。 |
 | `band` | `{lower, upper}` | 与点的 x 位置对齐的阴影带。 |
 | `group_name` | string | 交互式 SVG 输出里的分组名（不进图例）。 |
 
@@ -309,6 +388,8 @@ FROM (
 - 逐点颜色**不会**更新图例 —— 要带标签的图例就一个分组一个 series。
 - `x_err` / `y_err` 给一个数是对称的，给 `{"neg": …, "pos": …}` 对象是不对称的。
 - `band.lower` 与 `band.upper` 必须各自与 `data` 等长、且顺序一致。
+- `labels` 可以比 `data` **短**（后面的点不标），但不能更长 —— 多出来的标签会报错，而不是被静默丢掉。
+- `equation` / `correlation` 只对线性拟合有效；`"type": "loess"` 时会被忽略。
 
 ## 另见
 

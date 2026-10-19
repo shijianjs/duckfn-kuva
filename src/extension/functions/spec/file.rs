@@ -152,26 +152,29 @@ fn parse_spec_with_info(
 
 /// 从原始 JSON 里挑出能写进文件名的「有意义信息」：图表类型与标题，能拿到才给。
 ///
-/// 单图取顶层的 `series[0].type` 与 `title`；多面板取第一个面板的第一个 series 与 `figure.title`。
-/// 标题既可能是字符串，也可能是 `{"text": "…"}`，两种都认。返回值交给 [`write_svg`] 去做文件名合法
-/// 性处理。
+/// 单图取顶层的 `series[0].type` 与 `title`；多面板取第一个面板的第一个 series 与 `figure.title`；
+/// 组合图取 `composite.type` 与 `composite.title`（它没有 series）。标题既可能是字符串，也可能是
+/// `{"text": "…"}`，两种都认。返回值交给 [`write_svg`] 去做文件名合法性处理。
 ///
 /// Pick the "meaningful info" that can go into a file name out of the raw JSON: the chart type and the
 /// title, only when available. A single figure reads the top-level `series[0].type` and `title`; a
-/// multi-panel one reads the first panel's first series and `figure.title`. A title may be a string or
-/// `{"text": "…"}`; both are understood. The result goes to [`write_svg`], which handles file-name
-/// legality.
+/// multi-panel one reads the first panel's first series and `figure.title`; a composite reads
+/// `composite.type` / `composite.title` (it has no series). A title may be a string or `{"text": "…"}`;
+/// both are understood. The result goes to [`write_svg`], which handles file-name legality.
 fn describe(value: &serde_json::Value) -> Vec<String> {
-    let (series, title) = match value.get("figure") {
-        Some(figure) => (figure.pointer("/panels/0/series/0"), figure.get("title")),
-        None => (value.pointer("/series/0"), value.get("title")),
+    let (kind, title) = match value.get("composite") {
+        Some(composite) => (composite.get("type"), composite.get("title")),
+        None => match value.get("figure") {
+            Some(figure) => (
+                figure.pointer("/panels/0/series/0/type"),
+                figure.get("title"),
+            ),
+            None => (value.pointer("/series/0/type"), value.get("title")),
+        },
     };
 
     let mut parts = Vec::new();
-    if let Some(kind) = series
-        .and_then(|series| series.get("type"))
-        .and_then(serde_json::Value::as_str)
-    {
+    if let Some(kind) = kind.and_then(serde_json::Value::as_str) {
         parts.push(kind.to_string());
     }
 
@@ -454,7 +457,7 @@ fn join(dir: &str, file_name: &str) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{FileSpec, render, write_svg};
+    use super::{FileSpec, describe, render, write_svg};
 
     /// 一次测试自己的临时目录（跑完删掉）。随机尾缀让它与并行的其它测试互不干扰。
     ///
@@ -554,6 +557,18 @@ mod tests {
         assert!(path.ends_with("-scatter-Sales_Overview.svg"), "unexpected path: {path}");
 
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// 组合图没有 series：文件名里的类型与标题取自 `composite` 自己。
+    #[test]
+    fn a_composite_names_the_file_from_its_own_type() {
+        let value = serde_json::json!({
+            "composite": {"type": "coverage", "title": "Locus 7"}
+        });
+        assert_eq!(
+            describe(&value),
+            vec!["coverage".to_string(), "Locus 7".to_string()]
+        );
     }
 
     #[test]

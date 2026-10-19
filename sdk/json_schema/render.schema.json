@@ -26,6 +26,17 @@
         }
       ]
     },
+    "composite": {
+      "description": "组合图（kuva 的 `CoveragePlot` / `BrickPopPlot`）。给了它就**只**画它 —— 与 `series` /\n`figure` 互斥，且自带画布尺寸（见 `composite` 模块的说明）。\n\nA composite (`CoveragePlot` / `BrickPopPlot`). When present it is the **only** thing drawn — it\nis mutually exclusive with `series` / `figure` and carries its own canvas size (see the\n`composite` module).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CompositeSpec"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "figure": {
       "description": "多面板网格（Figure）。给了它，顶层 `panel.series` 被忽略。",
       "anyOf": [
@@ -642,6 +653,26 @@
         "type"
       ]
     },
+    "BinMethodKind": {
+      "description": "自动选箱数的规则。名字与 kuva 的 `BinMethod` 一致，`fd` 是 Freedman–Diaconis 的常用缩写。",
+      "oneOf": [
+        {
+          "description": "Sturges：`ceil(log2(n)) + 1`，小样本的经典默认值。",
+          "type": "string",
+          "const": "sturges"
+        },
+        {
+          "description": "Scott：箱宽 `3.49 * sd / n^(1/3)`，适合较平滑的数据。",
+          "type": "string",
+          "const": "scott"
+        },
+        {
+          "description": "Freedman–Diaconis：箱宽 `2 * IQR / n^(1/3)`，对离群点稳健。",
+          "type": "string",
+          "const": "freedman_diaconis"
+        }
+      ]
+    },
     "BoxGroupSpec": {
       "type": "object",
       "properties": {
@@ -830,6 +861,338 @@
         "colors"
       ]
     },
+    "BrickPopSpec": {
+      "description": "群体等位基因频率图（kuva 的 `BrickPopPlot`）：砖墙行 + 每行的频率条 + 可选的指标热格列。\n\n`brick` 的字段与 `series` 里的 `type: \"brick\"` **完全相同**（直接平铺在 `composite` 对象里），\n所以同一份砖墙配置既能画 `brick`，也能套进 `brick_pop`。",
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "description": "序列的锚点。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BrickAnchorKind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cigar_colors": {
+          "description": "覆盖 CIGAR 各操作的配色（未给的操作沿用 kuva 的默认色）。\n\nOverride CIGAR operation colours; unset ops keep kuva's defaults.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "cigar_dedup": {
+          "description": "把相邻且 CIGAR 相同的行合并成一条 bar（默认开）。\n\nCollapse consecutive rows sharing a CIGAR into one bar (default on).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "cigar_run_bracket": {
+          "description": "给合并后的每一段在左侧沟槽里标 `xN` 计数（默认开）。\n\nBracket each deduped run with an `xN` count in the gutter (default on).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "cigars": {
+          "description": "逐行的 CIGAR（与画出来的行等长，`null` 表示该行不画）。长度必须是该行**画出的全部碱基**\n（含两侧翼），即 kuva 的 `row_base_len`。\n\nPer-row CIGAR (same length as the drawn rows; `null` draws no bar for that row). It must\ncover **every base the row draws**, flanks included.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "consensus_row": {
+          "description": "把哪一行当共识序列（`0` 起）。",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "flanked_strigars": {
+          "description": "FLANKED-STRIGAR：`(左侧翼序列, motif, strigar, 右侧翼序列)`。STR 区两侧各接一段原始\nDNA（一个字符 = 一格，用标准 DNA 配色），省掉「用 `@` 空位把侧翼写进 motif 串」的麻烦。",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 4
+          }
+        },
+        "freq_bar_color": {
+          "description": "频率条的颜色。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frequencies": {
+          "description": "每行一个频率值，顺序与砖墙的行一致。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "frequency_label": {
+          "description": "频率面板的表头，缺省 `\"Frequency\"`。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frequency_range": {
+          "description": "频率条的固定范围 `[最小, 最大]`；缺省按数据自动（值都在 0–1 时用 `[0, 1]`）。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number",
+              "format": "double"
+            },
+            {
+              "type": "number",
+              "format": "double"
+            }
+          ]
+        },
+        "height": {
+          "description": "画布高度（像素）；缺省按行数自动撑开。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "mark_primary": {
+          "description": "给「主」一条加个标记。",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "marker_lines": {
+          "description": "纵向参考线（引物边界、变异位点…），画在所有行上，坐标是砖墙自己的参考坐标（受\n`x_offset` / `x_origin` 影响）。只接受竖直方向。\n\nVertical reference lines across every row, in the brick's own reference coordinates (so\n`x_offset` / `x_origin` apply). Vertical only.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReferenceLineSpec"
+          }
+        },
+        "metric_values": {
+          "description": "在指标格里写出数值（颜色改画在格子边框上）。",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "metrics": {
+          "description": "指标热格列，从左到右排在频率条与砖墙之间。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MetricColumnSpec"
+          }
+        },
+        "na_color": {
+          "description": "缺失（`null`）指标格的填充色。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "names": {
+          "description": "每行的名字，长度应与生效的那一份数据（`strigars` 优先，否则 `sequences`）一致。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "notations": {
+          "description": "逐行的注记文字。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "row_height": {
+          "description": "每行的高度（像素）。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "sequences": {
+          "description": "逐行的序列字符串，1 个字符 = 1 格。**给了 `strigars` 就不参与渲染**。",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "show_values": {
+          "description": "标出序列里的字符。",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "sort": {
+          "description": "行排序：`\"none\"`（默认）/ `\"cigar\"`（把相同 CIGAR 归到一起，去重后 bar 最少），\n或 `{\"custom\": [2, 0, 1]}` 给出外部算好的行序。\n\nRow order: `\"none\"` (default) / `\"cigar\"`, or `{\"custom\": [...]}` for an externally computed\nranking.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BrickSortSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sorted_by_frequency": {
+          "description": "按频率从高到低重排行（频率、指标列、砖墙一起置换）。",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "start_positions": {
+          "description": "逐行的参考起点（基因组坐标）；kuva 内部就是 `x_offsets` 取负，用来表达「各行从参考上的\n哪个位置开始」而不是「跳过多少个字符」。与 `x_offsets` 只能给一个。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "strigar_palette": {
+          "description": "结构域的配色。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "strigars": {
+          "description": "STRIGAR：`(motif, strigar)`，见模块文档。给了它就**代替** `sequences` 成为画出来的行。",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "template": {
+          "description": "字符配色；缺省用 `dna`。**这个必须有** —— kuva 拿不到配色表时会直接 panic。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BrickTemplateSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ThemeSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "const": "brick_pop"
+        },
+        "width": {
+          "description": "画布宽度（像素），缺省 900。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "x_offset": {
+          "description": "所有行共用的 x 起点。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "x_offsets": {
+          "description": "逐行的 x 起点（不给就用 `x_offset`）。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "x_origin": {
+          "description": "坐标原点。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
     "BrickSeries": {
       "description": "砖墙图（brick plot）：一串字符画成一格格「砖」，常用于展示序列 motif。",
       "type": "object",
@@ -844,6 +1207,43 @@
               "type": "null"
             }
           ]
+        },
+        "cigar_colors": {
+          "description": "覆盖 CIGAR 各操作的配色（未给的操作沿用 kuva 的默认色）。\n\nOverride CIGAR operation colours; unset ops keep kuva's defaults.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "cigar_dedup": {
+          "description": "把相邻且 CIGAR 相同的行合并成一条 bar（默认开）。\n\nCollapse consecutive rows sharing a CIGAR into one bar (default on).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "cigar_run_bracket": {
+          "description": "给合并后的每一段在左侧沟槽里标 `xN` 计数（默认开）。\n\nBracket each deduped run with an `xN` count in the gutter (default on).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "cigars": {
+          "description": "逐行的 CIGAR（与画出来的行等长，`null` 表示该行不画）。长度必须是该行**画出的全部碱基**\n（含两侧翼），即 kuva 的 `row_base_len`。\n\nPer-row CIGAR (same length as the drawn rows; `null` draws no bar for that row). It must\ncover **every base the row draws**, flanks included.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         },
         "consensus_row": {
           "description": "把哪一行当共识序列（`0` 起）。",
@@ -891,6 +1291,13 @@
             "null"
           ]
         },
+        "marker_lines": {
+          "description": "纵向参考线（引物边界、变异位点…），画在所有行上，坐标是砖墙自己的参考坐标（受\n`x_offset` / `x_origin` 影响）。只接受竖直方向。\n\nVertical reference lines across every row, in the brick's own reference coordinates (so\n`x_offset` / `x_origin` apply). Vertical only.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReferenceLineSpec"
+          }
+        },
         "names": {
           "description": "每行的名字，长度应与生效的那一份数据（`strigars` 优先，否则 `sequences`）一致。",
           "type": [
@@ -935,6 +1342,17 @@
           "type": [
             "boolean",
             "null"
+          ]
+        },
+        "sort": {
+          "description": "行排序：`\"none\"`（默认）/ `\"cigar\"`（把相同 CIGAR 归到一起，去重后 bar 最少），\n或 `{\"custom\": [2, 0, 1]}` 给出外部算好的行序。\n\nRow order: `\"none\"` (default) / `\"cigar\"`, or `{\"custom\": [...]}` for an externally computed\nranking.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BrickSortSpec"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "start_positions": {
@@ -1018,6 +1436,46 @@
       },
       "required": [
         "type"
+      ]
+    },
+    "BrickSortKind": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "none"
+          ]
+        },
+        {
+          "description": "按 CIGAR 分组，相同 CIGAR 相邻。",
+          "type": "string",
+          "const": "cigar"
+        }
+      ]
+    },
+    "BrickSortSpec": {
+      "description": "行排序：具名方式，或 `{\"custom\": [...]}`。",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BrickSortKind"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "custom": {
+              "description": "新行序：第 `k` 行取原来的第 `custom[k]` 行。",
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "required": [
+            "custom"
+          ]
+        }
       ]
     },
     "BrickTemplateKind": {
@@ -1943,6 +2401,17 @@
       "description": "连续色图，**按名字解析**。\n\n名字容忍大小写、连字符与 ColorBrewer 的常见缩写 —— `yellow-green-blue`、`yellowgreenblue`\n与 `ylgnbu` 指的是同一个，和 kuva 自己的 CLI 一致。认不出的名字会报错并列出这个名字，\n而不是悄悄退回默认（CLI 会退回 viridis，但 SQL 里静默换色更难查）。",
       "type": "string"
     },
+    "CompositeSpec": {
+      "description": "顶层 `composite` 字段：`type` 决定用哪个组合图。\n\n两个变体都用 `Box` 装：`BrickPopSpec` 里有整份砖墙配置，直接内联会让这个枚举的每个值都带上\n那份体积（`ThemeSpec` 也是同样处理的）。\n\nBoth variants are boxed: `BrickPopSpec` carries a whole brick config, and inlining it would give\nevery value of this enum that footprint (`ThemeSpec` is handled the same way).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CoverageSpec"
+        },
+        {
+          "$ref": "#/$defs/BrickPopSpec"
+        }
+      ]
+    },
     "ContourSeries": {
       "description": "等高线图：网格值 -> 等值线（或填色）。",
       "type": "object",
@@ -2072,6 +2541,236 @@
       },
       "required": [
         "type"
+      ]
+    },
+    "CoverageIntervalSpec": {
+      "description": "一条区间（feature 或 region）。",
+      "type": "object",
+      "properties": {
+        "end": {
+          "type": "number",
+          "format": "double"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "start": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "CoverageSampleSpec": {
+      "description": "一条深度轨道：样本名 + `(位置, 深度)` 点列。",
+      "type": "object",
+      "properties": {
+        "depth": {
+          "description": "`[[位置, 深度], …]`。",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "depth"
+      ]
+    },
+    "CoverageSpec": {
+      "description": "基因组覆盖度图（kuva 的 `CoveragePlot`）：每个样本一条深度轨道，共享一条基因组 x 轴，\n上方可选变异位点轨道，下方可选 feature / region 区间轨道。",
+      "type": "object",
+      "properties": {
+        "coverage_thresholds": {
+          "description": "每条深度轨道上的水平阈值线（最低覆盖度等）。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CoverageThresholdSpec"
+          }
+        },
+        "feature_track_name": {
+          "description": "feature 轨道的名字，缺省 `\"features\"`。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "features": {
+          "description": "feature 区间（扩增子 / 引物…），画在轴**上方**的数据区。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CoverageIntervalSpec"
+          }
+        },
+        "height": {
+          "description": "画布高度（像素）；缺省按轨道数自动撑开。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "locus": {
+          "description": "钉住 x 轴范围（基因组坐标）；缺省取所有数据的并集。",
+          "type": [
+            "array",
+            "null"
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number",
+              "format": "double"
+            },
+            {
+              "type": "number",
+              "format": "double"
+            }
+          ]
+        },
+        "overlay_samples": {
+          "description": "把所有样本叠在**一条**轨道里（共用 y 轴），而不是每样本一条轨道。",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "region_track_name": {
+          "description": "region 轨道的名字，缺省 `\"genes\"`。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "regions": {
+          "description": "基因组区间（基因 / ORF…），画在紧贴轴上方的一条轨道。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CoverageIntervalSpec"
+          }
+        },
+        "samples": {
+          "description": "每个样本的深度轨道。**至少一条**。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CoverageSampleSpec"
+          }
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ThemeSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tick_font_family": {
+          "description": "所有刻度标签（共享 x 轴 + 各轨道的 y 轴）单独用的字体族。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "const": "coverage"
+        },
+        "variants": {
+          "description": "变异位点，按类型分组（每组一个图例条目）。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CoverageVariantSpec"
+          }
+        },
+        "width": {
+          "description": "画布宽度（像素），缺省 900。",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "x_label": {
+          "description": "x 轴标题，缺省 `\"position\"`。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "samples",
+        "type"
+      ]
+    },
+    "CoverageThresholdSpec": {
+      "description": "一条覆盖度阈值线。",
+      "type": "object",
+      "properties": {
+        "depth": {
+          "type": "number",
+          "format": "double"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "depth"
+      ]
+    },
+    "CoverageVariantSpec": {
+      "description": "一组变异位点。",
+      "type": "object",
+      "properties": {
+        "color": {
+          "description": "缺省按调色板轮换取色。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "required": [
+        "label",
+        "positions"
       ]
     },
     "CurveSpec": {
@@ -3404,6 +4103,13 @@
           "format": "uint32",
           "minimum": 0
         },
+        "tick_family": {
+          "description": "刻度标签单独用的字体族（与标题、轴名、图例分开）。等宽字体让数字按列对齐；\n缺省沿用 `family`。\n\nThe font family for tick labels only, separate from titles, axis labels and legends.\nA monospace face keeps digits in a column; defaults to `family`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "tick_size": {
           "type": [
             "integer",
@@ -4421,6 +5127,36 @@
         "type"
       ]
     },
+    "HistGroupSpec": {
+      "description": "直方图里的一条附加序列。",
+      "type": "object",
+      "properties": {
+        "color": {
+          "description": "缺省按调色板轮换取色。",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "label": {
+          "description": "图例文字；不给就不进图例。",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "data"
+      ]
+    },
     "Histogram2DSeries": {
       "description": "二维直方图：把散点分到 `bins_x` × `bins_y` 的网格里。",
       "type": "object",
@@ -4537,6 +5273,17 @@
       "description": "直方图：给 `values` 自动分箱（`bins` / `range` 可选），或给 `edges` + `counts` 直接喂分箱结果。",
       "type": "object",
       "properties": {
+        "bin_method": {
+          "description": "按数据自动决定箱数的规则，**覆盖** `bins`。\n\nPick the bin count from the data, overriding `bins`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BinMethodKind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "bins": {
           "type": [
             "integer",
@@ -4562,6 +5309,13 @@
             "type": "number",
             "format": "double"
           }
+        },
+        "cumulative": {
+          "description": "累积计数：每个箱包含它左边的一切（matplotlib `cumulative=True`）。\n\nAccumulate counts left-to-right (matplotlib `cumulative=True`).",
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "dataset": {
           "description": "数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。",
@@ -4589,6 +5343,16 @@
           ],
           "additionalProperties": {
             "type": "string"
+          }
+        },
+        "groups": {
+          "description": "额外的数据序列，画在主序列之上（见 `stacked`）。\n\nExtra series drawn on top of the primary one (see `stacked`).",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/HistGroupSpec"
           }
         },
         "kde": {
@@ -4651,6 +5415,20 @@
             }
           ]
         },
+        "stacked": {
+          "description": "把 `groups` 逐箱堆叠起来，而不是从同一基线叠加（seaborn `multiple='stack'`）。\n\nStack `groups` per bin instead of overlaying them from a shared baseline.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "step": {
+          "description": "阶梯轮廓：只画箱的描边、不填色（matplotlib `histtype='step'`）。多条序列叠加时更清爽。\n\nOutline-only staircase (matplotlib `histtype='step'`), which keeps overlaid series readable.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "tooltip_labels": {
           "description": "每个数据点的提示文字。",
           "type": [
@@ -4672,6 +5450,17 @@
           "const": "histogram"
         },
         "values": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "weights": {
+          "description": "逐样本权重（matplotlib `weights=`），长度须与 `values` 一致。\n\nPer-sample weights (matplotlib `weights=`); the length must match `values`.",
           "type": [
             "array",
             "null"
@@ -5179,6 +5968,53 @@
         "allow",
         "thin",
         "stagger"
+      ]
+    },
+    "LabelStyleKind": {
+      "oneOf": [
+        {
+          "description": "标签就压在点上，不做避让。",
+          "type": "string",
+          "const": "exact"
+        },
+        {
+          "description": "按 x 排序后纵向错开（默认）。",
+          "type": "string",
+          "const": "nudge"
+        },
+        {
+          "description": "力导向避让（ggrepel 风格）：标签互相推开、也推离数据点，并画一条细引线回指原点。",
+          "type": "string",
+          "const": "repel"
+        }
+      ]
+    },
+    "LabelStyleSpec": {
+      "description": "点标签的摆放方式：`\"exact\"` / `\"nudge\"` / `\"repel\"`，或 `{\"offset_x\":…, \"offset_y\":…}`\n（箭头标签）。\n\nvolcano / manhattan / scatter 共用同一套（kuva 0.6 起三者走同一条 `draw_labels` 路径）。\n\nHow point labels are placed. Shared by volcano / manhattan / scatter — since kuva 0.6 all three\ngo through one `draw_labels` path.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LabelStyleKind"
+        },
+        {
+          "description": "箭头标签的偏移量（像素），缺省给一个朝右上方的默认值。",
+          "type": "object",
+          "properties": {
+            "offset_x": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "format": "double"
+            },
+            "offset_y": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "format": "double"
+            }
+          }
+        }
       ]
     },
     "LabelsFull": {
@@ -6044,7 +6880,7 @@
         "label_style": {
           "anyOf": [
             {
-              "$ref": "#/$defs/VolcanoLabelSpec"
+              "$ref": "#/$defs/LabelStyleSpec"
             },
             {
               "type": "null"
@@ -6137,14 +6973,99 @@
       ]
     },
     "MarkerSpec": {
-      "type": "string",
-      "enum": [
-        "circle",
-        "square",
-        "triangle",
-        "diamond",
-        "cross",
-        "plus"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "circle",
+            "square",
+            "diamond"
+          ]
+        },
+        {
+          "description": "朝上的三角形。",
+          "type": "string",
+          "const": "triangle"
+        },
+        {
+          "description": "朝下的三角形。",
+          "type": "string",
+          "const": "triangle_down"
+        },
+        {
+          "description": "斜叉（×）。",
+          "type": "string",
+          "const": "cross"
+        },
+        {
+          "description": "正十字（+）。",
+          "type": "string",
+          "const": "plus"
+        },
+        {
+          "description": "五角星。",
+          "type": "string",
+          "const": "star"
+        },
+        {
+          "description": "正五边形（尖朝上）。",
+          "type": "string",
+          "const": "pentagon"
+        },
+        {
+          "description": "正六边形（尖朝上）。",
+          "type": "string",
+          "const": "hexagon"
+        }
+      ]
+    },
+    "MetricColumnSpec": {
+      "description": "一列指标热格。",
+      "type": "object",
+      "properties": {
+        "color_map": {
+          "description": "连续色图，缺省 `viridis`。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ColorMapSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "max": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "min": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "values": {
+          "description": "每行一个值，`null` 表示缺失（与 0 不同）。",
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "required": [
+        "label",
+        "values"
       ]
     },
     "MosaicCellSpec": {
@@ -6567,7 +7488,22 @@
         "tritanopia",
         "category10",
         "pastel",
-        "bold"
+        "bold",
+        "paloma",
+        "maya",
+        "dora",
+        "ploen",
+        "olga",
+        "mterese",
+        "franscoise",
+        "fernande",
+        "sylvie",
+        "expevo",
+        "minou",
+        "alger",
+        "seafarer",
+        "luminaries",
+        "casa_natal"
       ]
     },
     "PaletteSpec": {
@@ -9936,6 +10872,27 @@
             "null"
           ]
         },
+        "label_style": {
+          "description": "标签摆放方式：`\"nudge\"`（默认）/ `\"exact\"` / `\"repel\"` / `{\"offset_x\":…, \"offset_y\":…}`。",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LabelStyleSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "labels": {
+          "description": "逐点文字标签（按位置对应 `data`，空字符串表示该点不标）。比 `data` 短时多出来的点不标。\n\nPer-point text labels, aligned to `data` by index (an empty string leaves that point\nunlabelled). Points past the end of the list are left unlabelled.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
         "legend": {
           "description": "图例条目文字。给了才会在图例里出现。",
           "type": [
@@ -9944,7 +10901,7 @@
           ]
         },
         "marker": {
-          "description": "marker 形状：`\"circle\"` / `\"square\"` / `\"triangle\"` / `\"diamond\"` / `\"cross\"` / `\"plus\"`。",
+          "description": "marker 形状：`\"circle\"` / `\"square\"` / `\"triangle\"` / `\"triangle_down\"` / `\"diamond\"` /\n`\"cross\"` / `\"plus\"` / `\"star\"` / `\"pentagon\"` / `\"hexagon\"`（共 10 种）。",
           "anyOf": [
             {
               "$ref": "#/$defs/MarkerSpec"
@@ -11012,6 +11969,13 @@
             "$ref": "#/$defs/StripGroupSpec"
           }
         },
+        "horizontal": {
+          "description": "横向摆放：类别在 Y 轴、数值在 X 轴（seaborn `orient='h'`、ggplot2 `coord_flip`）。\n抖动 / 蜂群在每一行内**纵向**散开。\n\nHorizontal orientation: categories on Y, values on X. Jitter and swarm spread vertically\nwithin each row.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "legend": {
           "description": "图例条目文字。给了才会在图例里出现。",
           "type": [
@@ -11573,10 +12537,31 @@
           ],
           "format": "double"
         },
+        "logrank_pvalue": {
+          "description": "从原始数据算 log-rank 检验的 p 值并标注（两组用精确 Mantel-Haenszel，3 组以上用\n`Σ (O−E)²/E` 近似）。打开时覆盖 `pvalue_text`。\n\nCompute and annotate the log-rank p-value from the raw data; overrides `pvalue_text`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "median_lines": {
+          "description": "画中位生存期的虚线参考线（survminer `surv.median.line`）。\n\nDraw dashed median-survival reference lines.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "pvalue_text": {
-          "description": "在图上写一行文字（典型是 log-rank 的 p 值；kuva 不代算，得自己算好传进来）。",
+          "description": "在图上写一行文字（典型是 log-rank 的 p 值；`logrank_pvalue` 打开时由 kuva 自己算，覆盖这里）。",
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "risk_table": {
+          "description": "在图下方画一张 number-at-risk 表（每行一组，在各 x 刻度处给剩余人数）。底边距由 kuva 自动预留。\n\nDraw a number-at-risk table below the plot (one row per group, counts at each x tick).",
+          "type": [
+            "boolean",
             "null"
           ]
         },
@@ -12609,18 +13594,26 @@
           ]
         },
         "correlation": {
-          "description": "在图上标出相关系数。",
+          "description": "在图上标出相关系数（仅 `linear` 有意义）。",
           "type": [
             "boolean",
             "null"
           ]
         },
         "equation": {
-          "description": "在图上标出回归方程。",
+          "description": "在图上标出回归方程（仅 `linear` 有意义）。",
           "type": [
             "boolean",
             "null"
           ]
+        },
+        "span": {
+          "description": "LOESS 的带宽（点比例，0.05–1）；仅 `type: \"loess\"` 用。缺省 0.5。\n\nThe LOESS bandwidth (fraction of points, 0.05–1); only used by `type: \"loess\"`. Default 0.5.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
         },
         "type": {
           "description": "JSON 键是 `type`（Rust 关键字，故字段另取名）。",
@@ -12639,13 +13632,21 @@
       ]
     },
     "TrendKind": {
-      "type": "string",
-      "enum": [
-        "linear"
+      "oneOf": [
+        {
+          "description": "最小二乘直线拟合（`y = mx + b`）。",
+          "type": "string",
+          "const": "linear"
+        },
+        {
+          "description": "LOESS / LOWESS 局部加权回归平滑器。`span` 是每次局部拟合用到的点比例（0.05–1，默认 0.5），\n越小越贴近数据、越大越平滑。\n\nLOESS / LOWESS locally-weighted regression. `span` is the fraction of points per local fit\n(0.05–1, default 0.5): smaller follows the data more closely, larger is smoother.",
+          "type": "string",
+          "const": "loess"
+        }
       ]
     },
     "TrendSpec": {
-      "description": "趋势线：`\"linear\"`，或带样式/统计量的对象。",
+      "description": "趋势线：`\"linear\"` / `\"loess\"`，或带样式/统计量的对象。",
       "anyOf": [
         {
           "$ref": "#/$defs/TrendKind"
@@ -13202,40 +14203,6 @@
         "type"
       ]
     },
-    "VolcanoLabelKind": {
-      "type": "string",
-      "enum": [
-        "exact",
-        "nudge"
-      ]
-    },
-    "VolcanoLabelSpec": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/VolcanoLabelKind"
-        },
-        {
-          "description": "箭头标签的偏移量，缺省给一个朝右上方的默认值。",
-          "type": "object",
-          "properties": {
-            "offset_x": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "format": "double"
-            },
-            "offset_y": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "format": "double"
-            }
-          }
-        }
-      ]
-    },
     "VolcanoPointSpec": {
       "type": "object",
       "properties": {
@@ -13318,10 +14285,10 @@
           "format": "double"
         },
         "label_style": {
-          "description": "标签避让方式：`\"nudge\"`（默认）/ `\"exact\"` / `{\"offset_x\":…, \"offset_y\":…}`。",
+          "description": "标签避让方式：`\"nudge\"`（默认）/ `\"exact\"` / `\"repel\"` / `{\"offset_x\":…, \"offset_y\":…}`。",
           "anyOf": [
             {
-              "$ref": "#/$defs/VolcanoLabelSpec"
+              "$ref": "#/$defs/LabelStyleSpec"
             },
             {
               "type": "null"

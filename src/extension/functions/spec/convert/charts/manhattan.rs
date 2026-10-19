@@ -3,7 +3,7 @@
 use kuva::plot::manhattan::GenomeBuild;
 use kuva::prelude::*;
 
-use crate::extension::functions::spec::convert::enums::volcano_label_style;
+use crate::extension::functions::spec::convert::enums::label_style;
 use crate::extension::functions::spec::schema::*;
 
 pub(super) fn build_manhattan(s: ManhattanSeries) -> Result<Plot, String> {
@@ -90,7 +90,7 @@ pub(super) fn build_manhattan(s: ManhattanSeries) -> Result<Plot, String> {
         plot = plot.with_label_top(v);
     }
     if let Some(style) = &s.label_style {
-        plot = plot.with_label_style(volcano_label_style(style));
+        plot = plot.with_label_style(label_style(style));
     }
     if let Some(v) = s.pvalue_floor {
         plot = plot.with_pvalue_floor(v);
@@ -138,6 +138,17 @@ mod tests {
         assert_renders(&render_svg(MANHATTAN), "MANHATTAN");
     }
 
+    /// 力导向标签（0.6）：`label_style: "repel"`，与 volcano 共用同一套摆放方式。
+    #[test]
+    fn renders_manhattan_with_repel_labels() {
+        let svg = render_svg(
+            r##"{"series":[{"type":"manhattan","label_top":1,"label_style":"repel",
+                "points":[{"chromosome":"1","position":10,"pvalue":1e-9},
+                          {"chromosome":"2","position":20,"pvalue":1e-3}]}]}"##,
+        );
+        assert_renders(&svg, "MANHATTAN_REPEL");
+    }
+
     /// 不给 `build`：这时 x 有两种走法 —— 给了 `position` 就用它，都不给就按染色体序号排。
     const MANHATTAN_NO_BUILD: &str = r##"{
       "series": [{
@@ -176,6 +187,9 @@ mod tests {
             r#"{"series":[{"type":"manhattan","points":[{"chromosome":"1","pvalue":0.1}],"build":"hg38"}]}"#,
         )
         .unwrap_err();
-        assert!(err.contains("needs a `position`"), "unexpected message: {err}");
+        assert!(
+            err.contains("needs a `position`"),
+            "unexpected message: {err}"
+        );
     }
 }

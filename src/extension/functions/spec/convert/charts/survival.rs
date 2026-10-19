@@ -25,7 +25,12 @@ pub(super) fn build_survival(s: SurvivalSeries) -> Result<Plot, String> {
     let mut plot = SurvivalPlot::new();
     for g in &s.groups {
         plot = match &g.color {
-            Some(c) => plot.with_colored_group(g.label.clone(), g.times.clone(), g.events.clone(), c.clone()),
+            Some(c) => plot.with_colored_group(
+                g.label.clone(),
+                g.times.clone(),
+                g.events.clone(),
+                c.clone(),
+            ),
             None => plot.with_group(g.label.clone(), g.times.clone(), g.events.clone()),
         };
     }
@@ -50,6 +55,15 @@ pub(super) fn build_survival(s: SurvivalSeries) -> Result<Plot, String> {
     if let Some(v) = &s.pvalue_text {
         plot = plot.with_pvalue_text(v.clone());
     }
+    if let Some(v) = s.risk_table {
+        plot = plot.with_risk_table(v);
+    }
+    if let Some(v) = s.median_lines {
+        plot = plot.with_median_lines(v);
+    }
+    if let Some(v) = s.logrank_pvalue {
+        plot = plot.with_logrank_pvalue(v);
+    }
     if let Some(v) = &s.common.color {
         plot = plot.with_color(v.clone());
     }
@@ -61,7 +75,9 @@ pub(super) fn build_survival(s: SurvivalSeries) -> Result<Plot, String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::extension::functions::spec::test_support::{assert_renders, render_json, render_svg};
+    use crate::extension::functions::spec::test_support::{
+        assert_renders, render_json, render_svg,
+    };
 
     const SURVIVAL: &str = r##"{
       "series": [{
@@ -94,6 +110,32 @@ mod tests {
         assert!(
             err.contains("3 times but 1 events"),
             "unexpected message: {err}"
+        );
+    }
+
+    /// survminer 风格的三件套（0.6）：number-at-risk 表、中位生存虚线、自动算的 log-rank p 值。
+    const SURVIVAL_CLINICAL: &str = r##"{
+      "title": "Kaplan-Meier",
+      "series": [{
+        "type": "survival",
+        "groups": [
+          {"label": "drug", "times": [1, 3, 4, 6, 8, 10, 12, 14], "events": [true, false, true, true, false, true, true, false]},
+          {"label": "control", "times": [2, 2, 5, 7, 9, 11, 13, 15], "events": [true, true, false, true, true, false, true, true]}
+        ],
+        "risk_table": true,
+        "median_lines": true,
+        "logrank_pvalue": true
+      }]
+    }"##;
+
+    #[test]
+    fn renders_survival_clinical_figure() {
+        let svg = render_svg(SURVIVAL_CLINICAL);
+        assert_renders(&svg, "SURVIVAL_CLINICAL");
+        // log-rank 的 p 值会以 `p = …` 的形式标注出来。
+        assert!(
+            svg.contains("p ="),
+            "the log-rank p-value annotation is missing"
         );
     }
 }

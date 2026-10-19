@@ -50,6 +50,9 @@ pub(super) fn build_strip(s: StripSeries) -> Result<Plot, String> {
     if let Some(v) = s.marker_stroke_width {
         plot = plot.with_marker_stroke_width(v);
     }
+    if let Some(v) = s.horizontal {
+        plot = plot.with_horizontal(v);
+    }
     apply_common(
         &mut plot.color,
         &mut plot.legend_label,
@@ -83,5 +86,18 @@ mod tests {
     #[test]
     fn renders_strip() {
         assert_renders(&render_svg(STRIP), "STRIP");
+    }
+
+    /// 横向摆放（0.6）：类别在 Y 轴、数值在 X 轴。
+    #[test]
+    fn renders_horizontal_strip() {
+        let svg = render_svg(
+            r##"{"x_axis":{"name":"value"},"y_axis":{"name":"group"},
+                "series":[{"type":"strip","groups":[
+                  {"label":"a","values":[1,2,2,3,4]},
+                  {"label":"b","values":[2,3,4,5]}],
+                  "style":"swarm","horizontal":true}]}"##,
+        );
+        assert_renders(&svg, "STRIP_HORIZONTAL");
     }
 }

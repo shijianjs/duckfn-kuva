@@ -86,6 +86,22 @@ pub(super) fn to_palette(p: &PaletteSpec) -> Palette {
             PaletteKind::Category10 => Palette::category10(),
             PaletteKind::Pastel => Palette::pastel(),
             PaletteKind::Bold => Palette::bold(),
+            // LTC（kuva 0.6 起）
+            PaletteKind::Paloma => Palette::paloma(),
+            PaletteKind::Maya => Palette::maya(),
+            PaletteKind::Dora => Palette::dora(),
+            PaletteKind::Ploen => Palette::ploen(),
+            PaletteKind::Olga => Palette::olga(),
+            PaletteKind::MTerese => Palette::mterese(),
+            PaletteKind::Franscoise => Palette::franscoise(),
+            PaletteKind::Fernande => Palette::fernande(),
+            PaletteKind::Sylvie => Palette::sylvie(),
+            PaletteKind::Expevo => Palette::expevo(),
+            PaletteKind::Minou => Palette::minou(),
+            PaletteKind::Alger => Palette::alger(),
+            PaletteKind::Seafarer => Palette::seafarer(),
+            PaletteKind::Luminaries => Palette::luminaries(),
+            PaletteKind::CasaNatal => Palette::casa_natal(),
         },
     }
 }
@@ -98,6 +114,10 @@ pub(super) fn marker_shape(m: &MarkerSpec) -> MarkerShape {
         MarkerSpec::Diamond => MarkerShape::Diamond,
         MarkerSpec::Cross => MarkerShape::Cross,
         MarkerSpec::Plus => MarkerShape::Plus,
+        MarkerSpec::TriangleDown => MarkerShape::TriangleDown,
+        MarkerSpec::Star => MarkerShape::Star,
+        MarkerSpec::Pentagon => MarkerShape::Pentagon,
+        MarkerSpec::Hexagon => MarkerShape::Hexagon,
     }
 }
 
@@ -221,12 +241,19 @@ pub(super) fn strip_style(s: &StripStyleSpec) -> StripStyle {
     }
 }
 
-/// 火山图标签的避让方式。箭头标签没给偏移时用「右上方 24×18」这一组默认值。
-pub(super) fn volcano_label_style(s: &VolcanoLabelSpec) -> VolcanoLabelStyle {
+/// 点标签的摆放方式。箭头标签没给偏移时用「右上方 24×18」这一组默认值。
+///
+/// kuva 把这个类型放在 `plot::volcano` 下，但 0.6 起 scatter / manhattan 也用它（三者共用一条
+/// 渲染路径），所以 prelude 里以 `VolcanoLabelStyle` 的名字导出。
+///
+/// kuva keeps this type under `plot::volcano`, but since 0.6 scatter and manhattan use it too (one
+/// shared rendering path), so the prelude exports it as `VolcanoLabelStyle`.
+pub(super) fn label_style(s: &LabelStyleSpec) -> VolcanoLabelStyle {
     match s {
-        VolcanoLabelSpec::Named(VolcanoLabelKind::Exact) => VolcanoLabelStyle::Exact,
-        VolcanoLabelSpec::Named(VolcanoLabelKind::Nudge) => VolcanoLabelStyle::Nudge,
-        VolcanoLabelSpec::Arrow { offset_x, offset_y } => VolcanoLabelStyle::Arrow {
+        LabelStyleSpec::Named(LabelStyleKind::Exact) => VolcanoLabelStyle::Exact,
+        LabelStyleSpec::Named(LabelStyleKind::Nudge) => VolcanoLabelStyle::Nudge,
+        LabelStyleSpec::Named(LabelStyleKind::Repel) => VolcanoLabelStyle::Repel,
+        LabelStyleSpec::Arrow { offset_x, offset_y } => VolcanoLabelStyle::Arrow {
             offset_x: offset_x.unwrap_or(24.0),
             offset_y: offset_y.unwrap_or(18.0),
         },

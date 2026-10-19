@@ -6,6 +6,7 @@
 // into a subdirectory the way the duckfn example does (`functions/<feature>/mod.rs` plus one file per
 // concern).
 mod kuva_render;
+mod kuva_version;
 // 落盘那条路整个是原生专用的（wasm 没有本地文件系统），所以在**模块声明处**一次 cfg 掉，不在文件里每个
 // 函数头顶挂一个。函数与它的实现（`spec/file.rs`）因此都不进 wasm 产物。
 //

@@ -18,11 +18,14 @@ description: duckfn_kuva 给 DuckDB 加了什么，以及怎么开始用。
 | [`kuva_render(json)`](./functions.md#kuva_render) | 标量 | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
 | [`kuva_render_terminal(json)`](./functions.md#kuva_render_terminal) | 标量 | 把同一段 JSON 渲染成终端文本（盲文点阵 + ANSI 色）。 |
 | [`kuva_render_file(json)`](./functions.md#kuva_render_file) | 标量 | 把同一段 JSON 写成 SVG 文件并返回路径；仅原生构建。 |
+| [`kuva_version()`](./functions.md#kuva_version) | 标量 | 本扩展编译时链接的 kuva 版本。 |
 
 `kuva_render` 包装了 [kuva](https://crates.io/crates/kuva) —— 一个纯 Rust 的统计绘图库：你用 JSON 描述
 一张图（**64 种图型**任选 —— 散点、直方图，到小提琴图、桑基图、K 线图、热力图，也可以把几种叠在一起），
-函数返回一份完整的 SVG。绘图发生在扩展内部，所以同一张图在 DuckDB 能跑的任何地方都长一样 —— CLI、
-Python / R 会话、JVM 宿主，或浏览器里的 DuckDB-Wasm —— 宿主机上不需要 matplotlib / ggplot2。
+函数返回一份完整的 SVG。另外还有两种**组合图**（基因组浏览器式的覆盖度图与群体等位基因频率图），它们不是
+图型而是独立的顶层入口，用 `composite` 对象描述，见[组合图](./reference/composites.md)。绘图发生在扩展
+内部，所以同一张图在 DuckDB 能跑的任何地方都长一样 —— CLI、Python / R 会话、JVM 宿主，或浏览器里的
+DuckDB-Wasm —— 宿主机上不需要 matplotlib / ggplot2。
 
 ## 装上它
 

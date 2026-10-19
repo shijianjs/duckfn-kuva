@@ -19,10 +19,14 @@ It adds three functions:
 | [`kuva_render(json)`](./functions.md#kuva_render) | scalar | Renders a chart described by a JSON string and returns it as an SVG document. |
 | [`kuva_render_terminal(json)`](./functions.md#kuva_render_terminal) | scalar | Renders the same JSON as terminal text (braille dots and ANSI colour). |
 | [`kuva_render_file(json)`](./functions.md#kuva_render_file) | scalar | Renders the same JSON to an SVG file and returns its path. Native builds only. |
+| [`kuva_version()`](./functions.md#kuva_version) | scalar | The kuva version the extension was compiled against. |
 
 `kuva_render` wraps [kuva](https://crates.io/crates/kuva), a pure-Rust statistical plotting library: you
 describe one figure — any of **64 chart types**, from a scatter or histogram to a violin, sankey,
 candlestick or heatmap, or several of them combined — as JSON, and the function returns a complete SVG.
+Two further charts are **composites** rather than plot types (a genome-browser coverage figure and a
+population allele-frequency figure); they use a top-level `composite` object, see
+[Composites](./reference/composites.md).
 The drawing happens inside the extension, so a chart comes out the same wherever DuckDB runs — the CLI, a
 Python or R session, a JVM host, or DuckDB-Wasm in the browser — with no matplotlib or ggplot2 on the
 host.

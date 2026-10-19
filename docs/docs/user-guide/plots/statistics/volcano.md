@@ -33,13 +33,14 @@ Two thresholds do all the classification: `fc_cutoff` (default `1`, i.e. a two-f
 ## Gene labels
 
 `label_top` labels the *n* most significant points, which is how the handful of genes worth naming get
-named without labelling 20 000 of them. Three placement styles are available:
+named without labelling 20 000 of them. Four placement styles are available:
 
 | `label_style` | Placement |
 | --- | --- |
 | `"nudge"` | Labels sorted by x and nudged vertically to reduce stacking **(default)** |
 | `"exact"` | At the point, with no adjustment — for sparse data or post-processing |
 | `{"offset_x": 14, "offset_y": 16}` | Offset by pixels, with a short leader line back to the point |
+| `"repel"` | Force-directed (ggrepel / adjustText style): labels pushed off each other and off the points, with thin leader lines |
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -176,7 +177,7 @@ FROM (
 | `color_up` / `color_down` / `color_ns` | string | The three classifications' colours. |
 | `point_size` | number | Circle radius in pixels (default `3`). |
 | `label_top` | integer | Label the *n* most significant points (`0` = none, the default). |
-| `label_style` | string \| object | `"nudge"` (default) · `"exact"` · `{offset_x, offset_y}`. |
+| `label_style` | string \| object | `"nudge"` (default) · `"exact"` · `"repel"` · `{offset_x, offset_y}`. |
 | `pvalue_floor` | number | Explicit p-value floor for the `−log10` transform. |
 | `legend` | string | Any non-empty value turns the up / down / NS legend on. |
 

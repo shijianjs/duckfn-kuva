@@ -1,5 +1,5 @@
 # name: test/sql/duckfn_kuva.test
-# description: Smoke test: the extension loads, and its three functions (kuva_render / kuva_render_terminal / kuva_render_file) turn a JSON spec into an SVG document, terminal text, or a file path
+# description: Smoke test: the extension loads, and its four functions (kuva_render / kuva_render_terminal / kuva_render_file / kuva_version) turn a JSON spec into an SVG document, terminal text, or a file path, and report the kuva version
 # group: [duckfn_kuva]
 
 # Before the extension is loaded none of the functions exist.
@@ -18,6 +18,11 @@ SELECT kuva_render_file('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}'
 ----
 does not exist
 
+statement error
+SELECT kuva_version();
+----
+does not exist
+
 require duckfn_kuva
 
 # The smallest useful spec: the result is an SVG document, start to finish.
@@ -25,6 +30,13 @@ query I
 SELECT left(kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}'), 4);
 ----
 <svg
+
+# The extension reports the kuva version it was compiled against (a semver triple). Asserting the
+# shape rather than the number keeps this test valid across dependency bumps.
+query I
+SELECT regexp_matches(kuva_version(), '^[0-9]+\.[0-9]+\.[0-9]+');
+----
+true
 
 query I
 SELECT right(kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":3,"y":4}]}]}'), 6);
@@ -158,6 +170,38 @@ SELECT length(kuva_render('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"t
 ----
 true
 
+# Composites (kuva 0.6): `composite` is a second top-level entry, mutually exclusive with `series`.
+# A coverage figure stacks one depth track per sample on a shared genomic x-axis.
+query I
+SELECT length(kuva_render('{"composite":{"type":"coverage","locus":[1000,1600],
+  "samples":[{"name":"tumour","depth":[[1000,12],[1300,48],[1600,9]]},
+             {"name":"normal","depth":[[1000,8],[1300,31],[1600,11]]}],
+  "variants":[{"label":"SNV","positions":[1150]}],
+  "features":[{"start":1050,"end":1250,"label":"amplicon_1"}],
+  "coverage_thresholds":[{"depth":20}]}}')) > 500;
+----
+true
+
+# A brick-pop composite: bricks + allele frequency + a metric heat column.
+query I
+SELECT length(kuva_render('{"composite":{"type":"brick_pop",
+  "names":["h1","h2"],"strigars":[["CAG:A","8A"],["CAG:A","7A1B"]],
+  "frequencies":[0.6,0.4],"metrics":[{"label":"depth","values":[120,null]}]}}')) > 500;
+----
+true
+
+statement error
+SELECT kuva_render('{"composite":{"type":"coverage","samples":[]}}');
+----
+`samples` must not be empty
+
+# A composite owns the whole figure, so mixing it with `series` is rejected rather than silently
+# dropping one of them.
+statement error
+SELECT kuva_render('{"composite":{"type":"coverage","samples":[{"name":"a","depth":[[0,1]]}]},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
+----
+mutually exclusive
+
 # Malformed JSON fails the query instead of returning NULL.
 statement error
 SELECT kuva_render('{oops');
@@ -212,6 +256,34 @@ statement error
 SELECT kuva_render('{"series":[{"type":"brick","sequences":["ACGX"]}]}');
 ----
 color template does not cover
+
+# kuva 0.6 rejects the pre-0.6 STRIGAR format (`|` segments, `@` gaps) instead of rendering a
+# plausible-looking but wrong row. The extension turns that into an error that says how to fix it.
+statement error
+SELECT kuva_render('{"series":[{"type":"brick","names":["r1"],"strigars":[["CAG:A","10A | 2A"]]}]}');
+----
+pre-0.6 format
+
+# Options added for kuva 0.6, one chart each: marker shapes + LOESS + repel labels, histogram modes,
+# horizontal strip, the survival clinical set, CIGAR bars, and an LTC palette.
+query I
+SELECT bool_and(length(svg) > 500)
+FROM (VALUES
+  (kuva_render('{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3},{"x":3,"y":2.6}],
+      "marker":"star","labels":["a","b","c"],"label_style":"repel","trend":{"type":"loess","span":0.75}}]}')),
+  (kuva_render('{"series":[{"type":"histogram","values":[1,2,2,3,3,4],"bin_method":"fd","step":true,"cumulative":true}]}')),
+  (kuva_render('{"series":[{"type":"histogram","values":[1,2,3],"bins":3,"groups":[{"data":[2,3,4],"color":"tomato"}],"stacked":true}]}')),
+  (kuva_render('{"series":[{"type":"strip","groups":[{"label":"a","values":[1,2,3]}],"horizontal":true}]}')),
+  (kuva_render('{"series":[{"type":"survival","risk_table":true,"median_lines":true,"logrank_pvalue":true,
+      "groups":[{"label":"a","times":[1,2,3,4],"events":[true,false,true,true]},
+                {"label":"b","times":[2,3,5,6],"events":[true,true,false,true]}]}]}')),
+  (kuva_render('{"series":[{"type":"brick","names":["r1","r2"],"strigars":[["CAG:A","8A"],["CAG:A","8A"]],
+      "cigars":["20M4I","20M4I"],"sort":"cigar","marker_lines":[{"value":6,"label":"primer"}]}]}')),
+  (kuva_render('{"palette":"maya","series":[{"type":"bar","categories":["a","b"],"values":[1,2]}]}')),
+  (kuva_render('{"font":{"tick_family":"monospace"},"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}'))
+) t(svg);
+----
+true
 
 # The right-hand axis needs `secondary_series` to exist; its range is then inferred from that series'
 # data, so `y2_axis` only has to carry a `name` for the axis to be drawn.

@@ -2,7 +2,7 @@
 
 use kuva::prelude::*;
 
-use crate::extension::functions::spec::convert::enums::volcano_label_style;
+use crate::extension::functions::spec::convert::enums::label_style;
 use crate::extension::functions::spec::schema::*;
 
 pub(super) fn build_volcano(s: VolcanoSeries) -> Result<Plot, String> {
@@ -39,7 +39,7 @@ pub(super) fn build_volcano(s: VolcanoSeries) -> Result<Plot, String> {
         plot = plot.with_label_top(v);
     }
     if let Some(style) = &s.label_style {
-        plot = plot.with_label_style(volcano_label_style(style));
+        plot = plot.with_label_style(label_style(style));
     }
     if let Some(v) = s.pvalue_floor {
         plot = plot.with_pvalue_floor(v);
@@ -88,5 +88,18 @@ mod tests {
     #[test]
     fn renders_volcano() {
         assert_renders(&render_svg(VOLCANO), "VOLCANO");
+    }
+
+    /// 力导向标签（0.6）：`label_style: "repel"`。
+    #[test]
+    fn renders_volcano_with_repel_labels() {
+        let svg = render_svg(
+            r##"{"series":[{"type":"volcano","label_top":2,"label_style":"repel",
+                "points":[{"name":"G1","log2fc":3.2,"pvalue":1e-9},
+                          {"name":"G2","log2fc":-2.8,"pvalue":1e-6},
+                          {"name":"G3","log2fc":0.1,"pvalue":0.4}]}]}"##,
+        );
+        assert_renders(&svg, "VOLCANO_REPEL");
+        assert!(svg.contains("G1"), "the top label is missing");
     }
 }

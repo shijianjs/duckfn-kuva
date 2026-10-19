@@ -94,6 +94,37 @@ FROM (
 );
 ```
 
+## 横向摆放
+
+`horizontal` 把两根轴对调：类别在 y 轴、数值在 x 轴（seaborn `orient='h'`、ggplot2 `coord_flip`）。
+抖动与蜂群在每一行内**纵向**散开。它补齐了横向的那一组，和[箱线图](./box.md)、[小提琴图](./violin.md)
+一起可以整套翻转。
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Horizontal strip plot',
+  'x_axis': {'name': 'expression'},
+  'y_axis': {'name': 'group'},
+  'series': [{
+    'type': 'strip',
+    'groups': groups,
+    'style': 'swarm',
+    'point_size': 3,
+    'marker_opacity': 0.6,
+    'horizontal': true,
+    'color': 'steelblue'
+  }]
+})) AS chart
+FROM (
+  SELECT list({'label': g, 'values': vals} ORDER BY g) AS groups
+  FROM (
+    SELECT "group" AS g, list(expression) AS vals
+    FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+    GROUP BY "group"
+  )
+);
+```
+
 ## 和箱线图叠在一起
 
 把 `strip` 与 `box` 两个 series 放进同一个 `series` 列表，它们共用坐标轴，点会画在概括之上。点记得留半透明，
@@ -221,6 +252,7 @@ FROM (
 | `seed` | integer | 抖动位置的随机种子（默认 `42`）—— 保证输出可复现。 |
 | `marker_opacity` | number | 填充 alpha：`0` 空心，`1` 实心。 |
 | `marker_stroke_width` | number | 描边线宽，颜色取填充色。 |
+| `horizontal` | boolean | 类别在 y 轴、数值在 x 轴；抖动 / 蜂群纵向散开。 |
 
 `color` 与 `legend` 见 [series 与通用字段](../../reference/series.md)。
 

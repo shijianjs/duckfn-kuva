@@ -8,6 +8,7 @@
 //! 子模块：`charts`（各图型的 build）、`layout`（画布外观）、`enums`（字符串/枚举/值的翻译）。
 
 mod charts;
+mod composite;
 mod enums;
 mod layout;
 
@@ -19,12 +20,27 @@ use kuva::render::render::Scene;
 use super::schema::*;
 use layout::build_layout;
 
-/// 顶层入口：有 `figure` 就走多面板，否则单图。
+/// 顶层入口：`composite` 走组合图；否则有 `figure` 走多面板，没有就是单图。
 ///
 /// 返回的是 **Scene**（与后端无关的一棵绘制指令树），由调用方决定用什么后端落成字符串：
 /// SVG 走 `SvgBackend`，终端走 `TerminalBackend`。
 pub(crate) fn render(spec: RenderSpec) -> Result<Scene, String> {
-    let RenderSpec { panel, figure, .. } = spec;
+    let RenderSpec { panel, figure, composite, .. } = spec;
+    if let Some(c) = composite {
+        if figure.is_some() {
+            return Err(
+                "`composite` and `figure` are mutually exclusive — a composite lays out its own canvas"
+                    .into(),
+            );
+        }
+        if !panel.series.is_empty() || !panel.secondary_series.is_empty() {
+            return Err(
+                "`composite` and `series` are mutually exclusive — a composite is the whole figure"
+                    .into(),
+            );
+        }
+        return composite::render(c);
+    }
     match figure {
         Some(fig) => render_figure(fig),
         None => render_single(panel),

@@ -14,6 +14,13 @@ pub(crate) struct RenderSpec {
     pub panel: PanelSpec,
     /// 多面板网格（Figure）。给了它，顶层 `panel.series` 被忽略。
     pub figure: Option<FigureSpec>,
+    /// 组合图（kuva 的 `CoveragePlot` / `BrickPopPlot`）。给了它就**只**画它 —— 与 `series` /
+    /// `figure` 互斥，且自带画布尺寸（见 `composite` 模块的说明）。
+    ///
+    /// A composite (`CoveragePlot` / `BrickPopPlot`). When present it is the **only** thing drawn — it
+    /// is mutually exclusive with `series` / `figure` and carries its own canvas size (see the
+    /// `composite` module).
+    pub composite: Option<super::CompositeSpec>,
     /// 终端渲染的选项（只有 `kuva_render_terminal` 看它）。
     ///
     /// 放在 JSON 里而不是函数签名上：这样再往里加东西 —— 是否打印、要不要上色 —— 都不用动签名。

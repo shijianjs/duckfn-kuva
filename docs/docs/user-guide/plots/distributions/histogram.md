@@ -110,6 +110,143 @@ SELECT kuva_render(to_json({
 FROM (SELECT g, list(expression) AS vals FROM d GROUP BY g);
 ```
 
+## Step (outline) mode
+
+`step` draws each histogram as an outline-only staircase instead of filled bars. This is the cleanest way
+to overlay several distributions: the outlines never occlude each other, so semi-transparent fills are not
+needed.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (
+  SELECT "group" AS g, expression
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+  WHERE "group" IN ('Control', 'Drug_B')
+)
+SELECT kuva_render(to_json({
+  'title': 'Step histograms',
+  'x_axis': {'name': 'expression'},
+  'y_axis': {'name': 'count'},
+  'legend': {'position': 'outside_right_top'},
+  'series': list({
+    'type': 'histogram',
+    'values': vals,
+    'bins': 24,
+    'range': [(SELECT min(expression) FROM d), (SELECT max(expression) FROM d)],
+    'color': CASE g WHEN 'Control' THEN '#4682b4' ELSE '#dc143c' END,
+    'step': true,
+    'legend': g
+  } ORDER BY g)
+})) AS chart
+FROM (SELECT g, list(expression) AS vals FROM d GROUP BY g);
+```
+
+## Cumulative mode
+
+`cumulative` accumulates counts left-to-right, so each bar includes everything to its left and the final
+bar equals the total sample count. Combine it with `normalize` for an empirical-CDF-style view.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Cumulative histogram',
+  'x_axis': {'name': 'length (bp)', 'tick_format': 'integer'},
+  'y_axis': {'name': 'cumulative count'},
+  'series': [{
+    'type': 'histogram',
+    'values': list(value),
+    'bins': 40,
+    'color': 'steelblue',
+    'cumulative': true
+  }]
+})) AS chart
+FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
+```
+
+## Stacked groups
+
+`groups` adds extra series, and `stacked` sums them per bin, each group drawn on top of the one below.
+The primary series (from `values`) is the bottom layer. Without `stacked`, groups draw from a shared
+baseline (overlaid) instead.
+
+Every group carries its own `data`, `color` and optional `label`. A group without a colour takes the next
+entry of the default palette.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (
+  SELECT "group" AS grp, expression
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+  WHERE "group" IN ('Control', 'Drug_A', 'Drug_B')
+),
+agg AS (SELECT grp, list(expression) AS vals FROM d GROUP BY grp)
+SELECT kuva_render(to_json({
+  'title': 'Stacked groups',
+  'x_axis': {'name': 'expression'},
+  'y_axis': {'name': 'count'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'histogram',
+    'values': (SELECT vals FROM agg WHERE grp = 'Control'),
+    'bins': 24,
+    'range': [(SELECT min(expression) FROM d), (SELECT max(expression) FROM d)],
+    'color': '#4e79a7',
+    'legend': 'Control',
+    'stacked': true,
+    'groups': (SELECT list({
+      'data': vals,
+      'color': CASE grp WHEN 'Drug_A' THEN '#f28e2b' ELSE '#59a14f' END,
+      'label': grp
+    } ORDER BY grp) FROM agg WHERE grp <> 'Control')
+  }]
+})) AS chart;
+```
+
+## Automatic bin count
+
+`bin_method` picks the bin count from the data, **overriding** `bins`. Three rules are available:
+
+| Rule | Bin width / count | Best for |
+| --- | --- | --- |
+| `"sturges"` | `ceil(log2(n)) + 1` bins | Small, roughly Gaussian samples |
+| `"scott"` | width `3.49·sd·n^(-1/3)` | Smooth data |
+| `"freedman_diaconis"` (alias `"fd"`) | width `2·IQR·n^(-1/3)` | Data with outliers (robust) |
+
+Scott and Freedman–Diaconis fall back to Sturges on degenerate data (zero variance or IQR).
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Freedman–Diaconis bins',
+  'x_axis': {'name': 'length (bp)', 'tick_format': 'integer'},
+  'y_axis': {'name': 'reads'},
+  'series': [{
+    'type': 'histogram',
+    'values': list(value),
+    'bin_method': 'fd',
+    'color': 'steelblue'
+  }]
+})) AS chart
+FROM read_csv_auto('{{DFK_BASE_URL}}data/histogram.tsv');
+```
+
+## Weighted samples
+
+`weights` gives each sample a weight, so it contributes its weight to its bin instead of `1`. The list
+must have **exactly one entry per value** — a mismatch is an error rather than a silent fallback to plain
+counts. Weights apply to the primary series only; groups are always unweighted.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Weighted histogram',
+  'x_axis': {'name': 'expression'},
+  'y_axis': {'name': 'weighted count'},
+  'series': [{
+    'type': 'histogram',
+    'values': [1, 2, 2, 3, 3, 3, 4, 4, 5, 6],
+    'weights': [1, 1, 2, 1, 1, 3, 1, 1, 1, 2],
+    'bins': 5,
+    'color': 'steelblue'
+  }]
+})) AS chart;
+```
+
 ## KDE overlay
 
 `kde` draws a kernel density estimate over the bars — the smooth version of the same distribution, on the
@@ -161,6 +298,12 @@ SELECT kuva_render(to_json({
 | `kde_color` | string | The KDE curve's colour. |
 | `kde_bandwidth` | number | KDE bandwidth; defaults to Silverman's rule. |
 | `kde_samples` | integer | How many points the KDE curve is sampled at. |
+| `step` | boolean | Draw outline-only staircases instead of filled bars. |
+| `cumulative` | boolean | Accumulate counts left-to-right. |
+| `bin_method` | string | `"sturges"` · `"scott"` · `"freedman_diaconis"` (alias `"fd"`); overrides `bins`. |
+| `weights` | number[] | One weight per value; the primary series only. |
+| `groups` | object[] | Extra series, each `{data, color?, label?}`, drawn over (or stacked on) the primary one. |
+| `stacked` | boolean | Sum `groups` per bin instead of overlaying them from a shared baseline. |
 
 `color`, `legend`, `tooltips` and `tooltip_labels` come from
 [series & shared fields](../../reference/series.md).
@@ -173,6 +316,11 @@ SELECT kuva_render(to_json({
 - `range` is optional here — the extension computes it from `values` when you leave it out. Pin it when
   you want two histograms to share bin edges.
 - Overlay several histograms in one figure by listing more than one series — they share the axes.
+- `weights` and `bin_method` only make sense on the raw-`values` path: combining either with
+  `edges` + `counts` is an error, because the bins are already fixed.
+- `weights` must be exactly as long as `values`; kuva itself would silently fall back to plain counts,
+  which hides a misaligned join — the extension reports it instead.
+- `bin_method` wins over `bins` when both are given.
 
 ## See also
 

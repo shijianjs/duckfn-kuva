@@ -90,8 +90,8 @@ Pass it as `band` on a `scatter` or `line` series. Both lists must be the same l
 
 ## Trend lines
 
-Set `trend` on a `scatter` series. The short form fits an ordinary-least-squares line; the object form
-also styles it and prints the fit statistics:
+Set `trend` on a `scatter` series. The short form fits an ordinary-least-squares line (`"linear"`) or a
+LOESS smoother (`"loess"`); the object form also styles it and prints the fit statistics:
 
 ```json
 { "type": "linear", "color": "crimson", "width": 2, "equation": true, "correlation": true }
@@ -99,11 +99,12 @@ also styles it and prints the fit statistics:
 
 | Field | Type | What it sets |
 | --- | --- | --- |
-| `type` | `"linear"` | The fit. `linear` is the only kind. |
+| `type` | `"linear"` \| `"loess"` | The fit: a least-squares line, or a locally-weighted regression smoother. |
+| `span` | number | LOESS bandwidth (fraction of points per local fit, `0.05`–`1`, default `0.5`). |
 | `color` | string | Line colour (default `"black"`). |
 | `width` | number | Line stroke width. |
-| `equation` | boolean | Print the regression equation `y = mx + b` on the plot. |
-| `correlation` | boolean | Print the Pearson R² on the plot. |
+| `equation` | boolean | Print the regression equation `y = mx + b` on the plot (linear only). |
+| `correlation` | boolean | Print the Pearson R² on the plot (linear only). |
 
 For a cleaner result on a dense cloud, leave these off and put the numbers in a
 [stats box](./stats-box.md) instead.

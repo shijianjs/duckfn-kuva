@@ -21,3 +21,4 @@ test/sql/*.*
 # 试跑时落在仓库根目录的产物
 /*.html
 /.workbuddy
+/.workbuddy-ai

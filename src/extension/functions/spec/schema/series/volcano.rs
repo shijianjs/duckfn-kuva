@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 
-use super::common::CommonStyle;
+use super::common::{CommonStyle, LabelStyleSpec};
 
 /// 火山图：x 是 log2 倍数变化，y 是 -log10(p 值)。
 #[derive(Debug, Deserialize)]
@@ -25,8 +25,8 @@ pub(crate) struct VolcanoSeries {
     pub point_size: Option<f64>,
     /// 标出最显著的多少个点（`0` = 全不标）。
     pub label_top: Option<usize>,
-    /// 标签避让方式：`"nudge"`（默认）/ `"exact"` / `{"offset_x":…, "offset_y":…}`。
-    pub label_style: Option<VolcanoLabelSpec>,
+    /// 标签避让方式：`"nudge"`（默认）/ `"exact"` / `"repel"` / `{"offset_x":…, "offset_y":…}`。
+    pub label_style: Option<LabelStyleSpec>,
     /// p 值的下限（避免 `log10(0)`）。缺省取数据里最小的非零 p 值。
     pub pvalue_floor: Option<f64>,
 }
@@ -40,24 +40,4 @@ pub(crate) struct VolcanoPointSpec {
     pub log2fc: f64,
     /// 原始 p 值（不是 -log10 之后的结果）。
     pub pvalue: f64,
-}
-
-#[derive(Debug, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(untagged)]
-pub(crate) enum VolcanoLabelSpec {
-    Named(VolcanoLabelKind),
-    /// 箭头标签的偏移量，缺省给一个朝右上方的默认值。
-    Arrow {
-        offset_x: Option<f64>,
-        offset_y: Option<f64>,
-    },
-}
-
-#[derive(Debug, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum VolcanoLabelKind {
-    Exact,
-    Nudge,
 }

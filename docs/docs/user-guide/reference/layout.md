@@ -45,10 +45,32 @@ Sizes for every piece of text, in one place. A `theme` can set the family too.
 | Field | Type | What it sets |
 | --- | --- | --- |
 | `family` | string | Font family for all text. |
+| `tick_family` | string | Font family for **tick labels only**, leaving titles, axis labels and legends in `family`. |
 | `title_size` | integer | Title size (overridden by `title.size`). |
 | `label_size` | integer | Axis-label size. |
 | `tick_size` | integer | Tick-label size. |
 | `body_size` | integer | Body text (legends, annotations). |
+
+`tick_family` is for sequence-context category labels, genomic coordinates, or any axis where a
+**monospace** face keeps the digits in a column (`"monospace"`, `"DejaVu Sans Mono"`, `"Consolas"`, …).
+Width reservation follows the face: a monospace tick label is measured against kuva's monospace metrics, so
+a decimal axis is not clipped the way sans-measured margins would clip it. Tick labels are wrapped in a
+`<g font-family>` group, so output without the option is unchanged.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Monospace ticks',
+  'font': {'tick_family': 'monospace'},
+  'x_axis': {'name': 'position', 'tick_format': 'integer'},
+  'y_axis': {'name': 'depth'},
+  'series': [{
+    'type': 'line',
+    'color': 'steelblue',
+    'data': [{'x': 1000000, 'y': 12}, {'x': 1000250, 'y': 48},
+             {'x': 1000500, 'y': 31}, {'x': 1000750, 'y': 9}]
+  }]
+})) AS chart;
+```
 
 ## Axes
 

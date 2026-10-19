@@ -81,7 +81,7 @@ impl PointSpec {
     }
 }
 
-/// 趋势线：`"linear"`，或带样式/统计量的对象。
+/// 趋势线：`"linear"` / `"loess"`，或带样式/统计量的对象。
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
@@ -94,7 +94,14 @@ pub(crate) enum TrendSpec {
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum TrendKind {
+    /// 最小二乘直线拟合（`y = mx + b`）。
     Linear,
+    /// LOESS / LOWESS 局部加权回归平滑器。`span` 是每次局部拟合用到的点比例（0.05–1，默认 0.5），
+    /// 越小越贴近数据、越大越平滑。
+    ///
+    /// LOESS / LOWESS locally-weighted regression. `span` is the fraction of points per local fit
+    /// (0.05–1, default 0.5): smaller follows the data more closely, larger is smoother.
+    Loess,
 }
 
 #[derive(Debug, Deserialize)]
@@ -105,10 +112,45 @@ pub(crate) struct TrendDetailed {
     pub kind: TrendKind,
     pub color: Option<String>,
     pub width: Option<f64>,
-    /// 在图上标出回归方程。
+    /// 在图上标出回归方程（仅 `linear` 有意义）。
     pub equation: Option<bool>,
-    /// 在图上标出相关系数。
+    /// 在图上标出相关系数（仅 `linear` 有意义）。
     pub correlation: Option<bool>,
+    /// LOESS 的带宽（点比例，0.05–1）；仅 `type: "loess"` 用。缺省 0.5。
+    ///
+    /// The LOESS bandwidth (fraction of points, 0.05–1); only used by `type: "loess"`. Default 0.5.
+    pub span: Option<f64>,
+}
+
+/// 点标签的摆放方式：`"exact"` / `"nudge"` / `"repel"`，或 `{"offset_x":…, "offset_y":…}`
+/// （箭头标签）。
+///
+/// volcano / manhattan / scatter 共用同一套（kuva 0.6 起三者走同一条 `draw_labels` 路径）。
+///
+/// How point labels are placed. Shared by volcano / manhattan / scatter — since kuva 0.6 all three
+/// go through one `draw_labels` path.
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(untagged)]
+pub(crate) enum LabelStyleSpec {
+    Named(LabelStyleKind),
+    /// 箭头标签的偏移量（像素），缺省给一个朝右上方的默认值。
+    Arrow {
+        offset_x: Option<f64>,
+        offset_y: Option<f64>,
+    },
+}
+
+#[derive(Debug, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum LabelStyleKind {
+    /// 标签就压在点上，不做避让。
+    Exact,
+    /// 按 x 排序后纵向错开（默认）。
+    Nudge,
+    /// 力导向避让（ggrepel 风格）：标签互相推开、也推离数据点，并画一条细引线回指原点。
+    Repel,
 }
 
 /// 置信带：给定 x 上的上下界两列。

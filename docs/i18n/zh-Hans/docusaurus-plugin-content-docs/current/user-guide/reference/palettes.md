@@ -18,6 +18,7 @@ description: 具名调色板，以及怎么传入自己的一组颜色。
 | `"deuteranopia"` · `"protanopia"` · `"tritanopia"` | 分别针对常见色盲类型调过的调色板。 |
 | `"category10"` | 十个分类色（默认兜底）。 |
 | `"pastel"` · `"bold"` | 更柔和与更浓烈的一对变体。 |
+| `"paloma"` … `"casa_natal"` | 十五套精选的 **LTC** 定性调色板（见下）。 |
 
 给一个 `{"colors": [...]}` 对象就会替换掉具名调色板：
 
@@ -40,13 +41,38 @@ description: 具名调色板，以及怎么传入自己的一组颜色。
 | `pastel` | 10 | `#aec7e8` `#ffbb78` `#98df8a` `#ff9896` `#c5b0d5` `#c49c94` `#f7b6d2` `#c7c7c7` `#dbdb8d` `#9edae5` |
 | `bold` | 10 | `#e41a1c` `#377eb8` `#4daf4a` `#984ea3` `#ff7f00` `#a65628` `#f781bf` `#999999` `#66c2a5` `#fc8d62` |
 
+### LTC 调色板
+
+十五套精选定性配色，来自 [loukesio/ltc-color-palettes](https://github.com/loukesio/ltc-color-palettes)（MIT），
+kuva 0.6 起提供。它们比 `category10` 小 —— 4 到 9 色 —— 每一套都有自己的气质，适合「配色本身也是设计的一部分」
+而不只是中性默认值的图。
+
+| 调色板 | 数量 | 颜色 |
+| --- | --- | --- |
+| `paloma` | 5 | `#83AF9B` `#C8C8A9` `#F8DA8A` `#F7BF95` `#FE8CA1` |
+| `maya` | 5 | `#3D5A80` `#98C1D9` `#E0FBFC` `#EE6C4D` `#293241` |
+| `dora` | 5 | `#52777A` `#542437` `#C02942` `#D95B43` `#ECD078` |
+| `ploen` | 5 | `#3F5671` `#83A1C3` `#CEB5C8` `#FAC898` `#B17776` |
+| `olga` | 5 | `#C9E3C2` `#8BC8CB` `#ECCD80` `#F5AB70` `#9C87A1` |
+| `mterese` | 5 | `#F7DDAA` `#FAC3AD` `#F897A1` `#9298BA` `#9CBEED` |
+| `franscoise` | 5 | `#5980B1` `#B96A8D` `#A55062` `#E05256` `#E9A986` |
+| `fernande` | 4 | `#FF7676` `#F9D662` `#7CAB7D` `#75B7D1` |
+| `sylvie` | 5 | `#E8B961` `#E88170` `#C6BDE8` `#5DB7C4` `#FD95BC` |
+| `expevo` | 6 | `#FC4E07` `#E7B800` `#00AFBB` `#8B4769` `#1D457F` `#808080` |
+| `minou` | 6 | `#00798C` `#D1495B` `#EDAE49` `#66A182` `#2E4057` `#8D96A3` |
+| `alger` | 5 | `#000000` `#1A5B5B` `#ACC8BE` `#F4AB5C` `#D1422F` |
+| `seafarer` | 5 | `#013D5A` `#FCF3E3` `#BDD3CE` `#708C69` `#E4A25B` |
+| `luminaries` | 6 | `#FF5B04` `#075056` `#233038` `#FDF6E3` `#F4D47C` `#D3DBDD` |
+| `casa_natal` | 9 | `#245E55` `#ED773C` `#808BC5` `#C63F3E` `#EAC119` `#EAA7C7` `#9ED6DF` `#1D1D1B` `#EAE4DA` |
+
 其中三个名字是**别名**，不是独立的调色板：`deuteranopia` 与 `protanopia` 都返回 Wong（红绿色盲友好，两者合计
 约占男性 7 %），`tritanopia` 返回 `tol_bright`（蓝黄色盲友好，罕见）。
 
 颜色按顺序发放并循环，所以五色调色板上的第七条 series 会拿到第二种颜色。什么都不设时用的就是 `category10`。
 
 **怎么选**：`wong` / `okabe_ito` 是最稳的通用选择；色数最多的是 `tol_muted`，适合系列更多的场合；`tol_bright`
-是蓝黄色盲下也能分开的那一套。如果颜色本身完全不可依赖，就别用调色板了，改用[黑白模式](./bw-mode.md)。
+是蓝黄色盲下也能分开的那一套。LTC 那几套适合「想要某种具体观感、而且 4–9 个类别够用」的图。如果颜色本身完全
+不可依赖，就别用调色板了，改用[黑白模式](./bw-mode.md)。
 
 :::note[调色板什么时候生效]
 

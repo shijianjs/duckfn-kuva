@@ -35,6 +35,9 @@ pub(super) fn build_layout(
         if let Some(v) = &f.family {
             l = l.with_font_family(v.clone());
         }
+        if let Some(v) = &f.tick_family {
+            l = l.with_tick_font_family(v.clone());
+        }
         if let Some(v) = f.title_size {
             l = l.with_title_size(v);
         }
@@ -544,5 +547,33 @@ mod tests {
             }"##,
         );
         assert!(svg.contains("ATTC"), "the manual legend entry is missing");
+    }
+
+    /// LTC 的 15 组调色板（0.6）都能解析并画出来 —— 名字拼错会直接反序列化失败，
+    /// 所以这一条同时守住了名字本身。
+    #[test]
+    fn every_ltc_palette_renders() {
+        for name in [
+            "paloma", "maya", "dora", "ploen", "olga", "mterese", "franscoise", "fernande",
+            "sylvie", "expevo", "minou", "alger", "seafarer", "luminaries", "casa_natal",
+        ] {
+            let svg = render_svg(&format!(
+                r##"{{"palette":"{name}","series":[{{"type":"bar","categories":["a","b","c"],"values":[1,2,3]}}]}}"##
+            ));
+            assert!(svg.starts_with("<svg"), "palette `{name}` did not render");
+        }
+    }
+
+    /// `font.tick_family`（0.6）：刻度标签单独用等宽字体，包在一层 `<g font-family>` 里。
+    #[test]
+    fn tick_font_family_reaches_the_svg() {
+        let svg = render_svg(
+            r##"{"font":{"tick_family":"monospace"},
+                "series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}"##,
+        );
+        assert!(
+            svg.contains("font-family=\"monospace\""),
+            "the tick font family should appear on a wrapper group"
+        );
     }
 }

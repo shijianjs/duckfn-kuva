@@ -83,10 +83,15 @@ SELECT kuva_render_file({
 
 规格用 snake_case 写，描述的是**怎么画**而不是某一张具体的图。顶层键有 `title`、`x_axis`、`y_axis`、
 `x2_axis`、`y2_axis`、`x_datetime`、`y_datetime`、`grid`、`legend`、`stats_box`、`theme`、`palette`、
-`font`、`annotations`、`width`、`height`、`series` 与 `secondary_series`；除 `series` 外都是可选的。
+`font`、`annotations`、`width`、`height`、`series`、`secondary_series`、`figure` 与 `composite`；
+除 `series` 外都是可选的。
 
 `series` 的每个元素带一个 `type`，只声明这个类型用得上的字段。**kuva 的 64 种图型全部实现了**，
 按画什么分组如下；每个类型的确切字段见[文档站](docs/README.md)：
+
+另外还有两种**组合图**（不是图型）：基因组浏览器式的覆盖度图
+（`"composite": {"type": "coverage", …}`）与群体等位基因频率图（`"composite": {"type": "brick_pop", …}`）。
+它们自己排版画布，所以与 `series` / `figure` 互斥。
 
 | 分组 | `type` |
 | --- | --- |

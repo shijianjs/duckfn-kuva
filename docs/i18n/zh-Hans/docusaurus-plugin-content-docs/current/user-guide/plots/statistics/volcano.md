@@ -32,13 +32,14 @@ FROM (
 ## 基因标签
 
 `label_top` 会给**最显著的** *n* 个点加标签 —— 这就是「少数几个值得点名的基因被点名，而不是给两万个点全加标签」的
-做法。标签位置有三种：
+做法。标签位置有四种：
 
 | `label_style` | 放法 |
 | --- | --- |
 | `"nudge"` | 按 x 排序后竖直方向挪开以避免叠字（**默认**） |
 | `"exact"` | 就放在点上、不做调整 —— 用于稀疏数据或打算后处理 SVG 的情形 |
 | `{"offset_x": 14, "offset_y": 16}` | 按像素偏移，并画一条短引线拉回数据点 |
+| `"repel"` | 力导向（ggrepel / adjustText 风格）：标签互相推开、也推离数据点，并画细引线 |
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -171,7 +172,7 @@ FROM (
 | `color_up` / `color_down` / `color_ns` | string | 三种分类的颜色。 |
 | `point_size` | number | 圆点半径（像素，默认 `3`）。 |
 | `label_top` | integer | 给最显著的 *n* 个点加标签（`0` = 不加，默认）。 |
-| `label_style` | string \| object | `"nudge"`（默认）· `"exact"` · `{offset_x, offset_y}`。 |
+| `label_style` | string \| object | `"nudge"`（默认）· `"exact"` · `"repel"` · `{offset_x, offset_y}`。 |
 | `pvalue_floor` | number | `−log10` 变换时 p 值的显式下限。 |
 | `legend` | string | 任一非空值就打开 上调 / 下调 / 不显著 的图例。 |
 

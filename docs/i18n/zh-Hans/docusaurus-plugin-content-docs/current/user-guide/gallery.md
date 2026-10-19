@@ -1272,7 +1272,7 @@ SELECT kuva_render(to_json({
 
 ### 散点图
 
-逐个 (x, y) 点，支持趋势线、置信带、误差棒、气泡大小、逐点颜色与六种 marker 形状。 [完整文档 →](./plots/relationships/scatter.md)
+逐个 (x, y) 点，支持线性或 LOESS 趋势线、置信带、误差棒、气泡大小、逐点颜色、点标签与十种 marker 形状。 [完整文档 →](./plots/relationships/scatter.md)
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({

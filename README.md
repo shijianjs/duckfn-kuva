@@ -90,12 +90,17 @@ SELECT kuva_render_file({
 
 The spec is written in snake_case and describes the *drawing* rather than one particular chart. Its
 top-level keys are `title`, `x_axis`, `y_axis`, `x2_axis`, `y2_axis`, `x_datetime`, `y_datetime`, `grid`,
-`legend`, `stats_box`, `theme`, `palette`, `font`, `annotations`, `width`, `height`, `series` and
-`secondary_series`; every one of them except `series` is optional.
+`legend`, `stats_box`, `theme`, `palette`, `font`, `annotations`, `width`, `height`, `series`,
+`secondary_series`, `figure` and `composite`; every one of them except `series` is optional.
 
 Each `series` entry carries a `type` and declares only the fields that type needs. **All 64 plot types of
 kuva are implemented**, grouped below by what they draw; the exact fields of each are listed in the
 [documentation site](docs/README.md).
+
+Two further charts are **composites** rather than plot types — a genome-browser coverage figure
+(`"composite": {"type": "coverage", …}`) and a population allele-frequency figure
+(`"composite": {"type": "brick_pop", …}`). They lay out their own canvas, so they are mutually exclusive
+with `series` / `figure`.
 
 | Group | `type` values |
 | --- | --- |

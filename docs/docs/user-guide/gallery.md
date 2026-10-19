@@ -1277,7 +1277,7 @@ SELECT kuva_render(to_json({
 
 ### Scatter plot
 
-Individual (x, y) points, with trend lines, confidence bands, error bars, bubble sizes, per-point colours and six marker shapes. [Full documentation →](./plots/relationships/scatter.md)
+Individual (x, y) points, with linear or LOESS trend lines, confidence bands, error bars, bubble sizes, per-point colours, point labels and ten marker shapes. [Full documentation →](./plots/relationships/scatter.md)
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({

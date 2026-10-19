@@ -34,9 +34,16 @@ observations — the subjects still event-free at their last follow-up.
 
 ## Several arms, with a p-value
 
-One group per arm. The log-rank p-value is **not** computed here: kuva renders the string you give it, so
-the test has to be run in SQL (or elsewhere) and the result passed in. That is deliberate — a chart that
-invents a p-value is worse than one without.
+One group per arm. There are two ways to get a p-value onto the chart:
+
+- `pvalue_text` renders **the string you give it**, so the test has to be run in SQL (or elsewhere) and the
+  formatted result passed in.
+- `logrank_pvalue: true` runs the **log-rank test on the raw data** and annotates the result (e.g.
+  `log-rank p = 0.023`), overriding `pvalue_text`. Two groups use the exact Mantel–Haenszel statistic;
+  three or more use the `Σ (O−E)²/E` approximation.
+
+The example below passes a pre-computed string — a chart that invents a p-value is worse than one without,
+and a string keeps the number traceable to the query that produced it.
 
 ```sql {"type":"duckfn","show":"svg"}
 WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
@@ -58,6 +65,47 @@ SELECT kuva_render(to_json({
   }]
 })) AS chart;
 ```
+
+## Clinical annotations
+
+Three options turn a survival plot into a publication-style clinical figure:
+
+| Field | What it adds |
+| --- | --- |
+| `risk_table` | A **number-at-risk table** below the plot: one row per group, counts at each x-axis tick. Space is reserved automatically. |
+| `median_lines` | **Median-survival reference lines**: a dashed horizontal at S = 0.5 out to each curve's median time, then a dashed vertical down to the axis. Groups that never reach 0.5 get no line. |
+| `logrank_pvalue` | The **log-rank p-value**, computed from the raw data and annotated (overrides `pvalue_text`). |
+
+```sql {"type":"duckfn","show":"svg"}
+WITH d AS (SELECT * FROM read_csv_auto('{{DFK_BASE_URL}}data/survival.tsv'))
+SELECT kuva_render(to_json({
+  'title': 'Kaplan-Meier with number at risk',
+  'x_axis': {'name': 'time (months)'},
+  'y_axis': {'name': 'survival probability'},
+  'legend': {'position': 'outside_right_top'},
+  'series': [{
+    'type': 'survival',
+    'groups': (SELECT list({'label': "group",
+                            'times': ts,
+                            'events': evs} ORDER BY "group")
+               FROM (SELECT "group",
+                            list(time ORDER BY time) AS ts,
+                            list(event = 1 ORDER BY time) AS evs
+                     FROM d GROUP BY "group")),
+    'ci': true,
+    'ci_alpha': 0.15,
+    'risk_table': true,
+    'median_lines': true,
+    'logrank_pvalue': true,
+    'legend': 'arm'
+  }]
+})) AS chart;
+```
+
+> **Reading the table:** each cell is the number of subjects still under follow-up at that time — everyone
+> whose observed time (event *or* censoring) is at least the tick. It is **not** the survival probability
+> times N: when subjects are censored the two diverge, and a small count is the signal that the later steps
+> of the curve rest on very few people.
 
 ## Confidence bands
 
@@ -160,14 +208,19 @@ SELECT kuva_render(to_json({
 | `ci` / `ci_alpha` | boolean / number | The Greenwood 95 % band and its opacity. |
 | `censoring` / `censoring_size` | boolean / number | The censoring ticks. |
 | `pvalue_text` | string | Free text drawn in the corner — kuva does not compute it. |
+| `risk_table` | boolean | Draw a number-at-risk table below the plot. |
+| `median_lines` | boolean | Draw dashed median-survival reference lines. |
+| `logrank_pvalue` | boolean | Compute and annotate the log-rank p-value from the raw data; overrides `pvalue_text`. |
 | `legend` | string | Legend title; one entry per group. |
 
 ## Notes
 
 - **`groups` must not be empty**, and within each group `times` and `events` must be the same length.
 - Event times are numeric — months, days, cycles — whatever one x unit means.
-- `pvalue_text` is a **string**: the log-rank test is not run for you. Compute it in SQL and pass the
-  formatted result, so the number on the chart is traceable.
+- `pvalue_text` is a **string**: kuva does not run the test for you. Compute it in SQL and pass the
+  formatted result, so the number on the chart is traceable. `logrank_pvalue: true` is the one exception —
+  it computes the test from `times` / `events` and wins over `pvalue_text`.
+- `risk_table` and `median_lines` only read the data you already pass; they add no new fields.
 - A censored subject contributes a tick, not a drop; if the ticks are hidden, say so in the caption.
 - `colors` is matched by position, so it has to line up with the order the groups come out of the query.
 

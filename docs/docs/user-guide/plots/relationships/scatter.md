@@ -1,13 +1,13 @@
 ---
 title: Scatter plot
 sidebar_position: 1
-description: Individual (x, y) points, with trend lines, confidence bands, error bars, bubble sizes, per-point colours and six marker shapes.
+description: Individual (x, y) points, with linear or LOESS trend lines, confidence bands, error bars, bubble sizes, per-point colours, point labels and ten marker shapes.
 ---
 
 # Scatter plot
 
-A scatter plot renders individual `(x, y)` data points as markers. It supports trend lines, error bars,
-variable point sizes, per-point colours and six marker shapes.
+A scatter plot renders individual `(x, y)` data points as markers. It supports linear and LOESS trend
+lines, error bars, variable point sizes, per-point colours, point labels and ten marker shapes.
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -62,6 +62,40 @@ FROM (
 > **Tip:** `equation` and `correlation` print the fit statistics as floating text. With a dense point
 > cloud that competes with the data — a [stats box](../../reference/stats-box.md) puts the same numbers in
 > a bordered inset instead.
+
+### LOESS smoother
+
+For a non-linear relationship a straight line is the wrong model. `"trend": {"type": "loess"}` overlays a
+LOESS (locally-weighted regression) smoother instead: each prediction fits a local straight line using
+distance weights. `span` is the fraction of points in each local fit (`0.05`–`1`, default `0.5`) —
+smaller follows local detail, larger is smoother.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH pts AS (
+  -- Deterministic noisy sine: the same 120 points as kuva's own LOESS example.
+  SELECT i,
+         i / 120.0 * 10.0 AS x,
+         sin(i / 120.0 * 10.0)
+           + 0.6 * ((sin(i * 12.9898) * 43758.5453)
+                    - trunc(sin(i * 12.9898) * 43758.5453) - 0.5) AS y
+  FROM (SELECT unnest(range(0, 120))::DOUBLE AS i)
+)
+SELECT kuva_render(to_json({
+  'title': 'LOESS smoother (span 0.3)',
+  'x_axis': {'name': 'x'},
+  'y_axis': {'name': 'y'},
+  'series': [{
+    'type': 'scatter',
+    'color': 'steelblue',
+    'size': 3,
+    'data': (SELECT array_agg({'x': x, 'y': y} ORDER BY i) FROM pts),
+    'trend': {'type': 'loess', 'span': 0.3, 'color': 'crimson', 'width': 2.5}
+  }]
+})) AS chart;
+```
+
+> **Note:** `equation` and `correlation` describe the **linear** fit only. LOESS has no intercept or
+> slope to report, so they are ignored when `type` is `"loess"`.
 
 ## Confidence band
 
@@ -136,10 +170,11 @@ SELECT kuva_render(to_json({
 
 ## Marker shapes
 
-Six marker shapes are available through `marker`. They are most useful when several series share one
+Ten marker shapes are available through `marker`. They are most useful when several series share one
 pair of axes and colour alone is not enough to tell them apart.
 
-`"circle"` (default) · `"square"` · `"triangle"` · `"diamond"` · `"cross"` · `"plus"`
+`"circle"` (default) · `"square"` · `"triangle"` · `"triangle_down"` · `"diamond"` · `"cross"` ·
+`"plus"` · `"star"` · `"pentagon"` · `"hexagon"`
 
 ```sql {"type":"duckfn","show":"svg"}
 SELECT kuva_render(to_json({
@@ -158,12 +193,16 @@ FROM (
     'legend': label
   } ORDER BY y) AS series
   FROM (VALUES
-    (1.0, 'steelblue',   'circle',   'Circle'),
-    (2.0, 'crimson',     'square',   'Square'),
-    (3.0, 'seagreen',    'triangle', 'Triangle'),
-    (4.0, 'darkorange',  'diamond',  'Diamond'),
-    (5.0, 'purple',      'cross',    'Cross'),
-    (6.0, 'saddlebrown', 'plus',     'Plus')
+    (1.0,  'steelblue',   'circle',        'Circle'),
+    (2.0,  'crimson',     'square',        'Square'),
+    (3.0,  'seagreen',    'triangle',      'Triangle'),
+    (4.0,  'darkorange',  'triangle_down', 'Triangle down'),
+    (5.0,  'purple',      'diamond',       'Diamond'),
+    (6.0,  'saddlebrown', 'cross',         'Cross'),
+    (7.0,  'teal',        'plus',          'Plus'),
+    (8.0,  'goldenrod',   'star',          'Star'),
+    (9.0,  'slategray',   'pentagon',      'Pentagon'),
+    (10.0, 'firebrick',   'hexagon',       'Hexagon')
   ) AS t(y, color, marker, label)
 );
 ```
@@ -274,6 +313,46 @@ SELECT kuva_render(to_json({
 FROM read_csv_auto('{{DFK_BASE_URL}}data/contour.tsv');
 ```
 
+## Point labels
+
+`labels` attaches a text label to each point, aligned to `data` by index. An **empty string leaves that
+point unlabelled**, which is how you label only the points that matter without splitting the series.
+
+`label_style` picks the placement, shared with the [volcano](../statistics/volcano.md) and
+[Manhattan](../statistics/manhattan.md) plots:
+
+| Style | Placement |
+| --- | --- |
+| `"exact"` | At the point, no adjustment (labels may overlap) |
+| `"nudge"` (default) | Sorted left-to-right and nudged vertically |
+| `{"offset_x": …, "offset_y": …}` | Fixed pixel offset with a leader line |
+| `"repel"` | Force-directed (ggrepel / adjustText style): labels pushed off each other and off the points, with thin leader lines |
+
+`"repel"` is the readable choice for dense, clustered labels — the six most significant genes below stay
+legible even though they sit inside a cloud of a few thousand points.
+
+```sql {"type":"duckfn","show":"svg"}
+WITH g AS (
+  SELECT gene, log2fc, -log10(pvalue) AS neglog10p,
+         row_number() OVER (ORDER BY pvalue) AS rk
+  FROM read_csv_auto('{{DFK_BASE_URL}}data/gene_stats.tsv')
+)
+SELECT kuva_render(to_json({
+  'title': 'Point labels (repel)',
+  'x_axis': {'name': 'log2 fold change'},
+  'y_axis': {'name': '-log10(p)'},
+  'series': [{
+    'type': 'scatter',
+    'color': 'steelblue',
+    'size': 3,
+    'marker_opacity': 0.5,
+    'data': (SELECT array_agg({'x': log2fc, 'y': neglog10p} ORDER BY gene) FROM g),
+    'labels': (SELECT array_agg(CASE WHEN rk <= 6 THEN gene ELSE '' END ORDER BY gene) FROM g),
+    'label_style': 'repel'
+  }]
+})) AS chart;
+```
+
 ## Multiple series
 
 One object per series in the `series` list, each with its own `color` and `legend`, draws them on the
@@ -301,10 +380,12 @@ FROM (
 | `size` | number | Uniform point radius (default 3). |
 | `sizes` | number[] | Per-point radii (a bubble plot); overrides `size`. |
 | `colors` | string[] | Per-point colours; falls back to `color` past the end. |
-| `marker` | string | `"circle"` (default) · `"square"` · `"triangle"` · `"diamond"` · `"cross"` · `"plus"`. |
+| `marker` | string | `"circle"` (default) · `"square"` · `"triangle"` · `"triangle_down"` · `"diamond"` · `"cross"` · `"plus"` · `"star"` · `"pentagon"` · `"hexagon"`. |
 | `marker_opacity` | number | Fill alpha: `0` is hollow, `1` solid. |
 | `marker_stroke_width` | number | Outline width, drawn in the fill colour. |
-| `trend` | `"linear"` \| object | Overlay a least-squares line; the object adds `type`, `color`, `width`, `equation`, `correlation`. |
+| `labels` | string[] | Per-point text labels, aligned to `data`; an empty string leaves that point unlabelled. |
+| `label_style` | string \| object | `"nudge"` (default) · `"exact"` · `"repel"` · `{"offset_x": …, "offset_y": …}`. |
+| `trend` | `"linear"` \| `"loess"` \| object | Overlay a least-squares line or a LOESS smoother; the object adds `type`, `span` (LOESS), `color`, `width`, `equation`, `correlation`. |
 | `band` | `{lower, upper}` | A shaded band aligned to the points' x positions. |
 | `group_name` | string | A group name for interactive SVG output (does not enter the legend). |
 
@@ -320,6 +401,9 @@ FROM (
   legend.
 - `x_err` / `y_err` take a number (symmetric) or a `{"neg": …, "pos": …}` object (asymmetric).
 - `band.lower` and `band.upper` must each be the same length as `data`, in the same order.
+- `labels` may be **shorter** than `data` (the remaining points stay unlabelled) but not longer — an
+  extra label is reported as an error rather than silently dropped.
+- `equation` and `correlation` apply to the linear fit only; with `"type": "loess"` they are ignored.
 
 ## See also
 

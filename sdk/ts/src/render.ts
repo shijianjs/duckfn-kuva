@@ -12,6 +12,51 @@ export type OrientationKind = "horizontal" | "vertical";
 export type TickFormatSpec = TickFormatKind | number;
 export type TickFormatKind = "auto" | "integer" | "sci" | "percent" | "degree";
 /**
+ * 顶层 `composite` 字段：`type` 决定用哪个组合图。
+ *
+ * 两个变体都用 `Box` 装：`BrickPopSpec` 里有整份砖墙配置，直接内联会让这个枚举的每个值都带上
+ * 那份体积（`ThemeSpec` 也是同样处理的）。
+ *
+ * Both variants are boxed: `BrickPopSpec` carries a whole brick config, and inlining it would give
+ * every value of this enum that footprint (`ThemeSpec` is handled the same way).
+ */
+export type CompositeSpec = CoverageSpec | BrickPopSpec;
+/**
+ * 具名主题，或一组字段覆盖（以 light 主题为底）。
+ */
+export type ThemeSpec = ThemeKind | ThemeCustom;
+export type ThemeKind = "light" | "dark" | "minimal" | "solarized";
+/**
+ * 序列起点的对齐方式。
+ */
+export type BrickAnchorKind = "left" | "right";
+/**
+ * 连续色图，**按名字解析**。
+ *
+ * 名字容忍大小写、连字符与 ColorBrewer 的常见缩写 —— `yellow-green-blue`、`yellowgreenblue`
+ * 与 `ylgnbu` 指的是同一个，和 kuva 自己的 CLI 一致。认不出的名字会报错并列出这个名字，
+ * 而不是悄悄退回默认（CLI 会退回 viridis，但 SQL 里静默换色更难查）。
+ */
+export type ColorMapSpec = string;
+/**
+ * 行排序：具名方式，或 `{"custom": [...]}`。
+ */
+export type BrickSortSpec =
+  | BrickSortKind
+  | {
+      /**
+       * 新行序：第 `k` 行取原来的第 `custom[k]` 行。
+       */
+      custom: number[];
+      [k: string]: unknown;
+    };
+export type BrickSortKind = "none" | "cigar";
+/**
+ * 序列字符的配色方案：具名（`dna` / `rna`），或给出「字符 -> 颜色」的映射。
+ */
+export type BrickTemplateSpec = BrickTemplateKind | BrickColors;
+export type BrickTemplateKind = "dna" | "rna";
+/**
  * 面板标签：具名样式，或带逐个标签文字的完整写法。
  */
 export type LabelsSpec = LabelsKind | LabelsFull;
@@ -30,7 +75,8 @@ export type LegendShapeSpec =
       [k: string]: unknown;
     };
 export type LegendShapeKind = "rect" | "line" | "circle";
-export type MarkerSpec = "circle" | "square" | "triangle" | "diamond" | "cross" | "plus";
+export type MarkerSpec =
+  ("circle" | "square" | "diamond") | "triangle" | "triangle_down" | "cross" | "plus" | "star" | "pentagon" | "hexagon";
 /**
  * 具名调色板，或一组自定义颜色。
  */
@@ -47,7 +93,22 @@ export type PaletteKind =
   | "tritanopia"
   | "category10"
   | "pastel"
-  | "bold";
+  | "bold"
+  | "paloma"
+  | "maya"
+  | "dora"
+  | "ploen"
+  | "olga"
+  | "mterese"
+  | "franscoise"
+  | "fernande"
+  | "sylvie"
+  | "expevo"
+  | "minou"
+  | "alger"
+  | "seafarer"
+  | "luminaries"
+  | "casa_natal";
 /**
  * 一张图里叠加的 series。`type` 决定用哪个变体。
  */
@@ -121,23 +182,36 @@ export type SeriesSpec =
  */
 export type ErrSpec = number | ErrArms;
 /**
- * 趋势线：`"linear"`，或带样式/统计量的对象。
+ * 点标签的摆放方式：`"exact"` / `"nudge"` / `"repel"`，或 `{"offset_x":…, "offset_y":…}`
+ * （箭头标签）。
+ *
+ * volcano / manhattan / scatter 共用同一套（kuva 0.6 起三者走同一条 `draw_labels` 路径）。
+ *
+ * How point labels are placed. Shared by volcano / manhattan / scatter — since kuva 0.6 all three
+ * go through one `draw_labels` path.
+ */
+export type LabelStyleSpec =
+  | LabelStyleKind
+  | {
+      offset_x?: number | null;
+      offset_y?: number | null;
+      [k: string]: unknown;
+    };
+export type LabelStyleKind = "exact" | "nudge" | "repel";
+/**
+ * 趋势线：`"linear"` / `"loess"`，或带样式/统计量的对象。
  */
 export type TrendSpec = TrendKind | TrendDetailed;
-export type TrendKind = "linear";
+export type TrendKind = "linear" | "loess";
 export type LineStyleSpec = LineStyleKind | string;
 export type LineStyleKind = "solid" | "dashed" | "dotted" | "dash_dot";
+/**
+ * 自动选箱数的规则。名字与 kuva 的 `BinMethod` 一致，`fd` 是 Freedman–Diaconis 的常用缩写。
+ */
+export type BinMethodKind = "sturges" | "scott" | "freedman_diaconis";
 export type PieLabelKind = "inside" | "outside" | "auto" | "none";
 export type StripStyleSpec = StripStyleKind | StripJitterSpec;
 export type StripStyleKind = "strip" | "swarm" | "center";
-/**
- * 连续色图，**按名字解析**。
- *
- * 名字容忍大小写、连字符与 ColorBrewer 的常见缩写 —— `yellow-green-blue`、`yellowgreenblue`
- * 与 `ylgnbu` 指的是同一个，和 kuva 自己的 CLI 一致。认不出的名字会报错并列出这个名字，
- * 而不是悄悄退回默认（CLI 会退回 viridis，但 SQL 里静默换色更难查）。
- */
-export type ColorMapSpec = string;
 /**
  * 点的 x：数字（连续轴），或字符串（分类轴）。
  *
@@ -146,14 +220,6 @@ export type ColorMapSpec = string;
  */
 export type LollipopXSpec = number | string;
 export type QqModeKind = "normal" | "genomic";
-export type VolcanoLabelSpec =
-  | VolcanoLabelKind
-  | {
-      offset_x?: number | null;
-      offset_y?: number | null;
-      [k: string]: unknown;
-    };
-export type VolcanoLabelKind = "exact" | "nudge";
 export type ZReduceKind = "count" | "mean" | "sum" | "median" | "min" | "max";
 export type ClustermapNormKind = "none" | "row_z_score" | "col_z_score";
 export type PolarModeKind = "scatter" | "line";
@@ -238,15 +304,6 @@ export type CurveStyleKind = "sigmoid" | "straight";
  */
 export type BumpTieBreakKind = "average" | "min" | "max" | "stable";
 /**
- * 序列起点的对齐方式。
- */
-export type BrickAnchorKind = "left" | "right";
-/**
- * 序列字符的配色方案：具名（`dna` / `rna`），或给出「字符 -> 颜色」的映射。
- */
-export type BrickTemplateSpec = BrickTemplateKind | BrickColors;
-export type BrickTemplateKind = "dna" | "rna";
-/**
  * 各层怎么上色。
  */
 export type FunnelColorModeKind = "uniform" | "by_stage" | "gradient";
@@ -291,11 +348,6 @@ export type RoseModeKind = "stacked" | "grouped";
  */
 export type MarginalTypeKind = "histogram" | "density";
 /**
- * 具名主题，或一组字段覆盖（以 light 主题为底）。
- */
-export type ThemeSpec = ThemeKind | ThemeCustom;
-export type ThemeKind = "light" | "dark" | "minimal" | "solarized";
-/**
  * 标题：可以直接给字符串，也可以给对象。
  */
 export type TitleSpec = string | TitleFull;
@@ -311,6 +363,15 @@ export interface RenderSpec {
    * 取值同 `x_axis.tick_format`。
    */
   colorbar_tick_format?: TickFormatSpec | null;
+  /**
+   * 组合图（kuva 的 `CoveragePlot` / `BrickPopPlot`）。给了它就**只**画它 —— 与 `series` /
+   * `figure` 互斥，且自带画布尺寸（见 `composite` 模块的说明）。
+   *
+   * A composite (`CoveragePlot` / `BrickPopPlot`). When present it is the **only** thing drawn — it
+   * is mutually exclusive with `series` / `figure` and carries its own canvas size (see the
+   * `composite` module).
+   */
+  composite?: CompositeSpec | null;
   /**
    * 多面板网格（Figure）。给了它，顶层 `panel.series` 被忽略。
    */
@@ -423,6 +484,321 @@ export interface TextAnnotationSpec {
   text: string;
   x: number;
   y: number;
+  [k: string]: unknown;
+}
+/**
+ * 基因组覆盖度图（kuva 的 `CoveragePlot`）：每个样本一条深度轨道，共享一条基因组 x 轴，
+ * 上方可选变异位点轨道，下方可选 feature / region 区间轨道。
+ */
+export interface CoverageSpec {
+  /**
+   * 每条深度轨道上的水平阈值线（最低覆盖度等）。
+   */
+  coverage_thresholds?: CoverageThresholdSpec[];
+  /**
+   * feature 轨道的名字，缺省 `"features"`。
+   */
+  feature_track_name?: string | null;
+  /**
+   * feature 区间（扩增子 / 引物…），画在轴**上方**的数据区。
+   */
+  features?: CoverageIntervalSpec[];
+  /**
+   * 画布高度（像素）；缺省按轨道数自动撑开。
+   */
+  height?: number | null;
+  /**
+   * 钉住 x 轴范围（基因组坐标）；缺省取所有数据的并集。
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  locus?: [unknown, unknown] | null;
+  /**
+   * 把所有样本叠在**一条**轨道里（共用 y 轴），而不是每样本一条轨道。
+   */
+  overlay_samples?: boolean | null;
+  /**
+   * region 轨道的名字，缺省 `"genes"`。
+   */
+  region_track_name?: string | null;
+  /**
+   * 基因组区间（基因 / ORF…），画在紧贴轴上方的一条轨道。
+   */
+  regions?: CoverageIntervalSpec[];
+  /**
+   * 每个样本的深度轨道。**至少一条**。
+   */
+  samples: CoverageSampleSpec[];
+  theme?: ThemeSpec | null;
+  /**
+   * 所有刻度标签（共享 x 轴 + 各轨道的 y 轴）单独用的字体族。
+   */
+  tick_font_family?: string | null;
+  title?: string | null;
+  type: "coverage";
+  /**
+   * 变异位点，按类型分组（每组一个图例条目）。
+   */
+  variants?: CoverageVariantSpec[];
+  /**
+   * 画布宽度（像素），缺省 900。
+   */
+  width?: number | null;
+  /**
+   * x 轴标题，缺省 `"position"`。
+   */
+  x_label?: string | null;
+  [k: string]: unknown;
+}
+/**
+ * 一条覆盖度阈值线。
+ */
+export interface CoverageThresholdSpec {
+  depth: number;
+  label?: string | null;
+  [k: string]: unknown;
+}
+/**
+ * 一条区间（feature 或 region）。
+ */
+export interface CoverageIntervalSpec {
+  end: number;
+  label?: string | null;
+  start: number;
+  [k: string]: unknown;
+}
+/**
+ * 一条深度轨道：样本名 + `(位置, 深度)` 点列。
+ */
+export interface CoverageSampleSpec {
+  /**
+   * `[[位置, 深度], …]`。
+   */
+  depth: [number, number][];
+  name: string;
+  [k: string]: unknown;
+}
+/**
+ * 用 Box 装：`ThemeCustom` 有十几个字段，直接内联会让这个枚举的每个值都带上那份体积。
+ */
+export interface ThemeCustom {
+  axis_color?: string | null;
+  background?: string | null;
+  box_median?: string | null;
+  colorbar_border?: string | null;
+  font_family?: string | null;
+  grid_color?: string | null;
+  legend_bg?: string | null;
+  legend_border?: string | null;
+  pie_leader?: string | null;
+  show_grid?: boolean | null;
+  text_color?: string | null;
+  tick_color?: string | null;
+  violin_border?: string | null;
+  [k: string]: unknown;
+}
+/**
+ * 一组变异位点。
+ */
+export interface CoverageVariantSpec {
+  /**
+   * 缺省按调色板轮换取色。
+   */
+  color?: string | null;
+  label: string;
+  positions: number[];
+  [k: string]: unknown;
+}
+/**
+ * 群体等位基因频率图（kuva 的 `BrickPopPlot`）：砖墙行 + 每行的频率条 + 可选的指标热格列。
+ *
+ * `brick` 的字段与 `series` 里的 `type: "brick"` **完全相同**（直接平铺在 `composite` 对象里），
+ * 所以同一份砖墙配置既能画 `brick`，也能套进 `brick_pop`。
+ */
+export interface BrickPopSpec {
+  /**
+   * 序列的锚点。
+   */
+  anchor?: BrickAnchorKind | null;
+  /**
+   * 覆盖 CIGAR 各操作的配色（未给的操作沿用 kuva 的默认色）。
+   *
+   * Override CIGAR operation colours; unset ops keep kuva's defaults.
+   */
+  cigar_colors?: {
+    [k: string]: string;
+  } | null;
+  /**
+   * 把相邻且 CIGAR 相同的行合并成一条 bar（默认开）。
+   *
+   * Collapse consecutive rows sharing a CIGAR into one bar (default on).
+   */
+  cigar_dedup?: boolean | null;
+  /**
+   * 给合并后的每一段在左侧沟槽里标 `xN` 计数（默认开）。
+   *
+   * Bracket each deduped run with an `xN` count in the gutter (default on).
+   */
+  cigar_run_bracket?: boolean | null;
+  /**
+   * 逐行的 CIGAR（与画出来的行等长，`null` 表示该行不画）。长度必须是该行**画出的全部碱基**
+   * （含两侧翼），即 kuva 的 `row_base_len`。
+   *
+   * Per-row CIGAR (same length as the drawn rows; `null` draws no bar for that row). It must
+   * cover **every base the row draws**, flanks included.
+   */
+  cigars?: (string | null)[] | null;
+  /**
+   * 把哪一行当共识序列（`0` 起）。
+   */
+  consensus_row?: number | null;
+  /**
+   * FLANKED-STRIGAR：`(左侧翼序列, motif, strigar, 右侧翼序列)`。STR 区两侧各接一段原始
+   * DNA（一个字符 = 一格，用标准 DNA 配色），省掉「用 `@` 空位把侧翼写进 motif 串」的麻烦。
+   */
+  flanked_strigars?: [string, string, string, string][];
+  /**
+   * 频率条的颜色。
+   */
+  freq_bar_color?: string | null;
+  /**
+   * 每行一个频率值，顺序与砖墙的行一致。
+   */
+  frequencies?: number[] | null;
+  /**
+   * 频率面板的表头，缺省 `"Frequency"`。
+   */
+  frequency_label?: string | null;
+  /**
+   * 频率条的固定范围 `[最小, 最大]`；缺省按数据自动（值都在 0–1 时用 `[0, 1]`）。
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  frequency_range?: [unknown, unknown] | null;
+  /**
+   * 画布高度（像素）；缺省按行数自动撑开。
+   */
+  height?: number | null;
+  /**
+   * 给「主」一条加个标记。
+   */
+  mark_primary?: boolean | null;
+  /**
+   * 纵向参考线（引物边界、变异位点…），画在所有行上，坐标是砖墙自己的参考坐标（受
+   * `x_offset` / `x_origin` 影响）。只接受竖直方向。
+   *
+   * Vertical reference lines across every row, in the brick's own reference coordinates (so
+   * `x_offset` / `x_origin` apply). Vertical only.
+   */
+  marker_lines?: ReferenceLineSpec[];
+  /**
+   * 在指标格里写出数值（颜色改画在格子边框上）。
+   */
+  metric_values?: boolean | null;
+  /**
+   * 指标热格列，从左到右排在频率条与砖墙之间。
+   */
+  metrics?: MetricColumnSpec[];
+  /**
+   * 缺失（`null`）指标格的填充色。
+   */
+  na_color?: string | null;
+  /**
+   * 每行的名字，长度应与生效的那一份数据（`strigars` 优先，否则 `sequences`）一致。
+   */
+  names?: string[] | null;
+  /**
+   * 逐行的注记文字。
+   */
+  notations?: (string | null)[] | null;
+  /**
+   * 每行的高度（像素）。
+   */
+  row_height?: number | null;
+  /**
+   * 逐行的序列字符串，1 个字符 = 1 格。**给了 `strigars` 就不参与渲染**。
+   */
+  sequences?: string[];
+  /**
+   * 标出序列里的字符。
+   */
+  show_values?: boolean | null;
+  /**
+   * 行排序：`"none"`（默认）/ `"cigar"`（把相同 CIGAR 归到一起，去重后 bar 最少），
+   * 或 `{"custom": [2, 0, 1]}` 给出外部算好的行序。
+   *
+   * Row order: `"none"` (default) / `"cigar"`, or `{"custom": [...]}` for an externally computed
+   * ranking.
+   */
+  sort?: BrickSortSpec | null;
+  /**
+   * 按频率从高到低重排行（频率、指标列、砖墙一起置换）。
+   */
+  sorted_by_frequency?: boolean | null;
+  /**
+   * 逐行的参考起点（基因组坐标）；kuva 内部就是 `x_offsets` 取负，用来表达「各行从参考上的
+   * 哪个位置开始」而不是「跳过多少个字符」。与 `x_offsets` 只能给一个。
+   */
+  start_positions?: number[] | null;
+  /**
+   * 结构域的配色。
+   */
+  strigar_palette?: string[] | null;
+  /**
+   * STRIGAR：`(motif, strigar)`，见模块文档。给了它就**代替** `sequences` 成为画出来的行。
+   */
+  strigars?: [string, string][];
+  /**
+   * 字符配色；缺省用 `dna`。**这个必须有** —— kuva 拿不到配色表时会直接 panic。
+   */
+  template?: BrickTemplateSpec | null;
+  theme?: ThemeSpec | null;
+  title?: string | null;
+  type: "brick_pop";
+  /**
+   * 画布宽度（像素），缺省 900。
+   */
+  width?: number | null;
+  /**
+   * 所有行共用的 x 起点。
+   */
+  x_offset?: number | null;
+  /**
+   * 逐行的 x 起点（不给就用 `x_offset`）。
+   */
+  x_offsets?: (number | null)[] | null;
+  /**
+   * 坐标原点。
+   */
+  x_origin?: number | null;
+  [k: string]: unknown;
+}
+/**
+ * 一列指标热格。
+ */
+export interface MetricColumnSpec {
+  /**
+   * 连续色图，缺省 `viridis`。
+   */
+  color_map?: ColorMapSpec | null;
+  label: string;
+  max?: number | null;
+  min?: number | null;
+  /**
+   * 每行一个值，`null` 表示缺失（与 0 不同）。
+   */
+  values: (number | null)[];
+  [k: string]: unknown;
+}
+/**
+ * 自定义「字符 -> 颜色」的映射。
+ */
+export interface BrickColors {
+  colors: {
+    [k: string]: string;
+  };
   [k: string]: unknown;
 }
 /**
@@ -579,6 +955,14 @@ export interface FontSpec {
   body_size?: number | null;
   family?: string | null;
   label_size?: number | null;
+  /**
+   * 刻度标签单独用的字体族（与标题、轴名、图例分开）。等宽字体让数字按列对齐；
+   * 缺省沿用 `family`。
+   *
+   * The font family for tick labels only, separate from titles, axis labels and legends.
+   * A monospace face keeps digits in a column; defaults to `family`.
+   */
+  tick_family?: string | null;
   tick_size?: number | null;
   title_size?: number | null;
   [k: string]: unknown;
@@ -754,11 +1138,23 @@ export interface ScatterSeries {
    */
   group_name?: string | null;
   /**
+   * 标签摆放方式：`"nudge"`（默认）/ `"exact"` / `"repel"` / `{"offset_x":…, "offset_y":…}`。
+   */
+  label_style?: LabelStyleSpec | null;
+  /**
+   * 逐点文字标签（按位置对应 `data`，空字符串表示该点不标）。比 `data` 短时多出来的点不标。
+   *
+   * Per-point text labels, aligned to `data` by index (an empty string leaves that point
+   * unlabelled). Points past the end of the list are left unlabelled.
+   */
+  labels?: string[] | null;
+  /**
    * 图例条目文字。给了才会在图例里出现。
    */
   legend?: string | null;
   /**
-   * marker 形状：`"circle"` / `"square"` / `"triangle"` / `"diamond"` / `"cross"` / `"plus"`。
+   * marker 形状：`"circle"` / `"square"` / `"triangle"` / `"triangle_down"` / `"diamond"` /
+   * `"cross"` / `"plus"` / `"star"` / `"pentagon"` / `"hexagon"`（共 10 种）。
    */
   marker?: MarkerSpec | null;
   marker_opacity?: number | null;
@@ -818,17 +1214,23 @@ export interface ErrArms {
 export interface TrendDetailed {
   color?: string | null;
   /**
-   * 在图上标出相关系数。
+   * 在图上标出相关系数（仅 `linear` 有意义）。
    */
   correlation?: boolean | null;
   /**
-   * 在图上标出回归方程。
+   * 在图上标出回归方程（仅 `linear` 有意义）。
    */
   equation?: boolean | null;
   /**
+   * LOESS 的带宽（点比例，0.05–1）；仅 `type: "loess"` 用。缺省 0.5。
+   *
+   * The LOESS bandwidth (fraction of points, 0.05–1); only used by `type: "loess"`. Default 0.5.
+   */
+  span?: number | null;
+  /**
    * JSON 键是 `type`（Rust 关键字，故字段另取名）。
    */
-  type: "linear";
+  type: "linear" | "loess";
   width?: number | null;
   [k: string]: unknown;
 }
@@ -953,6 +1355,12 @@ export interface BarGroupSpec {
  * 直方图：给 `values` 自动分箱（`bins` / `range` 可选），或给 `edges` + `counts` 直接喂分箱结果。
  */
 export interface HistogramSeries {
+  /**
+   * 按数据自动决定箱数的规则，**覆盖** `bins`。
+   *
+   * Pick the bin count from the data, overriding `bins`.
+   */
+  bin_method?: BinMethodKind | null;
   bins?: number | null;
   /**
    * 主色（CSS 颜色字符串）。
@@ -962,6 +1370,12 @@ export interface HistogramSeries {
    * 预分箱的计数。
    */
   counts?: number[] | null;
+  /**
+   * 累积计数：每个箱包含它左边的一切（matplotlib `cumulative=True`）。
+   *
+   * Accumulate counts left-to-right (matplotlib `cumulative=True`).
+   */
+  cumulative?: boolean | null;
   /**
    * 数据集名 —— `kuva_render` 第二个参数（数据集注册表）里的键。给了它，这个 series 的数据字段就由该数据集按 `encode` 填出来，与内联数据二选一。
    */
@@ -976,6 +1390,12 @@ export interface HistogramSeries {
   encode?: {
     [k: string]: string;
   } | null;
+  /**
+   * 额外的数据序列，画在主序列之上（见 `stacked`）。
+   *
+   * Extra series drawn on top of the primary one (see `stacked`).
+   */
+  groups?: HistGroupSpec[] | null;
   /**
    * 叠加 KDE 曲线。
    */
@@ -997,6 +1417,18 @@ export interface HistogramSeries {
    */
   range?: [unknown, unknown] | null;
   /**
+   * 把 `groups` 逐箱堆叠起来，而不是从同一基线叠加（seaborn `multiple='stack'`）。
+   *
+   * Stack `groups` per bin instead of overlaying them from a shared baseline.
+   */
+  stacked?: boolean | null;
+  /**
+   * 阶梯轮廓：只画箱的描边、不填色（matplotlib `histtype='step'`）。多条序列叠加时更清爽。
+   *
+   * Outline-only staircase (matplotlib `histtype='step'`), which keeps overlaid series readable.
+   */
+  step?: boolean | null;
+  /**
    * 每个数据点的提示文字。
    */
   tooltip_labels?: string[] | null;
@@ -1006,6 +1438,27 @@ export interface HistogramSeries {
   tooltips?: boolean | null;
   type: "histogram";
   values?: number[] | null;
+  /**
+   * 逐样本权重（matplotlib `weights=`），长度须与 `values` 一致。
+   *
+   * Per-sample weights (matplotlib `weights=`); the length must match `values`.
+   */
+  weights?: number[] | null;
+  [k: string]: unknown;
+}
+/**
+ * 直方图里的一条附加序列。
+ */
+export interface HistGroupSpec {
+  /**
+   * 缺省按调色板轮换取色。
+   */
+  color?: string | null;
+  data: number[];
+  /**
+   * 图例文字；不给就不进图例。
+   */
+  label?: string | null;
   [k: string]: unknown;
 }
 /**
@@ -1406,6 +1859,14 @@ export interface StripSeries {
     [k: string]: string;
   } | null;
   groups: StripGroupSpec[];
+  /**
+   * 横向摆放：类别在 Y 轴、数值在 X 轴（seaborn `orient='h'`、ggplot2 `coord_flip`）。
+   * 抖动 / 蜂群在每一行内**纵向**散开。
+   *
+   * Horizontal orientation: categories on Y, values on X. Jitter and swarm spread vertically
+   * within each row.
+   */
+  horizontal?: boolean | null;
   /**
    * 图例条目文字。给了才会在图例里出现。
    */
@@ -2157,9 +2618,28 @@ export interface SurvivalSeries {
   legend?: string | null;
   line_width?: number | null;
   /**
-   * 在图上写一行文字（典型是 log-rank 的 p 值；kuva 不代算，得自己算好传进来）。
+   * 从原始数据算 log-rank 检验的 p 值并标注（两组用精确 Mantel-Haenszel，3 组以上用
+   * `Σ (O−E)²/E` 近似）。打开时覆盖 `pvalue_text`。
+   *
+   * Compute and annotate the log-rank p-value from the raw data; overrides `pvalue_text`.
+   */
+  logrank_pvalue?: boolean | null;
+  /**
+   * 画中位生存期的虚线参考线（survminer `surv.median.line`）。
+   *
+   * Draw dashed median-survival reference lines.
+   */
+  median_lines?: boolean | null;
+  /**
+   * 在图上写一行文字（典型是 log-rank 的 p 值；`logrank_pvalue` 打开时由 kuva 自己算，覆盖这里）。
    */
   pvalue_text?: string | null;
+  /**
+   * 在图下方画一张 number-at-risk 表（每行一组，在各 x 刻度处给剩余人数）。底边距由 kuva 自动预留。
+   *
+   * Draw a number-at-risk table below the plot (one row per group, counts at each x tick).
+   */
+  risk_table?: boolean | null;
   /**
    * 每个数据点的提示文字。
    */
@@ -2219,9 +2699,9 @@ export interface VolcanoSeries {
    */
   fc_cutoff?: number | null;
   /**
-   * 标签避让方式：`"nudge"`（默认）/ `"exact"` / `{"offset_x":…, "offset_y":…}`。
+   * 标签避让方式：`"nudge"`（默认）/ `"exact"` / `"repel"` / `{"offset_x":…, "offset_y":…}`。
    */
-  label_style?: VolcanoLabelSpec | null;
+  label_style?: LabelStyleSpec | null;
   /**
    * 标出最显著的多少个点（`0` = 全不标）。
    */
@@ -4345,7 +4825,7 @@ export interface ManhattanSeries {
    * 全基因组显著性线（`-log10(p)`）。
    */
   genome_wide?: number | null;
-  label_style?: VolcanoLabelSpec | null;
+  label_style?: LabelStyleSpec | null;
   /**
    * 标出最显著的多少个点（`0` = 全不标）。
    */
@@ -4620,6 +5100,34 @@ export interface BrickSeries {
    */
   anchor?: BrickAnchorKind | null;
   /**
+   * 覆盖 CIGAR 各操作的配色（未给的操作沿用 kuva 的默认色）。
+   *
+   * Override CIGAR operation colours; unset ops keep kuva's defaults.
+   */
+  cigar_colors?: {
+    [k: string]: string;
+  } | null;
+  /**
+   * 把相邻且 CIGAR 相同的行合并成一条 bar（默认开）。
+   *
+   * Collapse consecutive rows sharing a CIGAR into one bar (default on).
+   */
+  cigar_dedup?: boolean | null;
+  /**
+   * 给合并后的每一段在左侧沟槽里标 `xN` 计数（默认开）。
+   *
+   * Bracket each deduped run with an `xN` count in the gutter (default on).
+   */
+  cigar_run_bracket?: boolean | null;
+  /**
+   * 逐行的 CIGAR（与画出来的行等长，`null` 表示该行不画）。长度必须是该行**画出的全部碱基**
+   * （含两侧翼），即 kuva 的 `row_base_len`。
+   *
+   * Per-row CIGAR (same length as the drawn rows; `null` draws no bar for that row). It must
+   * cover **every base the row draws**, flanks included.
+   */
+  cigars?: (string | null)[] | null;
+  /**
    * 把哪一行当共识序列（`0` 起）。
    */
   consensus_row?: number | null;
@@ -4643,6 +5151,14 @@ export interface BrickSeries {
    */
   mark_primary?: boolean | null;
   /**
+   * 纵向参考线（引物边界、变异位点…），画在所有行上，坐标是砖墙自己的参考坐标（受
+   * `x_offset` / `x_origin` 影响）。只接受竖直方向。
+   *
+   * Vertical reference lines across every row, in the brick's own reference coordinates (so
+   * `x_offset` / `x_origin` apply). Vertical only.
+   */
+  marker_lines?: ReferenceLineSpec[];
+  /**
    * 每行的名字，长度应与生效的那一份数据（`strigars` 优先，否则 `sequences`）一致。
    */
   names?: string[] | null;
@@ -4662,6 +5178,14 @@ export interface BrickSeries {
    * 标出序列里的字符。
    */
   show_values?: boolean | null;
+  /**
+   * 行排序：`"none"`（默认）/ `"cigar"`（把相同 CIGAR 归到一起，去重后 bar 最少），
+   * 或 `{"custom": [2, 0, 1]}` 给出外部算好的行序。
+   *
+   * Row order: `"none"` (default) / `"cigar"`, or `{"custom": [...]}` for an externally computed
+   * ranking.
+   */
+  sort?: BrickSortSpec | null;
   /**
    * 逐行的参考起点（基因组坐标）；kuva 内部就是 `x_offsets` 取负，用来表达「各行从参考上的
    * 哪个位置开始」而不是「跳过多少个字符」。与 `x_offsets` 只能给一个。
@@ -4692,15 +5216,6 @@ export interface BrickSeries {
    * 坐标原点。
    */
   x_origin?: number | null;
-  [k: string]: unknown;
-}
-/**
- * 自定义「字符 -> 颜色」的映射。
- */
-export interface BrickColors {
-  colors: {
-    [k: string]: string;
-  };
   [k: string]: unknown;
 }
 /**
@@ -5687,25 +6202,6 @@ export interface StatsBoxSpec {
    * 粗体标题。
    */
   title?: string | null;
-  [k: string]: unknown;
-}
-/**
- * 用 Box 装：`ThemeCustom` 有十几个字段，直接内联会让这个枚举的每个值都带上那份体积。
- */
-export interface ThemeCustom {
-  axis_color?: string | null;
-  background?: string | null;
-  box_median?: string | null;
-  colorbar_border?: string | null;
-  font_family?: string | null;
-  grid_color?: string | null;
-  legend_bg?: string | null;
-  legend_border?: string | null;
-  pie_leader?: string | null;
-  show_grid?: boolean | null;
-  text_color?: string | null;
-  tick_color?: string | null;
-  violin_border?: string | null;
   [k: string]: unknown;
 }
 export interface TitleFull {

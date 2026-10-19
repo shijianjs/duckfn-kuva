@@ -164,7 +164,7 @@ FROM (
 | `color_a` / `color_b` | string | 染色体交替的两种颜色。 |
 | `point_size` | number | 圆点半径（像素，默认 `2.5`）。 |
 | `label_top` | integer | 给全基因组线以上最显著的 *n* 个点加标签。 |
-| `label_style` | string \| object | `"nudge"`（默认）· `"exact"` · `{offset_x, offset_y}`。 |
+| `label_style` | string \| object | `"nudge"`（默认）· `"exact"` · `"repel"` · `{offset_x, offset_y}`。 |
 | `pvalue_floor` | number | `−log10` 变换时 p 值的显式下限。 |
 | `legend` | string | 任一非空值就打开阈值图例。 |
 

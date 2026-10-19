@@ -2,10 +2,10 @@
 name = "duckfn_kuva"
 version = "0.2.1-dev.0"
 edition = "2024"
-# kuva 0.5 的 MSRV 是 1.87，把模板原本的 1.86 下限抬上去了（它的 `pdf` feature 还要求 1.92，但本扩展
+# kuva 0.6 的 MSRV 仍是 1.87，把模板原本的 1.86 下限抬上去了（它的 `pdf` feature 还要求 1.92，但本扩展
 # 只用默认的 SVG 后端，不打开 pdf/full，故不跟）。
 #
-# kuva 0.5's MSRV is 1.87, lifting the template's 1.86 floor (its `pdf` feature needs 1.92, but this
+# kuva 0.6's MSRV is still 1.87, lifting the template's 1.86 floor (its `pdf` feature needs 1.92, but this
 # extension only uses the default SVG backend and never enables pdf/full).
 rust-version = "1.88"
 # 这是 DuckDB 的 loadable extension（靠 GitHub Release 上的 .duckdb_extension 分发，
@@ -157,7 +157,7 @@ libduckdb-sys = { version = ">=1.10500, <2", features = ["loadable-extension"] }
 # dependencies are just chrono / colorous / ryu, pure Rust and wasm-buildable, which is exactly the shape
 # "every platform + browser DuckDB-Wasm" needs. `png` / `pdf` / `full` / `cli` / `parquet` all pull in
 # heavy dependencies (fontdue, png, krilla, arrow — and pdf even needs Rust>=1.92); none is enabled here.
-kuva = "0.5"
+kuva = "0.6"
 
 # serde / serde_json：JSON 入口那一版 API 的地基 —— 把一段 JSON 反序列化成强类型结构
 # （「Jackson 到对象」的映射，见 src/extension/functions/spec/schema/），而不是拿字符串 key 去

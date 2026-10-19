@@ -97,6 +97,38 @@ FROM (
 );
 ```
 
+## Horizontal orientation
+
+`horizontal` swaps the axes: categories run down the y-axis and values along x (seaborn `orient='h'`,
+ggplot2 `coord_flip`). Jitter and swarm spread **vertically** within each row. It completes the
+horizontal set alongside [box](./box.md) and [violin](./violin.md), so a box + strip pair can both be
+flipped together.
+
+```sql {"type":"duckfn","show":"svg"}
+SELECT kuva_render(to_json({
+  'title': 'Horizontal strip plot',
+  'x_axis': {'name': 'expression'},
+  'y_axis': {'name': 'group'},
+  'series': [{
+    'type': 'strip',
+    'groups': groups,
+    'style': 'swarm',
+    'point_size': 3,
+    'marker_opacity': 0.6,
+    'horizontal': true,
+    'color': 'steelblue'
+  }]
+})) AS chart
+FROM (
+  SELECT list({'label': g, 'values': vals} ORDER BY g) AS groups
+  FROM (
+    SELECT "group" AS g, list(expression) AS vals
+    FROM read_csv_auto('{{DFK_BASE_URL}}data/samples.tsv')
+    GROUP BY "group"
+  )
+);
+```
+
 ## Combining with a box plot
 
 A `strip` and a `box` series in the same `series` list share the axes, and the points are drawn on top of
@@ -227,6 +259,7 @@ FROM (
 | `seed` | integer | RNG seed for the jitter positions (default `42`) — keeps output reproducible. |
 | `marker_opacity` | number | Fill alpha: `0` is hollow, `1` solid. |
 | `marker_stroke_width` | number | Outline width, drawn in the fill colour. |
+| `horizontal` | boolean | Categories on the y-axis, values on x; jitter/swarm spread vertically. |
 
 `color` and `legend` come from [series & shared fields](../../reference/series.md).
 

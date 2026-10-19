@@ -326,12 +326,43 @@ pub(crate) enum PaletteKind {
     Category10,
     Pastel,
     Bold,
+    // ---- LTC（kuva 0.6 起）----
+    // 15 组精选定性调色板，来自 loukesio/ltc-color-palettes（MIT）。名字就是 kuva 的调色板名
+    // （snake_case）；kuva CLI 上那个 `ltc-` 前缀是 CLI 的命名习惯，JSON 侧不收 —— 生成出来的
+    // JSON Schema / SDK 类型里也不会有别名。
+    //
+    // The 15 curated qualitative palettes from loukesio/ltc-color-palettes (MIT). The names are
+    // kuva's own palette names in snake_case; the CLI's `ltc-` prefix is a CLI convention and is not
+    // accepted here, so the generated JSON Schema / SDK types carry no aliases either.
+    Paloma,
+    Maya,
+    Dora,
+    Ploen,
+    Olga,
+    // `rename` 是必要的：`rename_all` 会把 `MTerese` 切成 `m_terese`，而 kuva 的名字是 `mterese`。
+    #[serde(rename = "mterese")]
+    MTerese,
+    Franscoise,
+    Fernande,
+    Sylvie,
+    Expevo,
+    Minou,
+    Alger,
+    Seafarer,
+    Luminaries,
+    CasaNatal,
 }
 
 #[derive(Debug, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub(crate) struct FontSpec {
     pub family: Option<String>,
+    /// 刻度标签单独用的字体族（与标题、轴名、图例分开）。等宽字体让数字按列对齐；
+    /// 缺省沿用 `family`。
+    ///
+    /// The font family for tick labels only, separate from titles, axis labels and legends.
+    /// A monospace face keeps digits in a column; defaults to `family`.
+    pub tick_family: Option<String>,
     pub title_size: Option<u32>,
     pub label_size: Option<u32>,
     pub tick_size: Option<u32>,

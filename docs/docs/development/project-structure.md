@@ -15,9 +15,10 @@ src/bin/json_schema.rs JSON Schema generator ->  #[path] mod extension; + schema
                        (only built with the json-schema feature, see below)
 
 src/extension/functions/
-    mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_file; mod spec;
+    mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_typst; mod kuva_render_file; mod spec;
     kuva_render.rs     kuva_render(json[, data]) -> SVG: the JSON entry point
     kuva_render_terminal.rs  the same spec rendered as terminal text
+    kuva_render_typst.rs     the same spec rendered as Typst source (a .typ CETZ document)
     kuva_render_file.rs      the same spec written to an SVG file (native builds only)
     spec/mod.rs        render_json: parse the JSON and render it
     spec/schema/       the JSON schema as serde types (panel / style / series)

@@ -15,9 +15,13 @@
       `Scene`，所以 JSON 里用顶层 `composite` 对象（与 `series` / `figure` 互斥），见
       `spec/schema/composite.rs`、`spec/convert/composite.rs` 与
       `docs/user-guide/reference/composites.md`。它们不吃 `dataset` / `encode`（那套是绑到 series 上的）。
-- [ ] **`typst-math` / `TypstBackend` 不跟进**：两者都是 opt-in feature，`typst-math` 会拉进约 200 个
-      crate 并要求 Rust ≥ 1.89；`TypstBackend` 只产出 `.typ`（由外部 `typst compile` 编译），
-      与「SQL 里直接拿到 SVG」的产品形态不合。`$...$` 在内联 Unicode 那一档（默认行为）照旧可用。
+- [x] **`TypstBackend` 跟进了（`kuva_render_typst`）**：它是 `typst` feature，**零依赖**、纯字符串拼装，
+      把同一段 JSON 落成一份 `.typ`（CETZ 矢量图），由调用方 `typst compile`。原来「与产品形态不合」的
+      判断只对「SQL 里直接拿到图像」成立 —— 但要放进更大的 Typst 文档、或想手改源码时，它就是对的工具。
+      文档见 `docs/user-guide/reference/typst.md`。
+- [ ] **`typst-math` 仍不开（待定）**：它把整个 Typst 编译器（约两百个 crate）链进来，只为把 `$...$`
+      就地排成矢量数学公式。默认那档已经把 `$...$` 降级成全平台通用的内联 Unicode，`kuva_render_typst`
+      则把公式原样交给 Typst 自己排。是否值得那份产物体积见下面「typst-math 体积实验」。
 - [ ] **`kuva coverage` / `brick-pop` 的 CLI 专属开关不跟进**：例如 `--min-coverage` 的多值重复写法、
       `--emit-code`。前者在 JSON 里就是 `coverage_thresholds` 数组，后者对组合图本来就不适用
       （官方明说 `--emit-code` 不覆盖组合图）。

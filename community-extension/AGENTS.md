@@ -14,7 +14,8 @@
 
 `description.yml` 的 `extension.description` / `maintainers` / `repo.github` 与 `docs.hello_world` /
 `docs.extended_description` 都已按本扩展的真实 API（`kuva_render` / `kuva_render_terminal` /
-`kuva_render_file`）写好，改 API 时跟着改 —— 改了 `hello_world` / `extended_description`，或改了函数
+`kuva_render_typst` / `kuva_render_file`）写好，改 API 时跟着改 —— 改了 `hello_world` /
+`extended_description`，或改了函数
 属性上的 description / example，都要重生成 `docs/function_descriptions.csv`（见下面「那份 CSV 是必须的」），
 并**真跑一遍** `hello_world`：它渲染进社区文档页的代码块，写歪了不会有人报错。
 

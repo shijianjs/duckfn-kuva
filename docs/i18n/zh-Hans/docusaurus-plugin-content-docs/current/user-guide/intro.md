@@ -11,12 +11,13 @@ description: duckfn_kuva 给 DuckDB 加了什么，以及怎么开始用。
 加了一批 SQL 函数，加载之后它们和 DuckDB 自带的函数没有区别。你不需要知道它是怎么写出来的，也不用编译
 任何东西 —— CLI、Python / R 会话与浏览器里的构建接受的都同一份 `.duckdb_extension` 文件。
 
-它加了三个函数：
+它加了这些函数：
 
 | 函数 | 类别 | 作用 |
 | --- | --- | --- |
 | [`kuva_render(json)`](./functions.md#kuva_render) | 标量 | 把一段 JSON 描述的图表渲染成一份 SVG 文档。 |
 | [`kuva_render_terminal(json)`](./functions.md#kuva_render_terminal) | 标量 | 把同一段 JSON 渲染成终端文本（盲文点阵 + ANSI 色）。 |
+| [`kuva_render_typst(json)`](./functions.md#kuva_render_typst) | 标量 | 把同一段 JSON 渲染成 Typst 源码 —— 一份交给 `typst compile` 的 `.typ` 文档。 |
 | [`kuva_render_file(json)`](./functions.md#kuva_render_file) | 标量 | 把同一段 JSON 写成 SVG 文件并返回路径；仅原生构建。 |
 | [`kuva_version()`](./functions.md#kuva_version) | 标量 | 本扩展编译时链接的 kuva 版本。 |
 

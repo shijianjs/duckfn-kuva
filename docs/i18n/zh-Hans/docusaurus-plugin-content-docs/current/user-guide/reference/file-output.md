@@ -76,6 +76,6 @@ SELECT kuva_render_file('{"file":{"dir":"/tmp/charts","open":true},
 
 ## 另见
 
-- [函数](../functions.md) —— `kuva_render`、`kuva_render_terminal` 与 `kuva_render_file` 并列。
+- [函数](../functions.md) —— `kuva_render`、`kuva_render_terminal`、`kuva_render_typst` 与 `kuva_render_file` 并列。
 - [终端输出](./terminal.md) —— 另一个非 SVG 的后端。
 - [kuva — Save / export](https://psy-fer.github.io/kuva/) —— 本扩展包装的那个库。

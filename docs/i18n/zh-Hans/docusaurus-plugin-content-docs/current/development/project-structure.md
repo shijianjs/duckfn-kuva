@@ -15,9 +15,10 @@ src/bin/json_schema.rs JSON Schema 生成器 ->  #[path] mod extension; + schema
                        （只有打开 json-schema feature 才编，见下）
 
 src/extension/functions/
-    mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_file; mod spec;
+    mod.rs             mod kuva_render; mod kuva_render_terminal; mod kuva_render_typst; mod kuva_render_file; mod spec;
     kuva_render.rs     kuva_render(json[, data]) -> SVG：JSON 入口
     kuva_render_terminal.rs  同一段规格渲染成终端文本
+    kuva_render_typst.rs     同一段规格渲染成 Typst 源码（一份 .typ 的 CETZ 文档）
     kuva_render_file.rs      同一段规格写成 SVG 文件（仅原生构建）
     spec/mod.rs        render_json：解析 JSON 并渲染
     spec/schema/       JSON 的 schema，一组 serde 类型（面板 / 外观 / series）

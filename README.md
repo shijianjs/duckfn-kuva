@@ -50,6 +50,7 @@ extension already loaded).
 | --- | --- | --- |
 | `kuva_render(spec)` | scalar | `VARCHAR` (a JSON chart spec) → `VARCHAR` (an SVG document) |
 | `kuva_render_terminal(spec)` | scalar | `VARCHAR` → `VARCHAR` (terminal text: braille dots and ANSI colour) |
+| `kuva_render_typst(spec)` | scalar | `VARCHAR` → `VARCHAR` (Typst source — a CETZ vector drawing for `typst compile`) |
 | `kuva_render_file(spec)` | scalar | `VARCHAR` → `VARCHAR` (the path of the SVG file it wrote; native builds only) |
 
 Each of them also takes an **optional second argument**: a JSON object mapping dataset names to arrays of
@@ -73,10 +74,11 @@ returning NULL:
 Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 categories
 ```
 
-`kuva_render_terminal` renders the same JSON for a terminal instead of an SVG document, and
-`kuva_render_file` writes the SVG to a file and returns its path, optionally opening it in a browser.
-Both keep their own options in the JSON (`terminal` and `file` objects respectively), so each stays a
-single-argument function:
+`kuva_render_terminal` renders the same JSON for a terminal instead of an SVG document, `kuva_render_typst`
+returns it as Typst source (a `.typ` document you compile with `typst compile`), and `kuva_render_file`
+writes the SVG to a file and returns its path, optionally opening it in a browser. `kuva_render_terminal`
+and `kuva_render_file` keep their own options in the JSON (`terminal` and `file` objects respectively);
+`kuva_render_typst` has none, so all of them stay single-argument functions:
 
 ```sql
 SELECT kuva_render_file({

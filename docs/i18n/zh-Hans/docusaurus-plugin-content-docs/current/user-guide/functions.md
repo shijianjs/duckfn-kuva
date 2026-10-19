@@ -6,14 +6,15 @@ description: duckfn_kuva 注册的 SQL 函数，以及 JSON 图表规格的分�
 
 # 函数
 
-加载扩展会注册四个函数 —— 一个返回 SVG，一个返回终端文本，一个把 SVG 写成文件并返回路径，还有一个报告
-kuva 版本。它们和 DuckDB 自带的函数一样用：可以放进投影、`WHERE` 条件或 `GROUP BY`，也能和内置函数随意
-组合。
+加载扩展会注册五个函数 —— 一个返回 SVG，一个返回终端文本，一个返回 Typst 源码，一个把 SVG 写成文件并
+返回路径，还有一个报告 kuva 版本。它们和 DuckDB 自带的函数一样用：可以放进投影、`WHERE` 条件或
+`GROUP BY`，也能和内置函数随意组合。
 
 | 函数 | 类别 | 签名 | 说明 |
 | --- | --- | --- | --- |
 | `kuva_render` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把一段 JSON 描述的图表渲染成一份 SVG 文档。可选的第二个参数是一份 JSON 数据集注册表。 |
 | `kuva_render_terminal` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成终端文本 —— 盲文点阵 + ANSI 色；网格与 `print` 开关都在 JSON 里带着。 |
+| `kuva_render_typst` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成 Typst 源码 —— 一份 `.typ` 文档（CETZ 矢量图），交给 `typst compile`。 |
 | `kuva_render_file` | 标量 | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 把同一段 JSON 渲染成一份 SVG **文件**并返回它的路径，可选用浏览器打开。只有原生构建支持；目录、文件名与 `open` 开关都在 JSON 里带着。 |
 | `kuva_version` | 标量 | `() -> VARCHAR` | 本扩展编译时链接的 kuva 版本（例如 `0.6.0`）。 |
 
@@ -91,6 +92,30 @@ SELECT kuva_render_terminal(to_json({
 伸手去用之前有两件事值得知道：终端是暗的，所以这个入口在没有指定主题时用 `dark` 主题渲染（默认主题的近黑文字
 在近黑背景上等于没有）；以及 `print` 之所以存在，是因为在 DuckDB CLI 里把一个**字符串列**弄到控制台上很别扭，
 而打印是随手的。见[终端输出](./reference/terminal.md)。
+
+## kuva_render_typst
+
+```text
+kuva_render_typst(spec_json VARCHAR) -> VARCHAR
+kuva_render_typst(spec_json VARCHAR, data_json VARCHAR) -> VARCHAR
+```
+
+同一段 JSON，第三个后端：不再是 SVG，而是 **Typst 源码** —— 一份完整的 `.typ` 文档，含页面设置、
+`@preview/cetz` 的导入，图本身用 CETZ 的原语画出来：
+
+```sql
+-- 把源码写出来，再交给 Typst 工具链编译
+COPY (SELECT kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}'))
+  TO 'chart.typ';
+-- shell> typst compile chart.typ        -> chart.pdf，或 chart.svg / chart.png
+```
+
+kuva 不内嵌 Typst 编译器（这个后端纯是字符串拼装），所以把源码变成 PDF / SVG / PNG 是你自己另跑的一步
+`typst compile`。它恰好适合这种场景：图要放进一份更大的 Typst 文档，或者想拿源码来手改。其余情况交给
+`kuva_render`，它在扩展内部就把 SVG 画好，不需要额外装任何东西。
+
+这个入口**没有自己的选项对象** —— kuva 的 `TypstBackend` 目前只认一个固定的 CETZ 版本、没有可配置项 ——
+所以它保持单参数（外加可选的数据集参数）。见 [Typst 输出](./reference/typst.md)。
 
 ## kuva_render_file
 

@@ -1,12 +1,12 @@
 ---
 title: 数据集（配置与数据分离）
-sidebar_position: 18
+sidebar_position: 19
 description: "渲染函数的可选第二个参数 —— 一份具名数据集的 JSON 注册表 —— 以及系列用来把数据集的列接到图表上的 `dataset` / `encode` 字段。"
 ---
 
 # 数据集（配置与数据分离）
 
-`kuva_render`、`kuva_render_terminal`、`kuva_render_file` 都有一个**可选的第二个参数**：一个 JSON
+`kuva_render`、`kuva_render_terminal`、`kuva_render_typst`、`kuva_render_file` 都有一个**可选的第二个参数**：一个 JSON
 对象，把**数据集名**映射到行数组。系列用 `dataset` 挑数据集、用 `encode` 把数据集的列接到自己的数据
 字段上 —— 于是图表的**配置**与**数据**各走各的。
 

@@ -21,17 +21,18 @@ flowchart LR
 
 ## 这几个函数
 
-三个标量函数，各占 `src/extension/functions/` 下的一个文件。它们收的是同一段 JSON 规格，区别只在拿到
+四个标量函数，各占 `src/extension/functions/` 下的一个文件。它们收的是同一段 JSON 规格，区别只在拿到
 渲染结果之后做什么：
 
 | 函数 | 签名 | 行为 |
 | --- | --- | --- |
 | `kuva_render` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 解析一段 JSON 图表规格并返回 SVG 文档；永不为 NULL，任何失败都是报错。 |
 | `kuva_render_terminal` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 同一段规格渲染成终端文本（盲文点阵 + ANSI 色）。 |
+| `kuva_render_typst` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 同一段规格渲染成 Typst 源码（一份交给 `typst compile` 的 `.typ` CETZ 文档）。 |
 | `kuva_render_file` | `VARCHAR -> VARCHAR`、`VARCHAR, VARCHAR -> VARCHAR` | 同一段规格写成 SVG 文件并返回路径；仅原生构建。 |
 
 每个都是一层薄壳：把入参交给 `spec` 模块，由后者解析 JSON 并渲染。图表的 schema 与到 kuva 的翻译都在
-`src/extension/functions/spec/` 下，三个函数共用。
+`src/extension/functions/spec/` 下，四个函数共用。
 
 每个名字下的第二个签名来自 `overloads_name`（见下面的[命名](#命名)）：两参数那种把一份 JSON **数据集
 注册表**当作第二个字符串收进来，这样宿主 SDK 造图表配置、SQL 造数据，两边都不必知道对方的形状。

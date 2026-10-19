@@ -1,12 +1,12 @@
 ---
 title: Datasets (config and data apart)
-sidebar_position: 18
+sidebar_position: 19
 description: "The optional second argument of the render functions — a JSON registry of named datasets — and the `dataset` / `encode` fields a series uses to map its columns onto the chart."
 ---
 
 # Datasets (config and data apart)
 
-`kuva_render`, `kuva_render_terminal` and `kuva_render_file` each take an **optional second argument**: a
+`kuva_render`, `kuva_render_terminal`, `kuva_render_typst` and `kuva_render_file` each take an **optional second argument**: a
 JSON object that maps **dataset names** to arrays of rows. A series then names a dataset with `dataset`
 and maps its columns onto its own data fields with `encode` — so the chart *config* and the *data* travel
 separately.

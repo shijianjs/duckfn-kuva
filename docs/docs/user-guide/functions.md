@@ -6,15 +6,16 @@ description: The SQL function duckfn_kuva registers, and how the JSON chart spec
 
 # Functions
 
-Loading the extension registers four functions — one that returns SVG, one that returns terminal text,
-one that writes an SVG file and returns its path, and one that reports the kuva version. All behave like
-DuckDB's own: use them in a projection, a `WHERE` clause or a `GROUP BY`, and they combine with built-in
-functions freely.
+Loading the extension registers five functions — one that returns SVG, one that returns terminal text, one
+that returns Typst source, one that writes an SVG file and returns its path, and one that reports the kuva
+version. All behave like DuckDB's own: use them in a projection, a `WHERE` clause or a `GROUP BY`, and they
+combine with built-in functions freely.
 
 | Function | Kind | Signature | Summary |
 | --- | --- | --- | --- |
 | `kuva_render` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders a chart described by a JSON string and returns it as an SVG document. The optional second argument is a JSON dataset registry. |
 | `kuva_render_terminal` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders the same JSON as terminal text — braille dots and ANSI colour. The grid and the `print` switch ride along in the JSON. |
+| `kuva_render_typst` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders the same JSON as Typst source — a `.typ` document (a CETZ vector drawing) for `typst compile`. |
 | `kuva_render_file` | scalar | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Renders the same JSON to an SVG **file** and returns its path, optionally opening it in a browser. Native builds only; the directory, file name and `open` switch ride along in the JSON. |
 | `kuva_version` | scalar | `() -> VARCHAR` | The kuva version this extension was compiled against (e.g. `0.6.0`). |
 
@@ -99,6 +100,32 @@ Two things worth knowing before you reach for it: a terminal is a dark surface, 
 with the `dark` theme unless the spec asks for another (the default theme's near-black text disappears on a
 near-black frame); and `print` exists because getting a *string column* onto a console in the DuckDB CLI is
 awkward, while printing is trivial. See [Terminal output](./reference/terminal.md).
+
+## kuva_render_typst
+
+```text
+kuva_render_typst(spec_json VARCHAR) -> VARCHAR
+kuva_render_typst(spec_json VARCHAR, data_json VARCHAR) -> VARCHAR
+```
+
+The same JSON, a third backend: instead of SVG you get **Typst source** — a complete `.typ` document with a
+page setup, an `@preview/cetz` import and the figure drawn with CETZ primitives:
+
+```sql
+-- write the source out and compile it with the Typst toolchain
+COPY (SELECT kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}'))
+  TO 'chart.typ';
+-- shell> typst compile chart.typ        -> chart.pdf, or chart.svg / chart.png
+```
+
+kuva does not embed a Typst compiler — this backend is pure string emission — so turning the source into a
+PDF, SVG or PNG is a separate `typst compile` you run yourself. That is exactly when it is the right tool: a
+figure destined for a larger Typst document, or one whose source you want to hand-edit. For everything
+else, `kuva_render` draws the SVG inside the extension with nothing extra to install.
+
+This entry point has **no options object of its own** — kuva's `TypstBackend` currently pins a single CETZ
+version and exposes nothing configurable — so it stays at one argument (plus the optional dataset
+argument). See [Typst output](./reference/typst.md).
 
 ## kuva_render_file
 

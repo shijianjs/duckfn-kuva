@@ -22,18 +22,19 @@ flowchart LR
 
 ## The functions
 
-Three scalar functions, one file each under `src/extension/functions/`. All of them take the same JSON
+Four scalar functions, one file each under `src/extension/functions/`. All of them take the same JSON
 spec and differ only in what they do with the rendered scene:
 
 | Function | Signature | Behaviour |
 | --- | --- | --- |
 | `kuva_render` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | Parses a JSON chart spec and returns an SVG document; never NULL, and any failure is an error. |
 | `kuva_render_terminal` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | The same spec rendered as terminal text (braille dots and ANSI colour). |
+| `kuva_render_typst` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | The same spec rendered as Typst source (a `.typ` CETZ document for `typst compile`). |
 | `kuva_render_file` | `VARCHAR -> VARCHAR`, `VARCHAR, VARCHAR -> VARCHAR` | The same spec written to an SVG file, returning the path. Native builds only. |
 
 Each is a thin shell: it hands its arguments to the `spec` module, which parses the JSON and renders
 it. The chart schema and the translation into kuva live under `src/extension/functions/spec/` and are
-shared by all three.
+shared by all four.
 
 The second signature under each name comes from `overloads_name` (see [Names](#names)): the
 two-argument form takes a JSON **dataset registry** as a second string, so a host SDK can build the

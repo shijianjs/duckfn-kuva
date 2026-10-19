@@ -38,6 +38,7 @@ pub(crate) mod schema;
 
 use std::io::Write;
 
+use kuva::TypstBackend;
 use kuva::backend::terminal::TerminalBackend;
 use kuva::prelude::SvgBackend;
 use kuva::render::render::Scene;
@@ -130,6 +131,29 @@ pub(crate) fn render_terminal_json_with(
     Ok(TerminalRender::Text(text))
 }
 
+/// 同一段 JSON，用 **Typst** 后端渲染：一份 `.typ` 源码（CETZ 矢量图）。
+///
+/// kuva 的 `TypstBackend` 只产字符串、不内嵌 Typst 编译器（`typst` feature 零依赖），所以这份源码
+/// 要由调用方自己 `typst compile` 落成 PDF / SVG / PNG。Scene 与 SVG / 终端是同一棵，只是最后一步
+/// 换成另一个后端。
+///
+/// The same JSON rendered by the **Typst** backend: a `.typ` source document (CETZ vector drawing).
+/// kuva's `TypstBackend` only emits text and does not embed a Typst compiler (the `typst` feature has
+/// zero dependencies), so the caller runs `typst compile` to turn it into PDF / SVG / PNG. The `Scene`
+/// is the same tree the SVG and terminal backends consume; only the last step differs.
+pub(crate) fn render_typst_json(json: &str) -> Result<String, String> {
+    render_typst_json_with(json, None)
+}
+
+/// 同上，但带上第二个参数（数据集注册表）—— `kuva_render_typst(json, data_json)` 走这里。
+///
+/// The same, with the second argument (the dataset registry) — this is what
+/// `kuva_render_typst(json, data_json)` calls.
+pub(crate) fn render_typst_json_with(json: &str, data_json: Option<&str>) -> Result<String, String> {
+    let scene = render_scene(json, data_json)?;
+    Ok(TypstBackend::default().render_scene(&scene))
+}
+
 /// 解析 + 转换：得到与后端无关的 `Scene`，两个渲染入口共用这一段。
 fn render_scene(json: &str, data_json: Option<&str>) -> Result<Scene, String> {
     let spec = parse_spec(json, data_json)?;
@@ -218,6 +242,16 @@ pub(crate) mod test_support {
         match super::render_terminal_json(json) {
             Ok(super::TerminalRender::Text(text)) => text,
             Ok(super::TerminalRender::Printed) => panic!("`print` was on, so there is no text"),
+            Err(e) => panic!("expected the spec to render, but got: {e}"),
+        }
+    }
+
+    /// 同一段 JSON 走 Typst 后端，失败同样 panic。
+    ///
+    /// The same JSON through the Typst backend, panicking on failure.
+    pub(crate) fn render_typst(json: &str) -> String {
+        match super::render_typst_json(json) {
+            Ok(source) => source,
             Err(e) => panic!("expected the spec to render, but got: {e}"),
         }
     }

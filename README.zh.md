@@ -46,6 +46,7 @@ SELECT kuva_render('{"series":[{"type":"scatter","data":[{"x": 1, "y": 2}, {"x":
 | --- | --- | --- |
 | `kuva_render(spec)` | 标量 | `VARCHAR`（JSON 图表描述）→ `VARCHAR`（一份 SVG 文档） |
 | `kuva_render_terminal(spec)` | 标量 | `VARCHAR` → `VARCHAR`（终端文本：盲文点阵 + ANSI 色） |
+| `kuva_render_typst(spec)` | 标量 | `VARCHAR` → `VARCHAR`（Typst 源码 —— 一份 CETZ 矢量图，交给 `typst compile`） |
 | `kuva_render_file(spec)` | 标量 | `VARCHAR` → `VARCHAR`（它写出的 SVG 文件的路径；仅原生构建） |
 
 它们都有一个**可选的第二个参数**：一个 JSON 对象，把数据集名映射到行数组 —— 于是图表**配置**与**数据**
@@ -67,9 +68,10 @@ DuckDB 的 JSON 类型到扩展这一侧就是普通的 `VARCHAR`，所以入参
 Invalid Input Error: kuva_render: bar: `values` has 1 entries but there are 2 categories
 ```
 
-`kuva_render_terminal` 把同一段 JSON 渲染给终端而不是 SVG 文档，`kuva_render_file` 则把 SVG 写成文件并
-返回它的路径，可选用浏览器打开。两者各自的选项都写在 JSON 里（分别是 `terminal` 与 `file` 对象），所以
-每个都保持单参数：
+`kuva_render_terminal` 把同一段 JSON 渲染给终端而不是 SVG 文档，`kuva_render_typst` 把它落成 Typst
+源码（一份 `.typ` 文档，交给 `typst compile` 自己编），`kuva_render_file` 则把 SVG 写成文件并返回它的
+路径，可选用浏览器打开。`kuva_render_terminal` 与 `kuva_render_file` 各自的选项都写在 JSON 里
+（分别是 `terminal` 与 `file` 对象），`kuva_render_typst` 没有选项，所以每个都保持单参数：
 
 ```sql
 SELECT kuva_render_file({

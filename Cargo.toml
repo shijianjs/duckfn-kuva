@@ -147,17 +147,27 @@ libduckdb-sys = { version = ">=1.10500, <2", features = ["loadable-extension"] }
 #   chrono = { version = "0.4", default-features = false, features = ["std"] }
 
 # kuva：Rust 科学绘图库，本扩展的存在理由 —— 把它的统计语义绘图包装成 DuckDB 函数（见
-# src/extension/functions/）。默认 features 为空，等于只用 **SVG 后端**：依赖只有 chrono / colorous /
-# ryu，纯 Rust、可编到 wasm，正是「全平台 + 浏览器 DuckDB-Wasm」要的形态。
-# `png` / `pdf` / `full` / `cli` / `parquet` 都会拉进 fontdue、png、krilla、arrow 这类重依赖（而且 pdf
-# 还要求 Rust>=1.92），本项目一个都不开。
+# src/extension/functions/）。除 SVG 外，只多开一个 `typst`：它是**零依赖**的 markup 后端，
+# `kuva_render_typst` 用它把同一份 Scene 落成一份 `.typ` 源码（由调用方 `typst compile` 自己编），
+# 纯字符串拼装、也能编到 wasm，与「全平台 + 浏览器 DuckDB-Wasm」不冲突。
+# 其余 feature 都会拉进重依赖：`png` / `pdf` / `full` 带 fontdue、png、krilla（pdf 还要求 Rust>=1.92），
+# `cli` 带 clap，`parquet` 带 arrow —— 一个都不开。
+# `typst-math` 也是**刻意不开**的：它把整个 Typst 编译器（typst / typst-svg / typst-render /
+# typst-library）链接进来（数百个 crate），只为把 `$...$` 就地渲染成矢量数学公式；默认那档已经把
+# `$...$` 降级成全平台通用的内联 Unicode，值不值这个体积另说（见 TODO.md）。
 #
 # kuva: the Rust scientific plotting library this extension wraps into DuckDB functions (see
-# src/extension/functions/). The default feature set is empty, i.e. **SVG backend only** — its
-# dependencies are just chrono / colorous / ryu, pure Rust and wasm-buildable, which is exactly the shape
-# "every platform + browser DuckDB-Wasm" needs. `png` / `pdf` / `full` / `cli` / `parquet` all pull in
-# heavy dependencies (fontdue, png, krilla, arrow — and pdf even needs Rust>=1.92); none is enabled here.
-kuva = "0.6"
+# src/extension/functions/). Besides SVG, exactly one more feature is on — `typst`: a **zero-dependency**
+# markup backend that `kuva_render_typst` uses to lower the same Scene into a `.typ` source document (the
+# caller runs `typst compile` themselves). It is pure string assembly and wasm-buildable, so it sits fine
+# with "every platform + browser DuckDB-Wasm".
+# Every other feature pulls in heavy dependencies: `png` / `pdf` / `full` bring fontdue, png, krilla (pdf
+# even needs Rust>=1.92), `cli` brings clap, `parquet` brings arrow — none is enabled.
+# `typst-math` is **deliberately off** too: it links the whole Typst compiler (typst / typst-svg /
+# typst-render / typst-library — hundreds of crates) just to typeset `$...$` into vector math in place;
+# the default tier already lowers `$...$` to inline Unicode that works everywhere. Whether that size is
+# worth it is an open question (see TODO.md).
+kuva = { version = "0.6", features = ["typst"] }
 
 # serde / serde_json：JSON 入口那一版 API 的地基 —— 把一段 JSON 反序列化成强类型结构
 # （「Jackson 到对象」的映射，见 src/extension/functions/spec/schema/），而不是拿字符串 key 去

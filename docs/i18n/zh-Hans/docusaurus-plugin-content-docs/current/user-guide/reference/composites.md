@@ -1,6 +1,6 @@
 ---
 title: 组合图（覆盖度与 brick-pop）
-sidebar_position: 19
+sidebar_position: 20
 description: 两种不是 series 的图 —— 基因组浏览器式的覆盖度图与群体等位基因频率图，都由顶层的 composite 对象驱动。
 ---
 

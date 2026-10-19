@@ -257,7 +257,7 @@ fn check_structure(structure: &[Vec<usize>], rows: usize, cols: usize) -> Result
 #[cfg(test)]
 mod tests {
     use crate::extension::functions::spec::test_support::{
-        assert_renders, render_json, render_svg, render_terminal,
+        assert_renders, render_json, render_svg, render_terminal, render_typst,
     };
 
     const FIGURE: &str = r#"{
@@ -499,6 +499,23 @@ mod tests {
             !text.contains("38;2;0;0;0"),
             "phylo edges must not be black on a dark terminal"
         );
+    }
+
+    /// 同一段 JSON 也能交给 Typst 后端：输出是一份 `.typ` 源码（CETZ 矢量图），不是 SVG。
+    ///
+    /// The same JSON also goes through the Typst backend: the output is a `.typ` source document (a
+    /// CETZ vector drawing), not an SVG.
+    #[test]
+    fn renders_typst_from_the_same_json() {
+        let source = render_typst(
+            r#"{"title":"t","series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3},{"x":3,"y":1}]}]}"#,
+        );
+        // 页面尺寸与 CETZ 的导入是这份源码的骨架；没有它们就不是一份能交给 typst compile 的文档。
+        assert!(source.contains("#set page("), "expected a page setup, got: {source}");
+        assert!(source.contains("#import \"@preview/cetz:"), "expected the CETZ import");
+        assert!(source.contains("#cetz.canvas("), "expected a canvas");
+        // 图里的折线真的画了出来（CETZ 的 line 原语，坐标已按 CETZ 的 y 轴向上翻转）。
+        assert!(source.contains("line(("), "expected the line series to be drawn");
     }
 
     /// `terminal.print` 为真时结果直接打到 stdout，函数返回 NULL —— SQL 这一侧就没有值了。

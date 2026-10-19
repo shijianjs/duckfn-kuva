@@ -1,5 +1,5 @@
 # name: test/sql/duckfn_kuva.test
-# description: Smoke test: the extension loads, and its four functions (kuva_render / kuva_render_terminal / kuva_render_file / kuva_version) turn a JSON spec into an SVG document, terminal text, or a file path, and report the kuva version
+# description: Smoke test: the extension loads, and its five functions (kuva_render / kuva_render_terminal / kuva_render_typst / kuva_render_file / kuva_version) turn a JSON spec into an SVG document, terminal text, Typst source, or a file path, and report the kuva version
 # group: [duckfn_kuva]
 
 # Before the extension is loaded none of the functions exist.
@@ -10,6 +10,11 @@ does not exist
 
 statement error
 SELECT kuva_render_terminal('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
+----
+does not exist
+
+statement error
+SELECT kuva_render_typst('{"series":[{"type":"scatter","data":[{"x":1,"y":2}]}]}');
 ----
 does not exist
 
@@ -352,12 +357,20 @@ FROM (VALUES ('a', 3), ('b', 5), ('c', 7)) AS t(k, v);
 ----
 <svg
 
-# The terminal and file entry points take the same second argument.
+# The terminal, typst and file entry points take the same second argument.
 query I
 SELECT length(kuva_render_terminal(
   '{"terminal":{"cols":40,"rows":12},"series":[{"type":"bar","dataset":"t","encode":{"name":"k","value":"v"}}]}',
   '{"t":[{"k":"a","v":3},{"k":"b","v":5}]}'
 )) > 0;
+----
+true
+
+query I
+SELECT contains(kuva_render_typst(
+  '{"series":[{"type":"bar","dataset":"t","encode":{"name":"k","value":"v"}}]}',
+  '{"t":[{"k":"a","v":3},{"k":"b","v":5}]}'
+), '#cetz.canvas(');
 ----
 true
 
@@ -430,6 +443,39 @@ invalid JSON
 
 statement error
 SELECT kuva_render_terminal('{"series":[]}');
+----
+`series` must not be empty
+
+# ============================================================================
+# kuva_render_typst: the same JSON, the Typst backend (a `.typ` CETZ document)
+# ============================================================================
+
+# The result is Typst source: a page setup, the CETZ import and a canvas.
+query I
+SELECT left(kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}'), 10);
+----
+#set page(
+
+query I
+SELECT contains(kuva_render_typst('{"series":[{"type":"line","data":[{"x":1,"y":2},{"x":2,"y":3}]}]}'), '#import "@preview/cetz:');
+----
+true
+
+# A multi-panel figure renders as one canvas too (the grid rides along in the same JSON).
+query I
+SELECT contains(source, '#cetz.canvas(') AND contains(source, 'rect(')
+FROM (SELECT kuva_render_typst('{"figure":{"rows":1,"cols":2,"panels":[{"series":[{"type":"scatter","data":[{"x":1,"y":2},{"x":2,"y":3}]}]},{"series":[{"type":"histogram","values":[1,2,2,3],"bins":3}]}]}}') AS source) t;
+----
+true
+
+# Typst errors behave as kuva_render's: they fail the statement rather than returning NULL.
+statement error
+SELECT kuva_render_typst('{oops');
+----
+invalid JSON
+
+statement error
+SELECT kuva_render_typst('{"series":[]}');
 ----
 `series` must not be empty
 

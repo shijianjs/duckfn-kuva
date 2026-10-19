@@ -1,6 +1,6 @@
 ---
 title: Composites (coverage & brick-pop)
-sidebar_position: 19
+sidebar_position: 20
 description: The two charts that are not series — a genome-browser coverage figure and a population allele-frequency figure, both driven by a top-level composite object.
 ---
 

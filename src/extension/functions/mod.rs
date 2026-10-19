@@ -16,6 +16,7 @@ mod kuva_version;
 #[cfg(not(target_arch = "wasm32"))]
 mod kuva_render_file;
 mod kuva_render_terminal;
+mod kuva_render_typst;
 // `pub(crate)`：`src/bin/json_schema.rs` 通过 `#[path]` 再编一遍这份源码时要走到 `spec::schema`。
 //
 // `pub(crate)`: `src/bin/json_schema.rs` re-compiles these sources via `#[path]` and needs to reach

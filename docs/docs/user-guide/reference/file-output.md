@@ -85,6 +85,6 @@ returned SVG string in the page; the same JSON renders identically, only the des
 
 ## See also
 
-- [Functions](../functions.md) — `kuva_render`, `kuva_render_terminal` and `kuva_render_file` side by side.
+- [Functions](../functions.md) — `kuva_render`, `kuva_render_terminal`, `kuva_render_typst` and `kuva_render_file` side by side.
 - [Terminal output](./terminal.md) — the other non-SVG backend.
 - [kuva — Save / export](https://psy-fer.github.io/kuva/) — the library this extension wraps.

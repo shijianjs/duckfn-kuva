@@ -157,7 +157,7 @@ libduckdb-sys = { version = ">=1.10500, <2", features = ["loadable-extension"] }
 # dependencies are just chrono / colorous / ryu, pure Rust and wasm-buildable, which is exactly the shape
 # "every platform + browser DuckDB-Wasm" needs. `png` / `pdf` / `full` / `cli` / `parquet` all pull in
 # heavy dependencies (fontdue, png, krilla, arrow — and pdf even needs Rust>=1.92); none is enabled here.
-kuva = "0.5"
+kuva = "0.6"
 
 # serde / serde_json：JSON 入口那一版 API 的地基 —— 把一段 JSON 反序列化成强类型结构
 # （「Jackson 到对象」的映射，见 src/extension/functions/spec/schema/），而不是拿字符串 key 去

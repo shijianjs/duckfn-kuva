@@ -2,7 +2,7 @@
 
 # duckfn_kuva
 
-[![DuckDB 1.3+](https://img.shields.io/badge/DuckDB-1.3%2B-fff100?logo=duckdb&style=flat)](https://duckdb.org/)
+[![DuckDB 1.4+](https://img.shields.io/badge/DuckDB-1.4%2B-fff100?logo=duckdb&style=flat)](https://duckdb.org/)
 [![周下载](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcommunity-extensions.duckdb.org%2Fdownloads-last-week.json&query=%24.duckfn_kuva&label=%E5%91%A8%E4%B8%8B%E8%BD%BD&color=blue&logo=duckdb&logoColor=a899ff&style=flat)](https://duckdb.org/community_extensions/extensions/duckfn_kuva)
 [![版本](https://img.shields.io/github/v/release/shijianjs/duckfn-kuva?style=flat&logo=github&label=%E7%89%88%E6%9C%AC)](https://github.com/shijianjs/duckfn-kuva/releases)
 [![许可证](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-14459b.svg?style=flat&logo=github)](https://github.com/shijianjs/duckfn-kuva/blob/main/LICENSE)

@@ -2,7 +2,7 @@
 
 # duckfn_kuva
 
-[![DuckDB 1.3+](https://img.shields.io/badge/DuckDB-1.3%2B-fff100?logo=duckdb&style=flat)](https://duckdb.org/)
+[![DuckDB 1.4+](https://img.shields.io/badge/DuckDB-1.4%2B-fff100?logo=duckdb&style=flat)](https://duckdb.org/)
 [![Weekly Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcommunity-extensions.duckdb.org%2Fdownloads-last-week.json&query=%24.duckfn_kuva&label=Weekly%20Downloads&color=blue&logo=duckdb&logoColor=a899ff&style=flat)](https://duckdb.org/community_extensions/extensions/duckfn_kuva)
 [![Release](https://img.shields.io/github/v/release/shijianjs/duckfn-kuva?style=flat&logo=github)](https://github.com/shijianjs/duckfn-kuva/releases)
 [![License](https://img.shields.io/badge/license-MIT-14459b.svg?style=flat&logo=github)](https://github.com/shijianjs/duckfn-kuva/blob/main/LICENSE)

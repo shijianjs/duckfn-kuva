@@ -23,7 +23,7 @@
 
   ```bash
   $src = 'S:/workspace/github/Psy-Fer/kuva/examples/data'
-  $dst = 's:/workspace/my/rust/duckdb/duckfn-kuva/docs/static/data'
+  $dst = 's:/workspace/github/shijianjs/duckfn-kuva/docs/static/data'
   Get-ChildItem $src -File | Where-Object { $_.Extension -in '.tsv', '.parquet' } |
     ForEach-Object { Copy-Item $_.FullName (Join-Path $dst $_.Name) -Force }
   ```

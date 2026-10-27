@@ -32,6 +32,10 @@ docs:
                        '{"d":[{"a":1,"b":2},{"a":3,"b":4}]}');
     -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
   extended_description: |
+    Documentation: [user guide](https://shijianjs.github.io/duckfn-kuva/docs/intro) ·
+    [chart reference](https://shijianjs.github.io/duckfn-kuva/docs/category/plots) - installation, a page
+    per chart type with runnable examples, and the full field reference.
+
     Renders statistical charts from SQL. The extension wraps the Rust plotting library kuva (SVG backend
     only) and exposes it through five scalar functions, so charts work anywhere DuckDB runs - the CLI, a
     Python or R session, the JVM, or the browser build (DuckDB-Wasm) - from one and the same extension
@@ -99,6 +103,5 @@ docs:
     Requires **DuckDB 1.4 or newer**: the extension is built for DuckDB 2.0.0 but declares
     the C API floor it needs (v1.2.0), so one binary loads into 1.4.x, 1.5.x and 2.0.0 alike - the C
     API is binary compatible across these versions, so the 2.0 release asset is the one to install on
-    all of them and there is no separate 1.5 build. The full
-    field reference and the development notes live in the repository:
+    all of them and there is no separate 1.5 build. Development notes live in the repository:
     <https://github.com/shijianjs/duckfn-kuva>.
